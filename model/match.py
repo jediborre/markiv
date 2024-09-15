@@ -31,3 +31,14 @@ class Match(Base):
                 logging.error(f"Error adding match: {err}")
                 db.rollback()
                 raise
+
+    @classmethod
+    @retry_on_timeout(max_retries=3, delay=5)
+    def get_by_pais(cls, db=None):
+        if db:
+            try:
+                return db.query(cls).all()
+            except OperationalError as err:
+                logging.error(f"Error adding match: {err}")
+                db.rollback()
+                raise

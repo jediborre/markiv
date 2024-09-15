@@ -3,8 +3,8 @@ from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, Text, ForeignKey
 
 
-class MatchStatsHomeMatches(Base):
-    __tablename__ = 'Matches.stats.home_matches'
+class MatchStatsFaceMatches(Base):
+    __tablename__ = 'Matches.stats.face_matches'
 
     id = Column(Integer, primary_key=True)
     match_stats_id = Column("Matches.stats", Integer, ForeignKey('Matches.stats.id')) # noqa
@@ -15,4 +15,4 @@ class MatchStatsHomeMatches(Base):
     home_FT = Column(Text)
     away_FT = Column(Text)
 
-    match_stats = relationship("MatchStats", back_populates="home_matches")
+    match_stats = relationship("MatchStats", back_populates="face_matches")

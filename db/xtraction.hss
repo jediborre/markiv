@@ -4,7 +4,7 @@
   <Assignments>
     <Code>Matches = {&#xD;
 	(Browser.Load {&#xD;
-		"https://www.totalcorner.com/match/schedule/20240911"&#xD;
+		"https://www.totalcorner.com/match/schedule/20240914"&#xD;
 	})&#xD;
 	(Browser.TurnPages {&#xD;
 		Select.Next&#xD;
@@ -55,13 +55,13 @@
 						league: {&#xD;
 							Select.H_league&#xD;
 						}&#xD;
-						match_date: {&#xD;
+						date: {&#xD;
 							Select.H_DATE&#xD;
 						}&#xD;
-						home_name: {&#xD;
+						home: {&#xD;
 							Select.H_home_name&#xD;
 						}&#xD;
-						away_name: {&#xD;
+						away: {&#xD;
 							Select.H_away_name&#xD;
 						}&#xD;
 						home_FT: {&#xD;
@@ -81,14 +81,17 @@
 						date: {&#xD;
 							Select.F_date&#xD;
 						}&#xD;
-						score: {&#xD;
-							Select.F_score&#xD;
-						}&#xD;
 						home: {&#xD;
 							Select.F_home&#xD;
 						}&#xD;
 						away: {&#xD;
 							Select.F_away&#xD;
+						}&#xD;
+						home_FT: {&#xD;
+							Select.F_home_FT&#xD;
+						}&#xD;
+						away_FT: {&#xD;
+							Select.F_away_FT&#xD;
 						}&#xD;
 					})&#xD;
 				}&#xD;
@@ -98,13 +101,13 @@
 						league: {&#xD;
 							Select.A_league&#xD;
 						}&#xD;
-						match_date: {&#xD;
+						date: {&#xD;
 							Select.A_match_date&#xD;
 						}&#xD;
-						home_name: {&#xD;
+						home: {&#xD;
 							Select.A_home_name&#xD;
 						}&#xD;
-						away_name: {&#xD;
+						away: {&#xD;
 							Select.A_away_name&#xD;
 						}&#xD;
 						home_FT: {&#xD;
@@ -126,605 +129,7 @@
   </Code>
   <HorizontalDatabase>
     <Schema xsi:type="SerializableObjectType">
-      <Members>
-        <SerializableObjectMember>
-          <Name>Matches</Name>
-          <Type xsi:type="SerializableListType">
-            <ItemType xsi:type="SerializableObjectType">
-              <Members>
-                <SerializableObjectMember>
-                  <Name>league</Name>
-                  <Type xsi:type="SerializableListType">
-                    <ItemType xsi:type="SerializableSimpleType">
-                      <Kind>String</Kind>
-                    </ItemType>
-                  </Type>
-                </SerializableObjectMember>
-                <SerializableObjectMember>
-                  <Name>pais</Name>
-                  <Type xsi:type="SerializableListType">
-                    <ItemType xsi:type="SerializableSimpleType">
-                      <Kind>String</Kind>
-                    </ItemType>
-                  </Type>
-                </SerializableObjectMember>
-                <SerializableObjectMember>
-                  <Name>time</Name>
-                  <Type xsi:type="SerializableListType">
-                    <ItemType xsi:type="SerializableSimpleType">
-                      <Kind>String</Kind>
-                    </ItemType>
-                  </Type>
-                </SerializableObjectMember>
-                <SerializableObjectMember>
-                  <Name>minuto</Name>
-                  <Type xsi:type="SerializableListType">
-                    <ItemType xsi:type="SerializableSimpleType">
-                      <Kind>String</Kind>
-                    </ItemType>
-                  </Type>
-                </SerializableObjectMember>
-                <SerializableObjectMember>
-                  <Name>home_FT</Name>
-                  <Type xsi:type="SerializableListType">
-                    <ItemType xsi:type="SerializableSimpleType">
-                      <Kind>String</Kind>
-                    </ItemType>
-                  </Type>
-                </SerializableObjectMember>
-                <SerializableObjectMember>
-                  <Name>away_FT</Name>
-                  <Type xsi:type="SerializableListType">
-                    <ItemType xsi:type="SerializableSimpleType">
-                      <Kind>String</Kind>
-                    </ItemType>
-                  </Type>
-                </SerializableObjectMember>
-                <SerializableObjectMember>
-                  <Name>home</Name>
-                  <Type xsi:type="SerializableListType">
-                    <ItemType xsi:type="SerializableSimpleType">
-                      <Kind>String</Kind>
-                    </ItemType>
-                  </Type>
-                </SerializableObjectMember>
-                <SerializableObjectMember>
-                  <Name>away</Name>
-                  <Type xsi:type="SerializableListType">
-                    <ItemType xsi:type="SerializableSimpleType">
-                      <Kind>String</Kind>
-                    </ItemType>
-                  </Type>
-                </SerializableObjectMember>
-                <SerializableObjectMember>
-                  <Name>home_pos</Name>
-                  <Type xsi:type="SerializableListType">
-                    <ItemType xsi:type="SerializableSimpleType">
-                      <Kind>String</Kind>
-                    </ItemType>
-                  </Type>
-                </SerializableObjectMember>
-                <SerializableObjectMember>
-                  <Name>away_pos</Name>
-                  <Type xsi:type="SerializableListType">
-                    <ItemType xsi:type="SerializableSimpleType">
-                      <Kind>String</Kind>
-                    </ItemType>
-                  </Type>
-                </SerializableObjectMember>
-                <SerializableObjectMember>
-                  <Name>home_Amarillas</Name>
-                  <Type xsi:type="SerializableListType">
-                    <ItemType xsi:type="SerializableSimpleType">
-                      <Kind>String</Kind>
-                    </ItemType>
-                  </Type>
-                </SerializableObjectMember>
-                <SerializableObjectMember>
-                  <Name>away_Amarillas</Name>
-                  <Type xsi:type="SerializableListType">
-                    <ItemType xsi:type="SerializableSimpleType">
-                      <Kind>String</Kind>
-                    </ItemType>
-                  </Type>
-                </SerializableObjectMember>
-                <SerializableObjectMember>
-                  <Name>home_Rojas</Name>
-                  <Type xsi:type="SerializableListType">
-                    <ItemType xsi:type="SerializableSimpleType">
-                      <Kind>String</Kind>
-                    </ItemType>
-                  </Type>
-                </SerializableObjectMember>
-                <SerializableObjectMember>
-                  <Name>away_Rojas</Name>
-                  <Type xsi:type="SerializableListType">
-                    <ItemType xsi:type="SerializableSimpleType">
-                      <Kind>String</Kind>
-                    </ItemType>
-                  </Type>
-                </SerializableObjectMember>
-                <SerializableObjectMember>
-                  <Name>home_corner_HT</Name>
-                  <Type xsi:type="SerializableListType">
-                    <ItemType xsi:type="SerializableSimpleType">
-                      <Kind>String</Kind>
-                    </ItemType>
-                  </Type>
-                </SerializableObjectMember>
-                <SerializableObjectMember>
-                  <Name>away_corner_HT</Name>
-                  <Type xsi:type="SerializableListType">
-                    <ItemType xsi:type="SerializableSimpleType">
-                      <Kind>String</Kind>
-                    </ItemType>
-                  </Type>
-                </SerializableObjectMember>
-                <SerializableObjectMember>
-                  <Name>home_corner_FT</Name>
-                  <Type xsi:type="SerializableListType">
-                    <ItemType xsi:type="SerializableSimpleType">
-                      <Kind>String</Kind>
-                    </ItemType>
-                  </Type>
-                </SerializableObjectMember>
-                <SerializableObjectMember>
-                  <Name>away_corner_FT</Name>
-                  <Type xsi:type="SerializableListType">
-                    <ItemType xsi:type="SerializableSimpleType">
-                      <Kind>String</Kind>
-                    </ItemType>
-                  </Type>
-                </SerializableObjectMember>
-                <SerializableObjectMember>
-                  <Name>home_dangerous_FT</Name>
-                  <Type xsi:type="SerializableListType">
-                    <ItemType xsi:type="SerializableSimpleType">
-                      <Kind>String</Kind>
-                    </ItemType>
-                  </Type>
-                </SerializableObjectMember>
-                <SerializableObjectMember>
-                  <Name>away_dangerous_FT</Name>
-                  <Type xsi:type="SerializableListType">
-                    <ItemType xsi:type="SerializableSimpleType">
-                      <Kind>String</Kind>
-                    </ItemType>
-                  </Type>
-                </SerializableObjectMember>
-                <SerializableObjectMember>
-                  <Name>home_dangerouse_HT</Name>
-                  <Type xsi:type="SerializableListType">
-                    <ItemType xsi:type="SerializableSimpleType">
-                      <Kind>String</Kind>
-                    </ItemType>
-                  </Type>
-                </SerializableObjectMember>
-                <SerializableObjectMember>
-                  <Name>away_dangerouse_HT</Name>
-                  <Type xsi:type="SerializableListType">
-                    <ItemType xsi:type="SerializableSimpleType">
-                      <Kind>String</Kind>
-                    </ItemType>
-                  </Type>
-                </SerializableObjectMember>
-                <SerializableObjectMember>
-                  <Name>url</Name>
-                  <Type xsi:type="SerializableListType">
-                    <ItemType xsi:type="SerializableSimpleType">
-                      <Kind>String</Kind>
-                    </ItemType>
-                  </Type>
-                </SerializableObjectMember>
-                <SerializableObjectMember>
-                  <Name>stats</Name>
-                  <Type xsi:type="SerializableListType">
-                    <ItemType xsi:type="SerializableObjectType">
-                      <Members>
-                        <SerializableObjectMember>
-                          <Name>fecha</Name>
-                          <Type xsi:type="SerializableListType">
-                            <ItemType xsi:type="SerializableSimpleType">
-                              <Kind>String</Kind>
-                            </ItemType>
-                          </Type>
-                        </SerializableObjectMember>
-                        <SerializableObjectMember>
-                          <Name>eventos_html</Name>
-                          <Type xsi:type="SerializableListType">
-                            <ItemType xsi:type="SerializableSimpleType">
-                              <Kind>String</Kind>
-                            </ItemType>
-                          </Type>
-                        </SerializableObjectMember>
-                        <SerializableObjectMember>
-                          <Name>home_scored</Name>
-                          <Type xsi:type="SerializableListType">
-                            <ItemType xsi:type="SerializableSimpleType">
-                              <Kind>String</Kind>
-                            </ItemType>
-                          </Type>
-                        </SerializableObjectMember>
-                        <SerializableObjectMember>
-                          <Name>home_scoredGame</Name>
-                          <Type xsi:type="SerializableListType">
-                            <ItemType xsi:type="SerializableSimpleType">
-                              <Kind>String</Kind>
-                            </ItemType>
-                          </Type>
-                        </SerializableObjectMember>
-                        <SerializableObjectMember>
-                          <Name>home_conceded</Name>
-                          <Type xsi:type="SerializableListType">
-                            <ItemType xsi:type="SerializableSimpleType">
-                              <Kind>String</Kind>
-                            </ItemType>
-                          </Type>
-                        </SerializableObjectMember>
-                        <SerializableObjectMember>
-                          <Name>home_concededGame</Name>
-                          <Type xsi:type="SerializableListType">
-                            <ItemType xsi:type="SerializableSimpleType">
-                              <Kind>String</Kind>
-                            </ItemType>
-                          </Type>
-                        </SerializableObjectMember>
-                        <SerializableObjectMember>
-                          <Name>away_scored</Name>
-                          <Type xsi:type="SerializableListType">
-                            <ItemType xsi:type="SerializableSimpleType">
-                              <Kind>String</Kind>
-                            </ItemType>
-                          </Type>
-                        </SerializableObjectMember>
-                        <SerializableObjectMember>
-                          <Name>away_conceded</Name>
-                          <Type xsi:type="SerializableListType">
-                            <ItemType xsi:type="SerializableSimpleType">
-                              <Kind>String</Kind>
-                            </ItemType>
-                          </Type>
-                        </SerializableObjectMember>
-                        <SerializableObjectMember>
-                          <Name>away_scoredGame</Name>
-                          <Type xsi:type="SerializableListType">
-                            <ItemType xsi:type="SerializableSimpleType">
-                              <Kind>String</Kind>
-                            </ItemType>
-                          </Type>
-                        </SerializableObjectMember>
-                        <SerializableObjectMember>
-                          <Name>away_concededGame</Name>
-                          <Type xsi:type="SerializableListType">
-                            <ItemType xsi:type="SerializableSimpleType">
-                              <Kind>String</Kind>
-                            </ItemType>
-                          </Type>
-                        </SerializableObjectMember>
-                        <SerializableObjectMember>
-                          <Name>home_HT</Name>
-                          <Type xsi:type="SerializableListType">
-                            <ItemType xsi:type="SerializableSimpleType">
-                              <Kind>String</Kind>
-                            </ItemType>
-                          </Type>
-                        </SerializableObjectMember>
-                        <SerializableObjectMember>
-                          <Name>away_HT</Name>
-                          <Type xsi:type="SerializableListType">
-                            <ItemType xsi:type="SerializableSimpleType">
-                              <Kind>String</Kind>
-                            </ItemType>
-                          </Type>
-                        </SerializableObjectMember>
-                        <SerializableObjectMember>
-                          <Name>home_shoot_on_target_HT</Name>
-                          <Type xsi:type="SerializableListType">
-                            <ItemType xsi:type="SerializableSimpleType">
-                              <Kind>String</Kind>
-                            </ItemType>
-                          </Type>
-                        </SerializableObjectMember>
-                        <SerializableObjectMember>
-                          <Name>away_shoot_on_target_HT</Name>
-                          <Type xsi:type="SerializableListType">
-                            <ItemType xsi:type="SerializableSimpleType">
-                              <Kind>String</Kind>
-                            </ItemType>
-                          </Type>
-                        </SerializableObjectMember>
-                        <SerializableObjectMember>
-                          <Name>home_shoot_off_target_HT</Name>
-                          <Type xsi:type="SerializableListType">
-                            <ItemType xsi:type="SerializableSimpleType">
-                              <Kind>String</Kind>
-                            </ItemType>
-                          </Type>
-                        </SerializableObjectMember>
-                        <SerializableObjectMember>
-                          <Name>away_shoot_off_target_HT</Name>
-                          <Type xsi:type="SerializableListType">
-                            <ItemType xsi:type="SerializableSimpleType">
-                              <Kind>String</Kind>
-                            </ItemType>
-                          </Type>
-                        </SerializableObjectMember>
-                        <SerializableObjectMember>
-                          <Name>home_attacks_HT</Name>
-                          <Type xsi:type="SerializableListType">
-                            <ItemType xsi:type="SerializableSimpleType">
-                              <Kind>String</Kind>
-                            </ItemType>
-                          </Type>
-                        </SerializableObjectMember>
-                        <SerializableObjectMember>
-                          <Name>away_attacks_HT</Name>
-                          <Type xsi:type="SerializableListType">
-                            <ItemType xsi:type="SerializableSimpleType">
-                              <Kind>String</Kind>
-                            </ItemType>
-                          </Type>
-                        </SerializableObjectMember>
-                        <SerializableObjectMember>
-                          <Name>home_shoot_on_target_FT</Name>
-                          <Type xsi:type="SerializableListType">
-                            <ItemType xsi:type="SerializableSimpleType">
-                              <Kind>String</Kind>
-                            </ItemType>
-                          </Type>
-                        </SerializableObjectMember>
-                        <SerializableObjectMember>
-                          <Name>away_shoot_on_target_FT</Name>
-                          <Type xsi:type="SerializableListType">
-                            <ItemType xsi:type="SerializableSimpleType">
-                              <Kind>String</Kind>
-                            </ItemType>
-                          </Type>
-                        </SerializableObjectMember>
-                        <SerializableObjectMember>
-                          <Name>home_shoot_off_target_FT</Name>
-                          <Type xsi:type="SerializableListType">
-                            <ItemType xsi:type="SerializableSimpleType">
-                              <Kind>String</Kind>
-                            </ItemType>
-                          </Type>
-                        </SerializableObjectMember>
-                        <SerializableObjectMember>
-                          <Name>away_shoot_off_target_FT</Name>
-                          <Type xsi:type="SerializableListType">
-                            <ItemType xsi:type="SerializableSimpleType">
-                              <Kind>String</Kind>
-                            </ItemType>
-                          </Type>
-                        </SerializableObjectMember>
-                        <SerializableObjectMember>
-                          <Name>home_attacks_FT</Name>
-                          <Type xsi:type="SerializableListType">
-                            <ItemType xsi:type="SerializableSimpleType">
-                              <Kind>String</Kind>
-                            </ItemType>
-                          </Type>
-                        </SerializableObjectMember>
-                        <SerializableObjectMember>
-                          <Name>away_attacks_FT</Name>
-                          <Type xsi:type="SerializableListType">
-                            <ItemType xsi:type="SerializableSimpleType">
-                              <Kind>String</Kind>
-                            </ItemType>
-                          </Type>
-                        </SerializableObjectMember>
-                        <SerializableObjectMember>
-                          <Name>home_corners_HT</Name>
-                          <Type xsi:type="SerializableListType">
-                            <ItemType xsi:type="SerializableSimpleType">
-                              <Kind>String</Kind>
-                            </ItemType>
-                          </Type>
-                        </SerializableObjectMember>
-                        <SerializableObjectMember>
-                          <Name>away_corners_HT</Name>
-                          <Type xsi:type="SerializableListType">
-                            <ItemType xsi:type="SerializableSimpleType">
-                              <Kind>String</Kind>
-                            </ItemType>
-                          </Type>
-                        </SerializableObjectMember>
-                        <SerializableObjectMember>
-                          <Name>eventos</Name>
-                          <Type xsi:type="SerializableListType">
-                            <ItemType xsi:type="SerializableObjectType">
-                              <Members>
-                                <SerializableObjectMember>
-                                  <Name>img</Name>
-                                  <Type xsi:type="SerializableListType">
-                                    <ItemType xsi:type="SerializableSimpleType">
-                                      <Kind>String</Kind>
-                                    </ItemType>
-                                  </Type>
-                                </SerializableObjectMember>
-                                <SerializableObjectMember>
-                                  <Name>texto</Name>
-                                  <Type xsi:type="SerializableListType">
-                                    <ItemType xsi:type="SerializableSimpleType">
-                                      <Kind>String</Kind>
-                                    </ItemType>
-                                  </Type>
-                                </SerializableObjectMember>
-                              </Members>
-                            </ItemType>
-                          </Type>
-                        </SerializableObjectMember>
-                        <SerializableObjectMember>
-                          <Name>home_matches</Name>
-                          <Type xsi:type="SerializableListType">
-                            <ItemType xsi:type="SerializableObjectType">
-                              <Members>
-                                <SerializableObjectMember>
-                                  <Name>h_league</Name>
-                                  <Type xsi:type="SerializableListType">
-                                    <ItemType xsi:type="SerializableSimpleType">
-                                      <Kind>String</Kind>
-                                    </ItemType>
-                                  </Type>
-                                </SerializableObjectMember>
-                                <SerializableObjectMember>
-                                  <Name>h_match_date</Name>
-                                  <Type xsi:type="SerializableListType">
-                                    <ItemType xsi:type="SerializableSimpleType">
-                                      <Kind>String</Kind>
-                                    </ItemType>
-                                  </Type>
-                                </SerializableObjectMember>
-                                <SerializableObjectMember>
-                                  <Name>h_home_name</Name>
-                                  <Type xsi:type="SerializableListType">
-                                    <ItemType xsi:type="SerializableSimpleType">
-                                      <Kind>String</Kind>
-                                    </ItemType>
-                                  </Type>
-                                </SerializableObjectMember>
-                                <SerializableObjectMember>
-                                  <Name>h_away_name</Name>
-                                  <Type xsi:type="SerializableListType">
-                                    <ItemType xsi:type="SerializableSimpleType">
-                                      <Kind>String</Kind>
-                                    </ItemType>
-                                  </Type>
-                                </SerializableObjectMember>
-                                <SerializableObjectMember>
-                                  <Name>h_result</Name>
-                                  <Type xsi:type="SerializableListType">
-                                    <ItemType xsi:type="SerializableSimpleType">
-                                      <Kind>String</Kind>
-                                    </ItemType>
-                                  </Type>
-                                </SerializableObjectMember>
-                                <SerializableObjectMember>
-                                  <Name>h_score_h_HT</Name>
-                                  <Type xsi:type="SerializableListType">
-                                    <ItemType xsi:type="SerializableSimpleType">
-                                      <Kind>String</Kind>
-                                    </ItemType>
-                                  </Type>
-                                </SerializableObjectMember>
-                                <SerializableObjectMember>
-                                  <Name>h_score_a_HT</Name>
-                                  <Type xsi:type="SerializableListType">
-                                    <ItemType xsi:type="SerializableSimpleType">
-                                      <Kind>String</Kind>
-                                    </ItemType>
-                                  </Type>
-                                </SerializableObjectMember>
-                                <SerializableObjectMember>
-                                  <Name>h_score_h_FT</Name>
-                                  <Type xsi:type="SerializableListType">
-                                    <ItemType xsi:type="SerializableSimpleType">
-                                      <Kind>String</Kind>
-                                    </ItemType>
-                                  </Type>
-                                </SerializableObjectMember>
-                                <SerializableObjectMember>
-                                  <Name>h_score_a_FT</Name>
-                                  <Type xsi:type="SerializableListType">
-                                    <ItemType xsi:type="SerializableSimpleType">
-                                      <Kind>String</Kind>
-                                    </ItemType>
-                                  </Type>
-                                </SerializableObjectMember>
-                              </Members>
-                            </ItemType>
-                          </Type>
-                        </SerializableObjectMember>
-                        <SerializableObjectMember>
-                          <Name>away_matches</Name>
-                          <Type xsi:type="SerializableListType">
-                            <ItemType xsi:type="SerializableObjectType">
-                              <Members>
-                                <SerializableObjectMember>
-                                  <Name>a_league</Name>
-                                  <Type xsi:type="SerializableListType">
-                                    <ItemType xsi:type="SerializableSimpleType">
-                                      <Kind>String</Kind>
-                                    </ItemType>
-                                  </Type>
-                                </SerializableObjectMember>
-                                <SerializableObjectMember>
-                                  <Name>a_match_date</Name>
-                                  <Type xsi:type="SerializableListType">
-                                    <ItemType xsi:type="SerializableSimpleType">
-                                      <Kind>String</Kind>
-                                    </ItemType>
-                                  </Type>
-                                </SerializableObjectMember>
-                                <SerializableObjectMember>
-                                  <Name>a_home_name</Name>
-                                  <Type xsi:type="SerializableListType">
-                                    <ItemType xsi:type="SerializableSimpleType">
-                                      <Kind>String</Kind>
-                                    </ItemType>
-                                  </Type>
-                                </SerializableObjectMember>
-                                <SerializableObjectMember>
-                                  <Name>a_away_name</Name>
-                                  <Type xsi:type="SerializableListType">
-                                    <ItemType xsi:type="SerializableSimpleType">
-                                      <Kind>String</Kind>
-                                    </ItemType>
-                                  </Type>
-                                </SerializableObjectMember>
-                                <SerializableObjectMember>
-                                  <Name>a_result</Name>
-                                  <Type xsi:type="SerializableListType">
-                                    <ItemType xsi:type="SerializableSimpleType">
-                                      <Kind>String</Kind>
-                                    </ItemType>
-                                  </Type>
-                                </SerializableObjectMember>
-                                <SerializableObjectMember>
-                                  <Name>a_h_HT</Name>
-                                  <Type xsi:type="SerializableListType">
-                                    <ItemType xsi:type="SerializableSimpleType">
-                                      <Kind>String</Kind>
-                                    </ItemType>
-                                  </Type>
-                                </SerializableObjectMember>
-                                <SerializableObjectMember>
-                                  <Name>a_a_HT</Name>
-                                  <Type xsi:type="SerializableListType">
-                                    <ItemType xsi:type="SerializableSimpleType">
-                                      <Kind>String</Kind>
-                                    </ItemType>
-                                  </Type>
-                                </SerializableObjectMember>
-                                <SerializableObjectMember>
-                                  <Name>a_h_FT</Name>
-                                  <Type xsi:type="SerializableListType">
-                                    <ItemType xsi:type="SerializableSimpleType">
-                                      <Kind>String</Kind>
-                                    </ItemType>
-                                  </Type>
-                                </SerializableObjectMember>
-                                <SerializableObjectMember>
-                                  <Name>a_a_FT</Name>
-                                  <Type xsi:type="SerializableListType">
-                                    <ItemType xsi:type="SerializableSimpleType">
-                                      <Kind>String</Kind>
-                                    </ItemType>
-                                  </Type>
-                                </SerializableObjectMember>
-                              </Members>
-                            </ItemType>
-                          </Type>
-                        </SerializableObjectMember>
-                      </Members>
-                    </ItemType>
-                  </Type>
-                </SerializableObjectMember>
-              </Members>
-            </ItemType>
-          </Type>
-        </SerializableObjectMember>
-      </Members>
+      <Members />
     </Schema>
   </HorizontalDatabase>
   <Kinds>
@@ -853,12 +258,20 @@
       <Value>{"id1":{"val":""},"title":{"val":null},"classes3":{"val":""},"visible":{"val":true},"classes1":{"val":""},"colIndex":{"val":4},"id2":{"val":""},"class2":{"td_away":true},"tag":{"val":"SPAN"},"tag2":{"val":"TD"},"classes2":{"val":"td_away"},"font":{"val":"Helvetica, Arial, sans-serif"},"childrenLen":{"val":0},"id3":{"val":""},"id":{"val":""},"tag3":{"val":"TR"},"tag1":{"val":"A"},"indexes":{"0":1,"1":1,"2":9}}</Value>
     </SerializableNamedPairOfString>
     <SerializableNamedPairOfString>
+      <Name>F_away_FT</Name>
+      <Value>{"class1":{"red":true},"header":{"val":"Scheveningen Last \n1\n2\n3\n4\n5\n6\n7\n  Same home  Netherlands Tweede Divisie  Holland Tweede Divisie Customize View"},"class2":{"td_score":true},"tag":{"val":"SPAN"},"id1":{"val":""},"indexes":{"0":2,"1":3,"2":7},"tag1":{"val":"DIV"},"id3":{"val":""},"color":{"val":"rgb(255, 0, 0)"},"colIndex":{"val":3},"tag3":{"val":"TR"},"classes2":{"val":"td_score"},"id":{"val":""},"font":{"val":"Helvetica, Arial, sans-serif"},"title":{"val":null},"classes3":{"val":""},"classes":{"val":""},"tag2":{"val":"TD"},"visible":{"val":true},"childrenLen":{"val":0},"id2":{"val":""},"classes1":{"val":"red"}}</Value>
+    </SerializableNamedPairOfString>
+    <SerializableNamedPairOfString>
       <Name>F_date</Name>
       <Value>{"color":{"val":"rgb(64, 64, 64)"},"id2":{"val":""},"id3":{"val":"head_to_head_history_table"},"title":{"val":null},"font":{"val":"Helvetica, Arial, sans-serif"},"tag3":{"val":"TABLE"},"class3":{"table":true,"table-bordered":true,"table-condensed":true,"table-center":true,"table-vertical-center":true,"background_table":true},"classes":{"val":"td_time"},"childrenLen":{"val":0},"class":{"td_time":true},"tag2":{"val":"TBODY"},"visible":{"val":true},"tag1":{"val":"TR"},"indexes":{"0":3,"2":3},"id1":{"val":""},"id":{"val":""},"tag":{"val":"TD"},"classes2":{"val":""},"colIndex":{"val":1},"classes1":{"val":""},"classes3":{"val":"table table-bordered table-condensed table-center table-vertical-center background_table"}}</Value>
     </SerializableNamedPairOfString>
     <SerializableNamedPairOfString>
       <Name>F_home</Name>
       <Value>{"id1":{"val":""},"title":{"val":null},"classes3":{"val":""},"visible":{"val":true},"classes1":{"val":""},"colIndex":{"val":2},"id2":{"val":""},"class2":{"td_home":true},"tag":{"val":"SPAN"},"tag2":{"val":"TD"},"classes2":{"val":"td_home"},"font":{"val":"Helvetica, Arial, sans-serif"},"childrenLen":{"val":0},"id3":{"val":""},"id":{"val":""},"tag3":{"val":"TR"},"tag1":{"val":"A"},"indexes":{"0":1,"1":5,"2":5}}</Value>
+    </SerializableNamedPairOfString>
+    <SerializableNamedPairOfString>
+      <Name>F_home_FT</Name>
+      <Value>{"class1":{"red":true},"header":{"val":"Scheveningen Last \n1\n2\n3\n4\n5\n6\n7\n  Same home  Netherlands Tweede Divisie  Holland Tweede Divisie Customize View"},"class2":{"td_score":true},"tag":{"val":"SPAN"},"id1":{"val":""},"indexes":{"0":0,"1":3,"2":7},"tag1":{"val":"DIV"},"id3":{"val":""},"color":{"val":"rgb(255, 0, 0)"},"colIndex":{"val":3},"tag3":{"val":"TR"},"classes2":{"val":"td_score"},"id":{"val":""},"font":{"val":"Helvetica, Arial, sans-serif"},"title":{"val":null},"classes3":{"val":""},"classes":{"val":""},"tag2":{"val":"TD"},"visible":{"val":true},"childrenLen":{"val":0},"id2":{"val":""},"classes1":{"val":"red"}}</Value>
     </SerializableNamedPairOfString>
     <SerializableNamedPairOfString>
       <Name>F_league</Name>
@@ -1130,6 +543,14 @@ return result;&#xD;&#xD;
 </Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
+    </SerializableGatherer>
+    <SerializableGatherer>
+      <Name>Pais</Name>
+      <Value>return function(element, global) {&#xD;
+	return element.innerHTML;&#xD;
+};</Value>
+      <Visible>true</Visible>
+      <Locked>false</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>Path</Name>
@@ -1753,5 +1174,5 @@ return [&#xD;&#xD;
 *://*.googleadservices.com/*&#xD;
 *://*.scorecardresearch.com/*</BlockList>
   <DynamicInject />
-  <ProjectCode>ade85536cd54f73491bd3210c943d74a</ProjectCode>
+  <ProjectCode>cb1ea83425f9b730927f992d69daf7fe</ProjectCode>
 </SerializableScraperProject>

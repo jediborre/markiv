@@ -1,10 +1,12 @@
 import os
+import re
 import sys
 import telebot
 import logging
-from dotenv import load_dotenv
 from model.db import Base
 from model import Match
+from catalogos import paises
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 from requests.exceptions import ConnectionError, ReadTimeout
@@ -30,36 +32,25 @@ bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 
 
 @bot.message_handler(func=lambda message: True)
-def handle_all_messages(message):
+def handle_(message):
     global player_stats
+    pattern = r"^#\d{1,}$"
     msj = message.text
-    if ' v ' in msj:
-        home, away = msj.split(' v ')
-        home = home.strip()
-        away = away.strip()
-        bot.reply_to(message, f'{home} v {away}.')
+    if msj:
+        if msj.lower() in paises:
+            bot.reply_to(message, msj)
+        else:
+            if re.fullmatch(pattern, msj):
+                bot.reply_to(message, f'id {msj}')
+            else:
+                bot.reply_to(message, f'Pais no reconocido "{msj}"')
     else:
-        bot.reply_to(message, msj)
-
-
-def main():
-    global DB_FILE
-    engine = create_engine(f'sqlite:///{DB_FILE}')
-    Base.metadata.create_all(engine)
-    Session = scoped_session(sessionmaker(
-        bind=engine,
-        autoflush=False,
-        autocommit=False
-    ))
-    matches = Match.get_all(Session)
-    print(f'Extrayendo {len(matches)} partidos.')
-    for match in matches:
-        match
+        bot.reply_to(message, 'Instruccion vacia')
 
 
 def start_bot():
     global bot
-    logging.info('Ultron BOT')
+    logging.info('Mark IV BOT')
     try:
         bot.infinity_polling(timeout=20, long_polling_timeout=10)
     except (ConnectionError, ReadTimeout):
