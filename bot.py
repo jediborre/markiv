@@ -1,14 +1,15 @@
 import os
 import re
 import sys
+import json
 import telebot
 import logging
-from model.db import Base
-from model import Match
+# from model.db import Base
+# from model import Match
 from catalogos import paises
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
+# from sqlalchemy import create_engine
+# from sqlalchemy.orm import sessionmaker, scoped_session
 from requests.exceptions import ConnectionError, ReadTimeout
 
 load_dotenv()
@@ -26,7 +27,8 @@ script_path = os.path.dirname(os.path.abspath(__file__))
 result_path = os.path.join(script_path, 'result')
 if not os.path.exists(result_path):
     os.makedirs(result_path)
-os.chdir(result_path)
+matches = {}
+pais_matches = {}
 
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 
@@ -37,8 +39,30 @@ def handle_(message):
     pattern = r"^#\d{1,}$"
     msj = message.text
     if msj:
-        if msj.lower() in paises:
-            bot.reply_to(message, msj)
+        msj_l = msj.lower()
+        if msj_l == 'paises':
+            str_msj = []
+            pais_cuenta = []
+            for pais in pais_matches:
+                pais_cuenta.append([pais, len(pais_matches[pais])])
+            pais_cuenta_sorted = sorted(
+                pais_cuenta,
+                key=lambda x: x[1],
+                reverse=True
+            )
+            for pais, n in pais_cuenta_sorted:
+                str_msj.append(f'{pais} [{n}]')
+            bot.reply_to(message, '\n'.join(str_msj))
+        elif msj_l in paises:
+            pais = msj_l
+            if pais in pais_matches:
+                str_msj = []
+                matches = pais_matches[pais]
+                for match in matches:
+                    str_msj.append(f'#{match["id"]} {match["time"]} {match["liga"]} {match["home"]} - {match["away"]}') # noqa
+                bot.reply_to(message, '\n'.join(str_msj))
+            else:
+                bot.reply_to(message, f'No hay partidos en {pais}')
         else:
             if re.fullmatch(pattern, msj):
                 bot.reply_to(message, f'id {msj}')
@@ -69,4 +93,29 @@ def start_bot():
 
 
 if __name__ == "__main__":
-    start_bot()
+    args = sys.argv[1:]
+    if len(args) > 0:
+        db_file = args[0]
+        match_file = os.path.join(result_path, f'{db_file}.json')
+        pais_match_file = os.path.join(result_path, f'{db_file}_pais.json')
+        if os.path.exists(match_file) and os.path.exists(pais_match_file):
+            execute = True
+            try:
+                pais_matches = json.load(open(pais_match_file))
+            except Exception as e:
+                execute = False
+                print(e)
+                print(match_file)
+            try:
+                pais_matches = json.load(open(pais_match_file))
+                start_bot()
+            except Exception as e:
+                execute = False
+                print(e)
+                print(pais_match_file)
+            if execute:
+                start_bot()
+        else:
+            print('Archivo de base no existe, lo escribiste bien?')
+    else:
+        print('Falta expecificar nombre de archivo sqlite')

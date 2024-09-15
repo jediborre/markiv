@@ -206,6 +206,6 @@ dic_paises = {
  '205': 'Taiwan',
  '206': 'Sin pais',
  '207': 'Mongolia',
- 'Unknown': 'Sin pais'
+ 'Unknown': 'Sinpais'
 }
 paises = [pais.lower() for pais in dic_paises.values()]
