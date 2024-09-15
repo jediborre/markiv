@@ -27,15 +27,15 @@ script_path = os.path.dirname(os.path.abspath(__file__))
 result_path = os.path.join(script_path, 'result')
 if not os.path.exists(result_path):
     os.makedirs(result_path)
-matches = {}
-pais_matches = {}
+db_matches = {}
+db_pais_matches = {}
 
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 
 
 @bot.message_handler(func=lambda message: True)
 def handle_(message):
-    global player_stats
+    global db_matches, db_pais_matches
     pattern = r"^#\d{1,}$"
     msj = message.text
     if msj:
@@ -43,31 +43,46 @@ def handle_(message):
         if msj_l == 'paises':
             str_msj = []
             pais_cuenta = []
-            for pais in pais_matches:
-                pais_cuenta.append([pais, len(pais_matches[pais])])
+            # print(db_pais_matches)
+            for pais in db_pais_matches:
+                pais_cuenta.append([pais, len(db_pais_matches[pais])])
             pais_cuenta_sorted = sorted(
                 pais_cuenta,
                 key=lambda x: x[1],
                 reverse=True
             )
-            for pais, n in pais_cuenta_sorted:
-                str_msj.append(f'{pais} [{n}]')
-            bot.reply_to(message, '\n'.join(str_msj))
-        elif msj_l in paises:
+            if len(pais_cuenta_sorted) > 0:
+                for pais, n in pais_cuenta_sorted:
+                    str_msj.append(f'{pais} [{n}]')
+                bot.reply_to(message, '\n'.join(str_msj))
+            else:
+                bot.reply_to(message, 'No hay partidos')
+
+        if msj_l in paises:
             pais = msj_l
-            if pais in pais_matches:
+            if pais in db_pais_matches:
                 str_msj = []
-                matches = pais_matches[pais]
+                matches = db_pais_matches[pais]
                 for match in matches:
                     str_msj.append(f'#{match["id"]} {match["time"]} {match["liga"]} {match["home"]} - {match["away"]}') # noqa
                 bot.reply_to(message, '\n'.join(str_msj))
             else:
                 bot.reply_to(message, f'No hay partidos en {pais}')
-        else:
-            if re.fullmatch(pattern, msj):
-                bot.reply_to(message, f'id {msj}')
+
+        if re.fullmatch(pattern, msj):
+            id = str(re.sub(r'\#', '', msj))
+            if id in db_matches:
+                match = db_matches[id]
+                str_msj = f'''{match["fecha"]}
+{match["pais"]}
+{match["liga"]}
+
+{match["home"]} v {match["away"]}
+{match["home"]} GH: {match["home_matches"]["hechos"]} GC: {match["home_matches"]["concedidos"]}
+{match["away"]} GH: {match["away_matches"]["hechos"]} GC: {match["away_matches"]["concedidos"]}''' # noqa
+                bot.reply_to(message, str_msj)
             else:
-                bot.reply_to(message, f'Pais no reconocido "{msj}"')
+                bot.reply_to(message, f'Partido #{id} no encontrado.')
     else:
         bot.reply_to(message, 'Instruccion vacia')
 
@@ -101,14 +116,13 @@ if __name__ == "__main__":
         if os.path.exists(match_file) and os.path.exists(pais_match_file):
             execute = True
             try:
-                pais_matches = json.load(open(pais_match_file))
+                db_matches = json.load(open(match_file))
             except Exception as e:
                 execute = False
                 print(e)
                 print(match_file)
             try:
-                pais_matches = json.load(open(pais_match_file))
-                start_bot()
+                db_pais_matches = json.load(open(pais_match_file))
             except Exception as e:
                 execute = False
                 print(e)

@@ -93,7 +93,7 @@ def main(db_file):
         away_matches_db = matchstats.away_matches
         if len(home_matches_db) == 0 or len(away_matches_db) == 0:
             continue
-        id = match.id
+        id = str(match.id)
         fecha = matchstats.fecha
         time = match.time
         liga = match.league
@@ -103,7 +103,7 @@ def main(db_file):
         pais = dic_paises[tmp_pais]
         pais_l = pais.lower()
         home = match.home
-        away = match.home
+        away = match.away
         home_matches = encuentros(home_matches_db, liga, home)
         if len(home_matches['matches']) < 5:
             continue
