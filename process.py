@@ -34,8 +34,10 @@ def encuentros(matches, match_liga, match_home):
                     if match_home:
                         if home == match_home:
                             hechos += home_FT
-                        else:
                             concedidos += away_FT
+                        else:
+                            hechos += away_FT
+                            concedidos += home_FT
                     result_matches.append({
                         'ft': ft,
                         'date': date,
@@ -61,11 +63,16 @@ def encuentros(matches, match_liga, match_home):
             else:
                 break
     if match_home:
-        return {
+        juegos = len(result_matches)
+        result = {
             'hechos': hechos,
             'concedidos': concedidos,
             'matches': result_matches
         }
+        if juegos > 0:
+            result['p_hechos'] = hechos / juegos
+            result['p_concedidos'] = concedidos / juegos
+        return result
     else:
         return result_matches
 
@@ -107,9 +114,14 @@ def main(db_file):
         home_matches = encuentros(home_matches_db, liga, home)
         if len(home_matches['matches']) < 5:
             continue
-        away_matches = encuentros(home_matches_db, liga, away)
+        away_matches = encuentros(away_matches_db, liga, away)
         if len(away_matches['matches']) < 5:
             continue
+        phP = home_matches['p_hechos']
+        phM = home_matches['p_concedidos']
+        paP = away_matches['p_hechos']
+        paM = away_matches['p_concedidos']
+        promedio_gol = (phP * phM) + (paP * paM)
         face_matches = encuentros(home_matches_db, '', '')
         reg = {
             'id': id,
@@ -120,6 +132,7 @@ def main(db_file):
             'home': home,
             'away': away,
             'url': url,
+            'promedio_gol': promedio_gol,
             'home_matches': home_matches,
             'away_matches': away_matches,
             'face_matches': face_matches

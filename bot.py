@@ -42,10 +42,14 @@ def handle_(message):
         msj_l = msj.lower()
         if msj_l == 'paises':
             str_msj = []
+            num_juegos = 0
             pais_cuenta = []
             # print(db_pais_matches)
             for pais in db_pais_matches:
-                pais_cuenta.append([pais, len(db_pais_matches[pais])])
+                n_juegos_pais = len(db_pais_matches[pais])
+                pais_cuenta.append([pais, n_juegos_pais])
+                num_juegos += n_juegos_pais
+            str_msj.append(f'Juegos de hoy: {num_juegos}')
             pais_cuenta_sorted = sorted(
                 pais_cuenta,
                 key=lambda x: x[1],
@@ -73,14 +77,52 @@ def handle_(message):
             id = str(re.sub(r'\#', '', msj))
             if id in db_matches:
                 match = db_matches[id]
+                home = match['home']
+                away = match['away']
+                liga = match['liga']
+                pais = match['pais']
+                pGol = match['promedio_gol']
+                home_matches = match['home_matches']
+                away_matches = match['away_matches']
+                face_matches = match['face_matches']
+                home_gP = home_matches['hechos']
+                home_gM = home_matches['concedidos']
+                home_pgP = home_matches['p_hechos']
+                home_pgM = home_matches['p_concedidos']
+                home_n_games = len(home_matches)
+                home_games = '\n'.join(f'{m["ft"]}    {m["home_ft"]} - {m["away_ft"]}    {m["home"][:5]} - {m["away"][:5]}' for m in home_matches['matches']) # noqa
+                away_gP = away_matches['hechos']
+                away_gM = away_matches['concedidos']
+                away_pgP = away_matches['p_hechos']
+                away_pgM = away_matches['p_concedidos']
+                away_n_games = len(away_matches)
+                away_games = '\n'.join(f'{m["ft"]}    {m["home_ft"]} - {m["away_ft"]}    {m["home"][:5]} - {m["away"][:5]}' for m in away_matches['matches']) # noqa
+                face_games = '\n'.join(f'{m["ft"]}    {m["home_ft"]} - {m["away_ft"]}    {m["home"][:5]} - {m["away"][:5]}' for m in face_matches) # noqa
+                # print(f'{home} {home_gP} {home_gM}')
+                # for m in home_matches['matches']:
+                #     print(f'{m["ft"]}    {m["home_ft"]} - {m["away_ft"]}    {m["home"]} - {m["away"]}') # noqa
+                # print('')
+                # print(f'{away} {away_gP} {away_gM}')
+                # for m in away_matches['matches']:
+                #     print(f'{m["ft"]}    {m["home_ft"]} - {m["away_ft"]}    {m["home"]} - {m["away"]}') # noqa
                 str_msj = f'''{match["fecha"]}
-{match["pais"]}
-{match["liga"]}
+{pais}
+{liga}
 
-{match["home"]} v {match["away"]}
-{match["home"]} GH: {match["home_matches"]["hechos"]} GC: {match["home_matches"]["concedidos"]}
-{match["away"]} GH: {match["away_matches"]["hechos"]} GC: {match["away_matches"]["concedidos"]}''' # noqa
+G PARTIDO: {pGol}
+{home} v {away}
+{home}
+J: {home_n_games} +: {home_gP} -: {home_gM} P+: {home_pgP} P-: {home_pgM}
+{home_games}
+
+{away}
+J: {away_n_games} +: {away_gP} -: {away_gM} P+: {away_pgP} P-: {away_pgM}
+{away_games}
+
+vs
+{face_games}''' # noqa
                 bot.reply_to(message, str_msj)
+                # bot.register_next_step_handler(message, obtener_momio1, 0)
             else:
                 bot.reply_to(message, f'Partido #{id} no encontrado.')
     else:
@@ -132,4 +174,4 @@ if __name__ == "__main__":
         else:
             print('Archivo de base no existe, lo escribiste bien?')
     else:
-        print('Falta expecificar nombre de archivo sqlite')
+        print('Falta expecificar nombre de archivo')
