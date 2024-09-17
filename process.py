@@ -98,7 +98,8 @@ def main(db_file):
             continue
         home_matches_db = matchstats.home_matches
         away_matches_db = matchstats.away_matches
-        if len(home_matches_db) == 0 or len(away_matches_db) == 0:
+        face_matches_db = matchstats.face_matches
+        if len(home_matches_db) == 0 or len(away_matches_db) == 0 or len(face_matches_db) == 0: # noqa
             continue
         id = str(match.id)
         fecha = matchstats.fecha
@@ -122,7 +123,7 @@ def main(db_file):
         paP = away_matches['p_hechos']
         paM = away_matches['p_concedidos']
         promedio_gol = (phP * phM) + (paP * paM)
-        face_matches = encuentros(home_matches_db, '', '')
+        face_matches = encuentros(face_matches_db, '', '')
         reg = {
             'id': id,
             'time': time,

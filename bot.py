@@ -4,6 +4,7 @@ import sys
 import json
 import telebot
 import logging
+from telebot import types
 # from model.db import Base
 # from model import Match
 from catalogos import paises
@@ -14,7 +15,6 @@ from requests.exceptions import ConnectionError, ReadTimeout
 
 load_dotenv()
 
-DB_FILE = os.getenv('DB_FILE')
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID').split(',')
 
@@ -77,6 +77,7 @@ def handle_(message):
             id = str(re.sub(r'\#', '', msj))
             if id in db_matches:
                 match = db_matches[id]
+                match_url = match['url']
                 home = match['home']
                 away = match['away']
                 liga = match['liga']
@@ -108,9 +109,9 @@ def handle_(message):
                 str_msj = f'''{match["fecha"]}
 {pais}
 {liga}
+{home} v {away}
 
 G PARTIDO: {pGol}
-{home} v {away}
 {home}
 J: {home_n_games} +: {home_gP} -: {home_gM} P+: {home_pgP} P-: {home_pgM}
 {home_games}
@@ -120,13 +121,34 @@ J: {away_n_games} +: {away_gP} -: {away_gM} P+: {away_pgP} P-: {away_pgM}
 {away_games}
 
 vs
-{face_games}''' # noqa
-                bot.reply_to(message, str_msj)
+{face_games}
+
+¿Deseas continuar?''' # noqa
+
+                markup = types.InlineKeyboardMarkup()
+                si_boton = types.InlineKeyboardButton("Sí", callback_data='si')
+                no_boton = types.InlineKeyboardButton("No", callback_data='no')
+                if match_url:
+                    link_boton = types.InlineKeyboardButton("Partido", url=match_url) # noqa
+
+                markup.add(si_boton, no_boton)
+                if match_url:
+                    markup.add(link_boton)
+
+                bot.reply_to(message, str_msj, reply_markup=markup)
                 # bot.register_next_step_handler(message, obtener_momio1, 0)
             else:
                 bot.reply_to(message, f'Partido #{id} no encontrado.')
     else:
         bot.reply_to(message, 'Instruccion vacia')
+
+
+@bot.callback_query_handler(func=lambda call: True)
+def callback_query(call):
+    if call.data == 'si':
+        bot.send_message(call.message.chat.id, "¿Cuál es el momio?")
+    elif call.data == 'no':
+        bot.answer_callback_query(call.id, "Ingresa otro ID o pais")
 
 
 def start_bot():
