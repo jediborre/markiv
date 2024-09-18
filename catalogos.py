@@ -1,3 +1,11 @@
+user_data = {
+    1390836289: {
+        'nombre': 'Fernando',
+    },
+    1922076265: {
+        'nombre': 'Jasiel',
+    }
+}
 dic_paises = {
  '1': 'China',
  '2': 'Japon',
