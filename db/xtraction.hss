@@ -4,7 +4,7 @@
   <Assignments>
     <Code>Matches = {&#xD;
 	(Browser.Load {&#xD;
-		"https://www.totalcorner.com/match/schedule/20240917"&#xD;
+		"https://www.totalcorner.com/match/schedule/20240918"&#xD;
 	})&#xD;
 	(Browser.TurnPages {&#xD;
 		Select.Next&#xD;
@@ -557,7 +557,7 @@
     </SerializableNamedPairOfString>
     <SerializableNamedPairOfString>
       <Name>Fecha</Name>
-      <Value>{"tag1":{"val":"H1"},"childrenLen":{"val":0},"id3":{"val":""},"classes2":{"val":"pull-left "},"color":{"val":"rgb(119, 119, 119)"},"class3":{"row":true},"class2":{"pull-left":true},"class1":{"pull-left":true},"classes1":{"val":"pull-left"},"tag2":{"val":"DIV"},"indexes":{"0":11,"1":3,"2":1},"title":{"val":null},"tag":{"val":"SMALL"},"id":{"val":""},"id2":{"val":"match_title_div"},"tag3":{"val":"DIV"},"prevText":{"val":""},"id1":{"val":""},"classes":{"val":""},"visible":{"val":true},"classes3":{"val":"row"},"font":{"val":"Helvetica, Arial, sans-serif"}}</Value>
+      <Value>{"tag1":{"val":"H1"},"childrenLen":{"val":0},"id3":{"val":""},"classes2":{"val":"pull-left "},"color":{"val":"rgb(119, 119, 119)"},"class3":{"row":true},"class2":{"pull-left":true},"class1":{"pull-left":true},"classes1":{"val":"pull-left"},"tag2":{"val":"DIV"},"indexes":{"0":11,"1":3,"2":1},"title":{"val":null},"tag":{"val":"SMALL"},"id":{"val":""},"id2":{"val":"match_title_div"},"tag3":{"val":"DIV"},"id1":{"val":""},"classes":{"val":""},"visible":{"val":true},"classes3":{"val":"row"},"font":{"val":"Helvetica, Arial, sans-serif"}}</Value>
     </SerializableNamedPairOfString>
     <SerializableNamedPairOfString>
       <Name>FT</Name>
@@ -1444,5 +1444,5 @@ return [&#xD;&#xD;&#xD;
 *://*.googleadservices.com/*&#xD;
 *://*.scorecardresearch.com/*</BlockList>
   <DynamicInject />
-  <ProjectCode>fd30470f5745b62bc7a956878830471c</ProjectCode>
+  <ProjectCode>d31b664be2c71df6bedf5536b8124944</ProjectCode>
 </SerializableScraperProject>
