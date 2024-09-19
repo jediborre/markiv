@@ -1,6 +1,6 @@
 def es_momio_americano(texto):
     try:
-        if texto == '':
+        if texto == '-':
             return True
         momio = int(texto) # noqa
         return True

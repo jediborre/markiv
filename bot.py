@@ -165,7 +165,7 @@ def obtener_momio(message):
         match['intentos'] += 1
         user_data[chat_id][match_selected] = match
 
-        intentos_restantes = 3 - user_data[chat_id]['intentos']
+        intentos_restantes = 3 - match['intentos']
 
         if intentos_restantes > 0:
             bot.send_message(chat_id, f"{nombre}\nEl momio es inválido, intenta de nuevo ({intentos_restantes} intentos).") # noqa
