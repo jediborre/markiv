@@ -4,7 +4,7 @@
   <Assignments>
     <Code>Matches = {&#xD;
 	(Browser.Load {&#xD;
-		"https://www.totalcorner.com/match/schedule/20240919"&#xD;
+		"https://www.totalcorner.com/match/schedule/20240920"&#xD;
 	})&#xD;
 	(Browser.TurnPages {&#xD;
 		Select.Next&#xD;
@@ -1444,5 +1444,5 @@ return [&#xD;&#xD;&#xD;
 *://*.googleadservices.com/*&#xD;
 *://*.scorecardresearch.com/*</BlockList>
   <DynamicInject />
-  <ProjectCode>1e8af6267fc5bab05a7a69eadc2c810c</ProjectCode>
+  <ProjectCode>8170c2ce8ce6d0d5458f4c09c113a6ed</ProjectCode>
 </SerializableScraperProject>

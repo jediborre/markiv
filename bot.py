@@ -161,9 +161,9 @@ def obtener_momio(message):
             bot.send_message(chat_id, "{nombre}\nVuelve a ingresar el id del partido para volver a empezar.") # noqa
 
 
-def start_bot():
+def start_bot(fecha):
     global bot
-    logging.info('Mark IV BOT')
+    logging.info(f'Mark IV BOT {fecha}')
     try:
         bot.infinity_polling(timeout=20, long_polling_timeout=10)
     except (ConnectionError, ReadTimeout):
@@ -206,7 +206,7 @@ if __name__ == "__main__":
                 logging.error(pais_match_file)
                 logging.error(str(e))
             if execute:
-                start_bot()
+                start_bot(db_file)
         else:
             logging.error('Archivo de base no existe, lo escribiste bien?')
     else:
