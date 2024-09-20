@@ -129,10 +129,12 @@ def preguntar_momio(message):
     nombre = user['nombre']
     match_selected = user['match_selected']
     match = db_matches[match_selected]
+    match['intentos'] = 0
+    user_data[chat_id][match_selected] = match
     pregunta_actual = match['pregunta_actual']
 
     if pregunta_actual < len(preguntas_momios):
-        campo, texto_pregunta = preguntas_momios[pregunta_actual]
+        _, texto_pregunta = preguntas_momios[pregunta_actual]
         bot.send_message(chat_id, f"{nombre}\n¿{texto_pregunta}? (- Si no hay)") # noqa
         bot.register_next_step_handler(message, obtener_momio)
     else:
