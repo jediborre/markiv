@@ -16,12 +16,14 @@ load_dotenv()
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID').split(',')
 
+matches_result_file = ''
 filename = 'partidos_totalcorner'
 script_path = os.path.dirname(os.path.abspath(__file__))
 result_path = os.path.join(script_path, 'result')
 if not os.path.exists(result_path):
     os.makedirs(result_path)
 log_file_path = os.path.join(script_path, "log_markiv.log")
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -31,13 +33,21 @@ logging.basicConfig(
     ]
 )
 db_matches = {}
+matches_result = []
 db_pais_matches = {}
 
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 
 
+def save_match(match):
+    global matches_result, matches_result_file
+    matches_result.append(match)
+    with open(matches_result_file, 'w') as file:
+        json.dump(matches_result, file, indent=4)
+
+
 @bot.message_handler(func=lambda message: True)
-def handle_(message):
+def handle(message):
     global db_matches, db_pais_matches, preguntas_momios
     user_id = message.chat.id
     user = user_data[user_id]
@@ -72,16 +82,14 @@ def handle_(message):
                 markup = types.InlineKeyboardMarkup()
                 si_boton = types.InlineKeyboardButton("Sí", callback_data='si')
                 no_boton = types.InlineKeyboardButton("No", callback_data='no')
-                if match_url:
-                    link_boton = types.InlineKeyboardButton("Partido", url=match_url) # noqa
-
                 markup.add(si_boton, no_boton)
                 if match_url:
+                    link_boton = types.InlineKeyboardButton("Partido", url=match_url) # noqa
                     markup.add(link_boton)
+
                 str_match_detail = get_match_details(match)
-                logging.info(str_match_detail + '\n\n ¿{nombre}, deseas continuar?') # noqa
+                logging.info(str_match_detail + f'\n\n ¿{nombre}, deseas continuar?') # noqa
                 bot.reply_to(message, str_match_detail, reply_markup=markup)
-                # bot.register_next_step_handler(message, obtener_momio1, 0)
             else:
                 bot.reply_to(message, f'{nombre}\nPartido #{id} no encontrado.') # noqa
     else:
@@ -115,6 +123,7 @@ def preguntar_momio(message):
     match_selected = user['match_selected']
     match = db_matches[match_selected]
     match['intentos'] = 0
+    match_url = match['url']
     user_data[chat_id][match_selected] = match
     pregunta_actual = match['pregunta_actual']
 
@@ -124,9 +133,15 @@ def preguntar_momio(message):
         bot.register_next_step_handler(message, obtener_momio)
     else:
         msj = get_match_details(match, True)
-        bot.send_message(chat_id, f"{nombre}\n{msj}") # noqa
-        logging.info(f'#{match_selected}')
-        logging.info(f'{msj}')
+        save_match(match)
+        markup = types.InlineKeyboardMarkup()
+        si_boton = types.InlineKeyboardButton("Sí", callback_data='si')
+        no_boton = types.InlineKeyboardButton("No", callback_data='no')
+        markup.add(si_boton, no_boton)
+        if match_url:
+            link_boton = types.InlineKeyboardButton("Partido", url=match_url) # noqa
+            markup.add(link_boton)
+        bot.reply_to(message, f"{nombre}\n{msj}", reply_markup=markup)
 
 
 def obtener_momio(message):
@@ -190,6 +205,7 @@ if __name__ == "__main__":
     if len(args) > 0:
         db_file = args[0]
         match_file = os.path.join(result_path, f'{db_file}.json')
+        matches_result_file = os.path.join(result_path, f'matches_{db_file}.json') # noqa
         pais_match_file = os.path.join(result_path, f'{db_file}_pais.json')
         if os.path.exists(match_file) and os.path.exists(pais_match_file):
             execute = True

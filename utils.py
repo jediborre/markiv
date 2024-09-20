@@ -72,7 +72,8 @@ def get_match_details(match, with_momios=False) -> str:
     # print(f'{away} {away_gP} {away_gM}')
     # for m in away_matches['matches']:
     #     print(f'{m["ft"]}    {m["home_ft"]} - {m["away_ft"]}    {m["home"]} - {m["away"]}') # noqa
-    result = f'''#{id} {fecha}
+    result = f'''
+#{id} {fecha}
 {pais}{liga}
 {home} v {away}
 
