@@ -6,9 +6,9 @@ import telebot
 import logging
 from telebot import types
 from dotenv import load_dotenv
-from catalogos import paises, user_data
 from requests.exceptions import ConnectionError, ReadTimeout
 from utils import es_momio_americano
+from catalogos import paises, user_data, preguntas_momios
 from utils import get_match_details, get_match_paises, get_paises_count
 
 load_dotenv()
@@ -34,21 +34,6 @@ db_matches = {}
 db_pais_matches = {}
 
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
-
-preguntas_momios = [
-    ['momio_home', 'Momio Resultado Local'],
-    ['momio_away', 'Momio Resultado Visitante'],
-    ['momio_si', 'Momio Ambos Anotaran Si'],
-    ['momio_no', 'Momio Ambos Anotaran No'],
-    ['momio_ht_05', 'Momio HT -0.5'],
-    ['momio_ht_15', 'Momio HT -1.5'],
-    ['momio_ht_25', 'Momio HT -2.5'],
-    ['momio_ft_05', 'Momio HT -0.5'],
-    ['momio_ft_15', 'Momio HT -1.5'],
-    ['momio_ft_25', 'Momio HT -2.5'],
-    ['momio_ft_35', 'Momio HT -3.5'],
-    ['momio_ft_45', 'Momio HT -4.5'],
-]
 
 
 @bot.message_handler(func=lambda message: True)
@@ -138,10 +123,10 @@ def preguntar_momio(message):
         bot.send_message(chat_id, f"{nombre}\n¿{texto_pregunta}? (- Si no hay)") # noqa
         bot.register_next_step_handler(message, obtener_momio)
     else:
-        bot.send_message(chat_id, f"{nombre}\n¡Has completado todas las preguntas!") # noqa
+        msj = get_match_details(match, True)
+        bot.send_message(chat_id, f"{nombre}\n{msj}") # noqa
         logging.info(f'#{match_selected}')
-        for m in match:
-            logging.info(f'{m}: {match[m]}')
+        logging.info(f'{msj}')
 
 
 def obtener_momio(message):

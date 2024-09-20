@@ -41,7 +41,7 @@ def get_match_paises(matches) -> str:
     return '\n'.join(result)
 
 
-def get_match_details(match) -> str:
+def get_match_details(match, with_momios=False) -> str:
     id = match['id']
     fecha = match['fecha']
     home = match['home']
@@ -72,7 +72,7 @@ def get_match_details(match) -> str:
     # print(f'{away} {away_gP} {away_gM}')
     # for m in away_matches['matches']:
     #     print(f'{m["ft"]}    {m["home_ft"]} - {m["away_ft"]}    {m["home"]} - {m["away"]}') # noqa
-    return f'''#{id} {fecha}
+    result = f'''#{id} {fecha}
 {pais}{liga}
 {home} v {away}
 
@@ -87,3 +87,22 @@ G PARTIDO: {pGol}
 
 vs
 {face_games}''' # noqa
+    if with_momios:
+        momio_home = match['momio_home'] if 'momio_home' in match else ''
+        momio_away = match['momio_away'] if 'momio_away' in match else ''
+        momio_si = match['momio_si'] if 'momio_si' in match else ''
+        momio_no = match['momio_no'] if 'momio_no' in match else ''
+        momio_ht_05 = match['momio_ht_05'] if 'momio_ht_05' in match else ''
+        momio_ht_15 = match['momio_ht_15'] if 'momio_ht_15' in match else ''
+        momio_ht_25 = match['momio_ht_25'] if 'momio_ht_25' in match else ''
+        momio_ft_05 = match['momio_ft_05'] if 'momio_ft_05' in match else ''
+        momio_ft_15 = match['momio_ft_15'] if 'momio_ft_15' in match else ''
+        momio_ft_25 = match['momio_ft_25'] if 'momio_ft_25' in match else ''
+        momio_ft_35 = match['momio_ft_35'] if 'momio_ft_35' in match else ''
+        momio_ft_45 = match['momio_ft_45'] if 'momio_ft_45' in match else ''
+        result += f'''
+{momio_home} {momio_away}
+{momio_si} {momio_no}
+{momio_ht_05} {momio_ht_15} {momio_ht_25}
+{momio_ft_05} {momio_ft_15} {momio_ft_25} {momio_ft_35} {momio_ft_45}'''
+    return result

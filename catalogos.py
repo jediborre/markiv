@@ -217,3 +217,18 @@ dic_paises = {
  'Unknown': 'Sinpais'
 }
 paises = [pais.lower() for pais in dic_paises.values()]
+
+preguntas_momios = [
+    ['momio_home', 'Momio Resultado Local'],
+    ['momio_away', 'Momio Resultado Visitante'],
+    ['momio_si', 'Momio Ambos Anotaran Si'],
+    ['momio_no', 'Momio Ambos Anotaran No'],
+    ['momio_ht_05', 'Momio HT -0.5'],
+    ['momio_ht_15', 'Momio HT -1.5'],
+    ['momio_ht_25', 'Momio HT -2.5'],
+    ['momio_ft_05', 'Momio HT -0.5'],
+    ['momio_ft_15', 'Momio HT -1.5'],
+    ['momio_ft_25', 'Momio HT -2.5'],
+    ['momio_ft_35', 'Momio HT -3.5'],
+    ['momio_ft_45', 'Momio HT -4.5'],
+]
