@@ -144,6 +144,7 @@ def main(db_file):
         result_pais[pais_l].append(reg)
         print(fecha, home, away)
     if len(result) > 0:
+        print(f'Partidos Procesados {len(result)} - {len(matches)}')
         with open(f'{result_path}/{filename}.json', 'w') as f:
             f.write(json.dumps(result))
     if len(result_pais) > 0:
