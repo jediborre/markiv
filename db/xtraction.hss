@@ -3,11 +3,9 @@
   <Version>28</Version>
   <Assignments>
     <Code>Matches = {&#xD;
+	Data.URLS -&gt; { url }&#xD;
 	(Browser.Load {&#xD;
-		"https://www.totalcorner.com/match/schedule/20240921"&#xD;
-	})&#xD;
-	(Browser.TurnPages {&#xD;
-		Select.Next&#xD;
+		url&#xD;
 	})&#xD;
 	Select.Partidos&#xD;
 	(@Core.Unit #{&#xD;
@@ -393,6 +391,21 @@
                         </SerializableObjectMember>
                       </Members>
                     </ItemType>
+                  </Type>
+                </SerializableObjectMember>
+              </Members>
+            </ItemType>
+          </Type>
+        </SerializableObjectMember>
+        <SerializableObjectMember>
+          <Name>URLS</Name>
+          <Type xsi:type="SerializableListType">
+            <ItemType xsi:type="SerializableObjectType">
+              <Members>
+                <SerializableObjectMember>
+                  <Name>url</Name>
+                  <Type xsi:type="SerializableSimpleType">
+                    <Kind>String</Kind>
                   </Type>
                 </SerializableObjectMember>
               </Members>
@@ -1444,5 +1457,5 @@ return [&#xD;&#xD;&#xD;&#xD;
 *://*.googleadservices.com/*&#xD;
 *://*.scorecardresearch.com/*</BlockList>
   <DynamicInject />
-  <ProjectCode>b97244af726a7cb4c08b57ac37d19da8</ProjectCode>
+  <ProjectCode>ea45f2ba04d2fe87dbfa59974c583d4c</ProjectCode>
 </SerializableScraperProject>
