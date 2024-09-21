@@ -65,13 +65,6 @@ def get_match_details(match, with_momios=False) -> str:
     # away_n_games = len(away_matches)
     away_games = '\n'.join(f'{m["ft"]}    {m["home_ft"]} - {m["away_ft"]}    {m["home"][:5]} - {m["away"][:5]}' for m in away_matches['matches']) # noqa
     face_games = '\n'.join(f'{m["ft"]}    {m["home_ft"]} - {m["away_ft"]}    {m["home"][:5]} - {m["away"][:5]}' for m in face_matches) # noqa
-    # print(f'{home} {home_gP} {home_gM}')
-    # for m in home_matches['matches']:
-    #     print(f'{m["ft"]}    {m["home_ft"]} - {m["away_ft"]}    {m["home"]} - {m["away"]}') # noqa
-    # print('')
-    # print(f'{away} {away_gP} {away_gM}')
-    # for m in away_matches['matches']:
-    #     print(f'{m["ft"]}    {m["home_ft"]} - {m["away_ft"]}    {m["home"]} - {m["away"]}') # noqa
     result = f'''
 #{id} {fecha}
 {pais}{liga}
@@ -102,8 +95,9 @@ vs
         momio_ft_35 = match['momio_ft_35'] if 'momio_ft_35' in match else ''
         momio_ft_45 = match['momio_ft_45'] if 'momio_ft_45' in match else ''
         result += f'''
-{momio_home} {momio_away}
-{momio_si} {momio_no}
-{momio_ht_05} {momio_ht_15} {momio_ht_25}
-{momio_ft_05} {momio_ft_15} {momio_ft_25} {momio_ft_35} {momio_ft_45}'''
+
+Ganador: {momio_home} {momio_away}
+Ambos Anotan: {momio_si} {momio_no}
+Gol HT: {momio_ht_05} {momio_ht_15} {momio_ht_25}
+Gol FT: {momio_ft_05} {momio_ft_15} {momio_ft_25} {momio_ft_35} {momio_ft_45}''' # noqa
     return result

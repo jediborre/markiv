@@ -135,9 +135,6 @@ def preguntar_momio(message):
         msj = get_match_details(match, True)
         save_match(match)
         markup = types.InlineKeyboardMarkup()
-        si_boton = types.InlineKeyboardButton("Sí", callback_data='si')
-        no_boton = types.InlineKeyboardButton("No", callback_data='no')
-        markup.add(si_boton, no_boton)
         if match_url:
             link_boton = types.InlineKeyboardButton("Partido", url=match_url) # noqa
             markup.add(link_boton)
