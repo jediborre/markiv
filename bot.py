@@ -105,7 +105,7 @@ def handle(message):
                     bot,
                     user_id,
                     str_match_detail,
-                    reply_markup=markup
+                    markup
                 )
             else:
                 send_text(
@@ -175,7 +175,7 @@ def preguntar_momio(message):
             bot,
             user_id,
             f'{nombre}\n{msj}',
-            reply_markup=markup
+            markup
         )
 
 

@@ -78,8 +78,7 @@ def encuentros(matches, match_liga, match_home):
 
 
 def main(db_file):
-    filename, ext = db_file.split('.')
-    engine = create_engine(f'sqlite:///db/{db_file}')
+    engine = create_engine(f'sqlite:///db/{db_file}.sqlite')
     Base.metadata.create_all(engine)
     Session = scoped_session(sessionmaker(
         bind=engine,
@@ -145,10 +144,10 @@ def main(db_file):
         print(fecha, home, away)
     if len(result) > 0:
         print(f'Partidos Procesados {len(result)} - {len(matches)}')
-        with open(f'{result_path}/{filename}.json', 'w') as f:
+        with open(f'{result_path}/{db_file}.json', 'w') as f:
             f.write(json.dumps(result))
     if len(result_pais) > 0:
-        with open(f'{result_path}/{filename}_pais.json', 'w') as f:
+        with open(f'{result_path}/{db_file}_pais.json', 'w') as f:
             f.write(json.dumps(result_pais))
 
 
@@ -156,12 +155,9 @@ if __name__ == "__main__":
     args = sys.argv[1:]
     if len(args) > 0:
         db_file = args[0]
-        if '.sqlite' in db_file:
-            if os.path.exists(f'db/{db_file}'):
-                main(db_file)
-            else:
-                print('Archivo de base no existe, lo escribiste bien?')
+        if os.path.exists(f'db/{db_file}.sqlite'):
+            main(db_file)
         else:
-            print('Archivo de base sqlite invalido')
+            print('Archivo de base no existe, lo escribiste bien?')
     else:
         print('Falta expecificar nombre de archivo sqlite')
