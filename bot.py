@@ -8,6 +8,7 @@ from telebot import types
 from dotenv import load_dotenv
 from requests.exceptions import ConnectionError, ReadTimeout
 from utils import es_momio_americano
+from utils import send_text, save_match
 from catalogos import paises, user_data, preguntas_momios
 from utils import get_match_details, get_match_paises, get_paises_count
 
@@ -22,7 +23,7 @@ script_path = os.path.dirname(os.path.abspath(__file__))
 result_path = os.path.join(script_path, 'result')
 if not os.path.exists(result_path):
     os.makedirs(result_path)
-log_file_path = os.path.join(script_path, "log_markiv.log")
+log_file_path = os.path.join(script_path, 'log_markiv.log')
 
 logging.basicConfig(
     level=logging.INFO,
@@ -39,38 +40,47 @@ db_pais_matches = {}
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 
 
-def save_match(match):
-    global matches_result, matches_result_file
-    matches_result.append(match)
-    with open(matches_result_file, 'w') as file:
-        json.dump(matches_result, file, indent=4)
-
-
 @bot.message_handler(func=lambda message: True)
 def handle(message):
     global db_matches, db_pais_matches, preguntas_momios
     user_id = message.chat.id
     user = user_data[user_id]
     nombre = user['nombre']
-    pattern = r"^#\d{1,}$"
+    pattern = r'^#\d{1,}$'
     msj = message.text
     if msj:
         msj_l = msj.lower()
         if msj_l == 'paises':
             if db_pais_matches:
                 paises_count = get_paises_count(db_pais_matches)
-                bot.reply_to(message, paises_count)
+                send_text(
+                    bot,
+                    user_id,
+                    paises_count
+                )
             else:
-                bot.reply_to(message, f'{nombre}\nNo hay partidos, falla la Base?') # noqa
+                send_text(
+                    bot,
+                    user_id,
+                    f'{nombre}\nNo hay partidos, falla la Base?'
+                )
 
         if msj_l in paises:
             pais = msj_l
             if pais in db_pais_matches:
                 matches = db_pais_matches[pais]
                 str_paises = get_match_paises(matches)
-                bot.reply_to(message, str_paises)
+                send_text(
+                    bot,
+                    user_id,
+                    str_paises
+                )
             else:
-                bot.reply_to(message, f'{nombre}\nNo hay partidos en {pais}')
+                send_text(
+                    bot,
+                    user_id,
+                    f'{nombre}\nNo hay partidos en {pais}'
+                )
 
         if re.fullmatch(pattern, msj):
             id = str(re.sub(r'\#', '', msj))
@@ -80,27 +90,42 @@ def handle(message):
                 match_url = match['url']
 
                 markup = types.InlineKeyboardMarkup()
-                si_boton = types.InlineKeyboardButton("Sí", callback_data='si')
-                no_boton = types.InlineKeyboardButton("No", callback_data='no')
+                si_boton = types.InlineKeyboardButton('Sí', callback_data='si')
+                no_boton = types.InlineKeyboardButton('No', callback_data='no')
                 markup.add(si_boton, no_boton)
                 if match_url:
-                    link_boton = types.InlineKeyboardButton("Partido", url=match_url) # noqa
+                    link_boton = types.InlineKeyboardButton('Partido', url=match_url) # noqa
                     markup.add(link_boton)
 
                 str_match_detail = get_match_details(match)
-                logging.info(str_match_detail + f'\n\n ¿{nombre}, deseas continuar?') # noqa
-                bot.reply_to(message, str_match_detail, reply_markup=markup)
+                logging.info(
+                    str_match_detail + f'\n\n ¿{nombre}, deseas continuar?'
+                )
+                send_text(
+                    bot,
+                    user_id,
+                    str_match_detail,
+                    reply_markup=markup
+                )
             else:
-                bot.reply_to(message, f'{nombre}\nPartido #{id} no encontrado.') # noqa
+                send_text(
+                    bot,
+                    user_id,
+                    f'{nombre}\nPartido #{id} no encontrado.'
+                )
     else:
-        bot.reply_to(message, 'Instruccion vacia')
+        send_text(
+            bot,
+            user_id,
+            'Instruccion vacia'
+        )
 
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
     global db_matches, preguntas_momios
-    chat_id = call.message.chat.id
-    user = user_data[chat_id]
+    user_id = call.message.chat.id
+    user = user_data[user_id]
     nombre = user['nombre']
     if call.data == 'si':
         match_selected = user['match_selected']
@@ -110,35 +135,48 @@ def callback_query(call):
         for p in preguntas_momios:
             campo, _ = p
             match[campo] = ''
-        user_data[chat_id][match_selected] = match
+        user_data[user_id][match_selected] = match
         preguntar_momio(call.message)
     elif call.data == 'no':
-        bot.send_message(chat_id, f"{nombre}\nIngresa otro ID o pais")
+        send_text(
+            bot,
+            user_id,
+            f'{nombre}\nIngresa otro ID o pais'
+        )
 
 
 def preguntar_momio(message):
-    chat_id = message.chat.id
-    user = user_data[chat_id]
+    user_id = message.chat.id
+    user = user_data[user_id]
     nombre = user['nombre']
     match_selected = user['match_selected']
     match = db_matches[match_selected]
     match['intentos'] = 0
     match_url = match['url']
-    user_data[chat_id][match_selected] = match
+    user_data[user_id][match_selected] = match
     pregunta_actual = match['pregunta_actual']
 
     if pregunta_actual < len(preguntas_momios):
         _, texto_pregunta = preguntas_momios[pregunta_actual]
-        bot.send_message(chat_id, f"{nombre}\n¿{texto_pregunta}? (- Si no hay)") # noqa
+        send_text(
+            bot,
+            user_id,
+            f'{nombre}\n¿{texto_pregunta}? (- Si no hay)'
+        )
         bot.register_next_step_handler(message, obtener_momio)
     else:
         msj = get_match_details(match, True)
         save_match(match)
         markup = types.InlineKeyboardMarkup()
         if match_url:
-            link_boton = types.InlineKeyboardButton("Partido", url=match_url) # noqa
+            link_boton = types.InlineKeyboardButton('Partido', url=match_url) # noqa
             markup.add(link_boton)
-        bot.reply_to(message, f"{nombre}\n{msj}", reply_markup=markup)
+        send_text(
+            bot,
+            user_id,
+            f'{nombre}\n{msj}',
+            reply_markup=markup
+        )
 
 
 def obtener_momio(message):
@@ -167,10 +205,18 @@ def obtener_momio(message):
         intentos_restantes = 3 - match['intentos']
 
         if intentos_restantes > 0:
-            bot.send_message(chat_id, f"{nombre}\nEl momio es inválido, intenta de nuevo ({intentos_restantes} intentos).") # noqa
+            send_text(
+                bot,
+                chat_id,
+                f'{nombre}\nEl momio es inválido, intenta de nuevo ({intentos_restantes} intentos).' # noqa
+            )
             bot.register_next_step_handler(message, obtener_momio)
         else:
-            bot.send_message(chat_id, "{nombre}\nVuelve a ingresar el id del partido para volver a empezar.") # noqa
+            send_text(
+                bot,
+                chat_id,
+                '{nombre}\nVuelve a ingresar el id del partido para volver a empezar.' # noqa
+            )
 
 
 def start_bot(fecha):
@@ -179,14 +225,14 @@ def start_bot(fecha):
     try:
         bot.infinity_polling(timeout=20, long_polling_timeout=10)
     except (ConnectionError, ReadTimeout):
-        logging.warning("Telegram conection Timeout...")
+        logging.warning('Telegram conection Timeout...')
         # sys.stdout.flush()
         # os.execv(sys.argv[0], sys.argv)
     except (KeyboardInterrupt, SystemExit):
-        logging.info("Fin...")
+        logging.info('Fin...')
         bot.stop_polling()
     except Exception as e:
-        logging.error("Telegram Exception")
+        logging.error('Telegram Exception')
         logging.error(str(e))
     else:
         bot.infinity_polling(timeout=20, long_polling_timeout=10)
@@ -197,7 +243,7 @@ def start_bot(fecha):
             pass
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     args = sys.argv[1:]
     if len(args) > 0:
         db_file = args[0]

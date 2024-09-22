@@ -1,3 +1,29 @@
+import json
+
+
+def save_match(match):
+    global matches_result, matches_result_file
+    matches_result.append(match)
+    with open(matches_result_file, 'w') as file:
+        json.dump(matches_result, file, indent=4)
+
+
+def send_text(telegram_bot, chat_id, text, markup=None):
+    if len(text) <= 4096:
+        telegram_bot.send_message(
+            chat_id=chat_id,
+            text=text,
+            reply_markup=markup
+        )
+    else:
+        parts = [text[i:i + 4096] for i in range(0, len(text), 4096)]
+        for part in parts:
+            telegram_bot.send_message(
+                chat_id=chat_id,
+                text=part
+            )
+
+
 def es_momio_americano(texto):
     try:
         if texto == '-':
