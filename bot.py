@@ -98,13 +98,11 @@ def handle(message):
                     markup.add(link_boton)
 
                 str_match_detail = get_match_details(match)
-                logging.info(
-                    str_match_detail + f'\n\n ¿{nombre}, deseas continuar?'
-                )
+                logging.info(str_match_detail)
                 send_text(
                     bot,
                     user_id,
-                    str_match_detail,
+                    str_match_detail + f'\n\n ¿{nombre}, Los datos son correctos?', # noqa
                     markup
                 )
             else:
