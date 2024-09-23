@@ -4,18 +4,24 @@ import sys
 import json
 import telebot
 import logging
+import pygsheets
 from telebot import types
 from dotenv import load_dotenv
-from requests.exceptions import ConnectionError, ReadTimeout
 from utils import es_momio_americano
 from utils import send_text, save_match
+from sheet_utils import write_sheet_match
 from catalogos import paises, user_data, preguntas_momios
+from requests.exceptions import ConnectionError, ReadTimeout
 from utils import get_match_details, get_match_paises, get_paises_count
 
 load_dotenv()
 
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID').split(',')
+
+gc = pygsheets.authorize(service_file='feorslebosgc.json')
+spreadsheet = gc.open('Mark 4')
+wks = spreadsheet.worksheet_by_title('Bot')
 
 matches_result_file = ''
 filename = 'partidos_totalcorner'
@@ -121,7 +127,7 @@ def handle(message):
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
-    global db_matches, preguntas_momios
+    global db_matches, preguntas_momios, wks
     user_id = call.message.chat.id
     user = user_data[user_id]
     nombre = user['nombre']
@@ -134,6 +140,7 @@ def callback_query(call):
             campo, _ = p
             match[campo] = ''
         user_data[user_id][match_selected] = match
+        write_sheet_match(wks, match)
         preguntar_momio(call.message)
     elif call.data == 'no':
         send_text(
