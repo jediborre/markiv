@@ -34,7 +34,7 @@ def write_sheet_match(wks, match):
     away_p_hechos = match['away_matches']['p_hechos']
     away_p_concedidos = match['away_matches']['p_concedidos']
     wks.update_row(last_row, [
-        fecha,
+        fecha[:10],
         hora,
         home,
         away,
