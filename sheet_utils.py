@@ -33,6 +33,10 @@ def write_sheet_match(wks, match):
     away_concedidos = match['away_matches']['concedidos']
     away_p_hechos = match['away_matches']['p_hechos']
     away_p_concedidos = match['away_matches']['p_concedidos']
+    face_matches = match['face_matches']
+    face_ft_1, face_ft_2, face_ft_3, face_ft_4, face_ft_5 = (
+        (face_matches[n]['ft'] if n < len(face_matches) else '') for n in range(5) # noqa
+    )
     wks.update_row(last_row, [
         fecha[:10],
         hora,
@@ -62,4 +66,9 @@ def write_sheet_match(wks, match):
         '5',
         away_p_hechos,
         away_p_concedidos,
+        face_ft_1,
+        face_ft_2,
+        face_ft_3,
+        face_ft_4,
+        face_ft_5
     ])
