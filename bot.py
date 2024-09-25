@@ -228,11 +228,9 @@ def start_bot(fecha):
     global bot
     logging.info(f'Mark IV BOT {fecha}')
     try:
-        bot.infinity_polling(timeout=20, long_polling_timeout=10)
+        bot.infinity_polling(timeout=40, long_polling_timeout=60)
     except (ConnectionError, ReadTimeout):
         logging.warning('Telegram conection Timeout...')
-        # sys.stdout.flush()
-        # os.execv(sys.argv[0], sys.argv)
     except (KeyboardInterrupt, SystemExit):
         logging.info('Fin...')
         bot.stop_polling()
@@ -240,7 +238,7 @@ def start_bot(fecha):
         logging.error('Telegram Exception')
         logging.error(str(e))
     else:
-        bot.infinity_polling(timeout=20, long_polling_timeout=10)
+        bot.infinity_polling(timeout=50, long_polling_timeout=70)
     finally:
         try:
             bot.stop_polling()
