@@ -1457,5 +1457,5 @@ return [&#xD;&#xD;&#xD;&#xD;&#xD;
 *://*.googleadservices.com/*&#xD;
 *://*.scorecardresearch.com/*</BlockList>
   <DynamicInject />
-  <ProjectCode>3914cbcb1d4118ce9102ca3eed8d377b</ProjectCode>
+  <ProjectCode>252aef1a44bd4dbbdbbfddf81f38d3bc</ProjectCode>
 </SerializableScraperProject>
