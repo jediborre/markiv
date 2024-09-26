@@ -20,6 +20,7 @@ def encuentros(matches, match_liga, match_home):
     global result_path
     result_matches = []
     hechos, concedidos = 0, 0
+    p35, p45 = 0, 0
     for match in matches:
         liga = match.league
         date = match.date
@@ -31,6 +32,10 @@ def encuentros(matches, match_liga, match_home):
         if match_liga:
             if liga == match_liga:
                 if len(result_matches) < 5:
+                    if ft <= 3:
+                        p35 += 1
+                    if ft <= 4:
+                        p45 += 1
                     if match_home:
                         if home == match_home:
                             hechos += home_FT
@@ -62,18 +67,25 @@ def encuentros(matches, match_liga, match_home):
                 })
             else:
                 break
+    result = {
+        'matches': result_matches
+    }
+    juegos = len(result_matches)
     if match_home:
-        juegos = len(result_matches)
         result = {
             'hechos': hechos,
             'concedidos': concedidos,
-            'matches': result_matches
         }
         if juegos > 0:
             result['p_hechos'] = hechos / juegos
             result['p_concedidos'] = concedidos / juegos
+            result['p35'] = p35 / juegos
+            result['p45'] = p45 / juegos
         return result
     else:
+        if juegos > 0:
+            result['p35'] = p35 / juegos
+            result['p45'] = p45 / juegos
         return result_matches
 
 

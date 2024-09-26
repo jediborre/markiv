@@ -37,7 +37,21 @@ def write_sheet_match(wks, match):
     face_ft_1, face_ft_2, face_ft_3, face_ft_4, face_ft_5 = (
         (face_matches[n]['ft'] if n < len(face_matches) else '') for n in range(5) # noqa
     )
-    wks.update_row(last_row, [
+    momio_home = int(match['momio_home']) if 'momio_home' in match else ''
+    momio_away = int(match['momio_away']) if 'momio_away' in match else ''
+    dif_momio_win = momio_home - momio_away
+    momio_si = int(match['momio_si']) if 'momio_si' in match else ''
+    momio_no = int(match['momio_no']) if 'momio_no' in match else ''
+    dif_momio_sino = momio_si - momio_no
+    momio_ht_05 = int(match['momio_ht_05']) if 'momio_ht_05' in match else ''
+    momio_ht_15 = int(match['momio_ht_15']) if 'momio_ht_15' in match else ''
+    momio_ht_25 = int(match['momio_ht_25']) if 'momio_ht_25' in match else ''
+    momio_ft_05 = int(match['momio_ft_05']) if 'momio_ft_05' in match else ''
+    momio_ft_15 = int(match['momio_ft_15']) if 'momio_ft_15' in match else ''
+    momio_ft_25 = int(match['momio_ft_25']) if 'momio_ft_25' in match else ''
+    momio_ft_35 = int(match['momio_ft_35']) if 'momio_ft_35' in match else ''
+    momio_ft_45 = int(match['momio_ft_45']) if 'momio_ft_45' in match else ''
+    reg = [
         fecha[:10],
         hora,
         home,
@@ -70,5 +84,28 @@ def write_sheet_match(wks, match):
         face_ft_2,
         face_ft_3,
         face_ft_4,
-        face_ft_5
-    ])
+        face_ft_5,
+        momio_home,
+        momio_away,
+        dif_momio_win,
+        momio_si,
+        momio_no,
+        dif_momio_sino,
+        momio_ht_05,
+        momio_ht_15,
+        momio_ht_25,
+        momio_ft_05,
+        momio_ft_15,
+        momio_ft_25,
+        momio_ft_35,
+        momio_ft_45,
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        promedio_gol
+    ]
+    wks.update_row(last_row, reg)
