@@ -87,17 +87,17 @@ def write_sheet_match(wks, match):
     usuario = match['usuario'] if 'usuario' in match else ''
     revision = match['revision'] if 'revision' in match else ''
     # f1 = get_f1(dif_momio_sino)
-    x1 = wks.get_values('F3', returnas='cell').formula
-    x2 = wks.get_values('G3', returnas='cell').formula
-    x3 = wks.get_values('T3', returnas='cell').formula
-    dif = wks.get_values('AN3', returnas='cell').formula
-    f1 = wks.get_values('BI3', returnas='cell').formula
-    f2 = wks.get_values('BJ3', returnas='cell').formula
-    f3 = wks.get_values('BK3', returnas='cell').formula
-    f4 = wks.get_values('BL3', returnas='cell').formula
-    f5 = wks.get_values('BM3', returnas='cell').formula
-    f6 = wks.get_values('BN3', returnas='cell').formula
-    ap = wks.get_values('BO3', returnas='cell').formula
+    x1 = wks.cell('F3').formula
+    x2 = wks.cell('G3').formula
+    x3 = wks.cell('T3').formula
+    dif = wks.cell('AN3').formula
+    f1 = wks.cell('BI3').formula
+    f2 = wks.cell('BJ3').formula
+    f3 = wks.cell('BK3').formula
+    f4 = wks.cell('BL3').formula
+    f5 = wks.cell('BM3').formula
+    f6 = wks.cell('BN3').formula
+    ap = wks.cell('BO3').formula
     reg = [
         fecha[:10],
         hora,
