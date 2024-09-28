@@ -105,6 +105,18 @@ def write_sheet_match(wks, match):
     f5 = update_formula(wks.cell('BM3').formula, 3, last_row)
     f6 = update_formula(wks.cell('BN3').formula, 3, last_row)
     ap = update_formula(wks.cell('BO3').formula, 3, last_row)
+    seg1 = update_formula(wks.cell('BP3').formula, 3, last_row)
+    seg2 = update_formula(wks.cell('BQ3').formula, 3, last_row)
+    seg3 = update_formula(wks.cell('BR3').formula, 3, last_row)
+    seg4 = update_formula(wks.cell('BS3').formula, 3, last_row)
+    seg5 = update_formula(wks.cell('BT3').formula, 3, last_row)
+    seg6 = update_formula(wks.cell('BU3').formula, 3, last_row)
+    seg7 = update_formula(wks.cell('BV3').formula, 3, last_row)
+    seg8 = update_formula(wks.cell('BW3').formula, 3, last_row)
+    seg9 = update_formula(wks.cell('BX3').formula, 3, last_row)
+    seg10 = update_formula(wks.cell('BY3').formula, 3, last_row)
+    seg11 = update_formula(wks.cell('BZ3').formula, 3, last_row)
+    seg12 = update_formula(wks.cell('CA3').formula, 3, last_row)
     reg = [
         fecha[:10],
         hora,
@@ -173,6 +185,18 @@ def write_sheet_match(wks, match):
         '',  # f5 BM
         '',  # f6 BN
         '',  # AP BO
+        '',  # BP
+        '',  # BQ
+        '',  # BR
+        '',  # BS
+        '',  # BT
+        '',  # BU
+        '',  # BV
+        '',  # BW
+        '',  # BX
+        '',  # BY
+        '',  # BZ
+        '',  # CA
         revision,  # Revision
         usuario,  # Usuario
         url  # link totalcorner
@@ -190,3 +214,15 @@ def write_sheet_match(wks, match):
     wks.update_value(f'BM{last_row}', f5)
     wks.update_value(f'BN{last_row}', f6)
     wks.update_value(f'BO{last_row}', ap)
+    wks.update_value(f'BP{last_row}', seg1)
+    wks.update_value(f'BQ{last_row}', seg2)
+    wks.update_value(f'BR{last_row}', seg3)
+    wks.update_value(f'BS{last_row}', seg4)
+    wks.update_value(f'BT{last_row}', seg5)
+    wks.update_value(f'BU{last_row}', seg6)
+    wks.update_value(f'BV{last_row}', seg7)
+    wks.update_value(f'BW{last_row}', seg8)
+    wks.update_value(f'BX{last_row}', seg9)
+    wks.update_value(f'BY{last_row}', seg10)
+    wks.update_value(f'BZ{last_row}', seg11)
+    wks.update_value(f'CA{last_row}', seg12)
