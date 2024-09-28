@@ -712,224 +712,224 @@
   <Extractors>
     <SerializableGatherer>
       <Name>Away</Name>
-      <Value>return function(element, global) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-	var marcador = element.innerText;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-	if (marcador.indexOf('-') === -1)&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-		return '';&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-	marcador = marcador.replace(/^\[|\]$|^\(|\)$/g, '');&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-	var list_marcador = marcador.split('-');&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-	var home = list_marcador[1].trim();&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-	return home;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>return function(element, global) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+	var marcador = element.innerText;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+	if (marcador.indexOf('-') === -1)&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+		return '';&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+	marcador = marcador.replace(/^\[|\]$|^\(|\)$/g, '');&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+	var list_marcador = marcador.split('-');&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+	var home = list_marcador[1].trim();&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+	return home;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 };</Value>
       <Visible>true</Visible>
       <Locked>false</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>Home</Name>
-      <Value>return function(element, global) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-	var marcador = element.innerText;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-	if (marcador.indexOf('-') === -1)&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-		return '';&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-	marcador = marcador.replace(/^\[|\]$|^\(|\)$/g, '');&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-	var list_marcador = marcador .split('-');&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-	var home = list_marcador[0].trim();&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-	return home;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>return function(element, global) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+	var marcador = element.innerText;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+	if (marcador.indexOf('-') === -1)&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+		return '';&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+	marcador = marcador.replace(/^\[|\]$|^\(|\)$/g, '');&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+	var list_marcador = marcador .split('-');&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+	var home = list_marcador[0].trim();&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+	return home;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 };</Value>
       <Visible>true</Visible>
       <Locked>false</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>HTML</Name>
-      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return element.nodeType === 1 ? element.outerHTML : element.nodeValue;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.noCache = false;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-return result;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return element.nodeType === 1 ? element.outerHTML : element.nodeValue;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.noCache = false;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+return result;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 </Value>
       <Visible>true</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>Link</Name>
-      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    var upperTag = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        return element.tagName ? element.tagName.toUpperCase() : element.tagName;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    var linkOf = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        return element &amp;&amp; element.href &amp;&amp; (element.protocol === "http:" || element.protocol === "https:" || element.protocol == "file:" || element.protocol == "ftp:") ? element.href : null;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    var original = element;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    while (element &amp;&amp; (!element.tagName || upperTag(element) !== 'A'))&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        element = element.parentNode;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    var result = linkOf(element);&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    if (!result) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        if (original.children.length == 1) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-            var child = original.children[0];&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-            if (upperTag(child) === 'A') {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-                result = linkOf(child);&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-                if (!result) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-                    if (child.children.length == 1) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-                        child = child.children[0];&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-                        if (upperTag(child) === 'A')&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-                            result = linkOf(child);&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-                    }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-                }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-            }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return result;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.noCache = false;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-return result;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    var upperTag = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        return element.tagName ? element.tagName.toUpperCase() : element.tagName;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    var linkOf = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        return element &amp;&amp; element.href &amp;&amp; (element.protocol === "http:" || element.protocol === "https:" || element.protocol == "file:" || element.protocol == "ftp:") ? element.href : null;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    var original = element;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    while (element &amp;&amp; (!element.tagName || upperTag(element) !== 'A'))&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        element = element.parentNode;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    var result = linkOf(element);&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    if (!result) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        if (original.children.length == 1) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+            var child = original.children[0];&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+            if (upperTag(child) === 'A') {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+                result = linkOf(child);&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+                if (!result) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+                    if (child.children.length == 1) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+                        child = child.children[0];&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+                        if (upperTag(child) === 'A')&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+                            result = linkOf(child);&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+                    }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+                }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+            }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return result;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.noCache = false;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+return result;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 </Value>
       <Visible>true</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>Number</Name>
-      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    var getText = function () {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        return element.nodeType === 1 ? element.innerText : element.nodeValue;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    var regex = /-?(?=[1-9]|0(?!\d))[\d\,]+(\.\d+)?/;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    var first = regex.exec(getText(element));&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return first &amp;&amp; first.length ? first[0] : null;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.noCache = false;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-return result;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    var getText = function () {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        return element.nodeType === 1 ? element.innerText : element.nodeValue;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    var regex = /-?(?=[1-9]|0(?!\d))[\d\,]+(\.\d+)?/;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    var first = regex.exec(getText(element));&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return first &amp;&amp; first.length ? first[0] : null;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.noCache = false;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+return result;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 </Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>OwnText</Name>
-      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    var text = [].reduce.call(element.childNodes || [], (a, b) =&gt; a + (b.nodeType === 3 ? b.textContent : ''), '');&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return text.trim();&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.noCache = false;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-return result;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    var text = [].reduce.call(element.childNodes || [], (a, b) =&gt; a + (b.nodeType === 3 ? b.textContent : ''), '');&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return text.trim();&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.noCache = false;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+return result;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 </Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>Pais</Name>
-      <Value>return function(element, global) {&#xD;&#xD;&#xD;&#xD;&#xD;
-	return element.innerHTML;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>return function(element, global) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+	return element.innerHTML;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 };</Value>
       <Visible>true</Visible>
       <Locked>false</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>Path</Name>
-      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return window.___getPath(element);&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.noCache = false;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-return result;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return window.___getPath(element);&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.noCache = false;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+return result;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 </Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>Pos</Name>
-      <Value>return function(element, global) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-	return element.innerText.replace(/^\[|\]$/g, '');&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>return function(element, global) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+	return element.innerText.replace(/^\[|\]$/g, '');&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 };</Value>
       <Visible>true</Visible>
       <Locked>false</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>Src</Name>
-      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return element.src || "";&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.noCache = false;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-return result;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return element.src || "";&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.noCache = false;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+return result;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 </Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>Tag</Name>
-      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    var upperTag = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        return element.nodeType === 1 ? element.tagName.toUpperCase() : "HS-NODE";&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return upperTag(element);&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.noCache = false;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-return result;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    var upperTag = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        return element.nodeType === 1 ? element.tagName.toUpperCase() : "HS-NODE";&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return upperTag(element);&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.noCache = false;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+return result;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 </Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>Text</Name>
-      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    var upperTag = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        return element.tagName ? element.tagName.toUpperCase() : element.tagName;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    var getElementText = function (e) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        switch (upperTag(e)) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-            case 'SELECT':&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-                if (e.selectedOptions &amp;&amp; e.selectedOptions.length === 1)&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-                    return e.selectedOptions[0].innerText;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-            default:&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-                return e.innerText;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    var text = element.nodeType === 1 ? getElementText(element) : element.nodeValue;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return text ? text.trim() : "";&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.noCache = false;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-return result;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    var upperTag = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        return element.tagName ? element.tagName.toUpperCase() : element.tagName;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    var getElementText = function (e) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        switch (upperTag(e)) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+            case 'SELECT':&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+                if (e.selectedOptions &amp;&amp; e.selectedOptions.length === 1)&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+                    return e.selectedOptions[0].innerText;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+            default:&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+                return e.innerText;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    var text = element.nodeType === 1 ? getElementText(element) : element.nodeValue;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return text ? text.trim() : "";&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.noCache = false;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+return result;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 </Value>
       <Visible>true</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>URL</Name>
-      <Value>var result =  function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return element.ownerDocument.defaultView.location.href;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.noCache = false;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-return result;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result =  function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return element.ownerDocument.defaultView.location.href;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.noCache = false;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+return result;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 </Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>Value</Name>
-      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return element.value || element.getAttribute('value');&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.noCache = false;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-return result;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return element.value || element.getAttribute('value');&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.noCache = false;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+return result;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 </Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
@@ -938,487 +938,487 @@ return result;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
   <KindGatherers>
     <SerializableGatherer>
       <Name>childrenLen</Name>
-      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return { val: element.nodeType === 1 ? element.children.length : 0 };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.score = 0.7; // Default&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return { val: element.nodeType === 1 ? element.children.length : 0 };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.score = 0.7; // Default&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 return result;</Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>class</Name>
-      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    if (element.nodeType !== 1)&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        element = element.parentElement;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    var result = {};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    var list = element.classList;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    var len = list.length;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    for (var i = 0; i &lt; len; i++)&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        result[list[i]] = true;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return result;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.score = 0.73;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    if (element.nodeType !== 1)&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        element = element.parentElement;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    var result = {};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    var list = element.classList;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    var len = list.length;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    for (var i = 0; i &lt; len; i++)&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        result[list[i]] = true;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return result;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.score = 0.73;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 return result;</Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>class1</Name>
-      <Value>var result = window.___makeRelatedGatherer('class', function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return element.parentNode;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-});&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.score = 0.87;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = window.___makeRelatedGatherer('class', function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return element.parentNode;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+});&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.score = 0.87;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 return result;</Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>class2</Name>
-      <Value>var result = window.___makeRelatedGatherer('class', function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return element.parentNode.parentNode;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-});&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.score = 0.87;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = window.___makeRelatedGatherer('class', function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return element.parentNode.parentNode;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+});&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.score = 0.87;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 return result;</Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>class3</Name>
-      <Value>var result = window.___makeRelatedGatherer('class', function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return element.parentNode.parentNode.parentNode;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-});&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.score = 0.9;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = window.___makeRelatedGatherer('class', function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return element.parentNode.parentNode.parentNode;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+});&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.score = 0.9;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 return result;</Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>classes</Name>
-      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    if (element.nodeType !== 1)&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        element = element.parentElement;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return { val: typeof element.className === 'string' ? element.className : null };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.score = 0.91;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    if (element.nodeType !== 1)&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        element = element.parentElement;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return { val: typeof element.className === 'string' ? element.className : null };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.score = 0.91;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 return result;</Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>classes1</Name>
-      <Value>var result = window.___makeRelatedGatherer('classes', function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return element.parentNode;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-});&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.score = 0.95;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = window.___makeRelatedGatherer('classes', function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return element.parentNode;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+});&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.score = 0.95;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 return result;</Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>classes2</Name>
-      <Value>var result = window.___makeRelatedGatherer('classes', function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return element.parentNode.parentNode;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-});&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.score = 0.95;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = window.___makeRelatedGatherer('classes', function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return element.parentNode.parentNode;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+});&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.score = 0.95;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 return result;</Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>classes3</Name>
-      <Value>var result = window.___makeRelatedGatherer('classes', function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return element.parentNode.parentNode.parentNode;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-});&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.score = 0.81;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = window.___makeRelatedGatherer('classes', function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return element.parentNode.parentNode.parentNode;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+});&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.score = 0.81;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 return result;</Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>colIndex</Name>
-      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    var maxUp = 5;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    function closestTd(element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        for (var up = 0; up &lt; maxUp; up++) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-            if (!element) return null;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-            if (/^t[dh]$/i.test(element.nodeName))&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-                return element;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-            element = element.parentNode;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        return null;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    function colSpan(col) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        return parseInt((col &amp;&amp; col.nodeType == 1 &amp;&amp; /^t[dh]$/i.test(element.nodeName)) ? (col.getAttribute('colSpan') || 1) : 0);&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    function endIndex(element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        var colPos = colSpan(element);&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        while (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-            element = element.previousSibling;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-            colPos += colSpan(element);&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        return colPos;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    element = closestTd(element);&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    if (element)&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        return { val: endIndex(element.previousSibling) };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    else&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        return {};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.score = 0.7; // Default&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    var maxUp = 5;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    function closestTd(element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        for (var up = 0; up &lt; maxUp; up++) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+            if (!element) return null;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+            if (/^t[dh]$/i.test(element.nodeName))&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+                return element;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+            element = element.parentNode;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        return null;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    function colSpan(col) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        return parseInt((col &amp;&amp; col.nodeType == 1 &amp;&amp; /^t[dh]$/i.test(element.nodeName)) ? (col.getAttribute('colSpan') || 1) : 0);&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    function endIndex(element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        var colPos = colSpan(element);&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        while (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+            element = element.previousSibling;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+            colPos += colSpan(element);&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        return colPos;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    element = closestTd(element);&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    if (element)&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        return { val: endIndex(element.previousSibling) };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    else&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        return {};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.score = 0.7; // Default&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 return result;</Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>color</Name>
-      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    if (element.nodeType !== 1)&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        element = element.parentElement;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return { val: window.getComputedStyle(element).color };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.score = 1;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    if (element.nodeType !== 1)&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        element = element.parentElement;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return { val: window.getComputedStyle(element).color };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.score = 1;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 return result;</Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>font</Name>
-      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    if (element.nodeType !== 1)&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        element = element.parentElement;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return { val: window.getComputedStyle(element)['font-family'] };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.score = 1;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    if (element.nodeType !== 1)&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        element = element.parentElement;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return { val: window.getComputedStyle(element)['font-family'] };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.score = 1;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 return result;</Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>header</Name>
-      <Value>var result = function header(element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    var upperTag = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        return element.tagName ? element.tagName.toUpperCase() : element.tagName;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    var getColumnIndex = function (e) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        var maxLevels = 4;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        while (e &amp;&amp; upperTag(e) !== 'TD' &amp;&amp; maxLevels &gt; 0) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-            e = e.parentElement;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-            maxLevels--;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        if (e &amp;&amp; upperTag(e) === 'TD') {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-            var index = 0;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-            while ((e = e.previousElementSibling)) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-                index += e.colSpan || 1;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-            }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-            return index;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        else&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-            return -1;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    var colIndex = getColumnIndex(element);&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    if (colIndex !== -1) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        while (element &amp;&amp; upperTag(element) !== 'TABLE')&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-            element = element.parentElement;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        if (element &amp;&amp; upperTag(element) === 'TABLE') {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-            var tds = element.querySelectorAll('th,thead td');&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-            var index = 0;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-            for (var td of tds) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-                index += td.colSpan || 1;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-                if (index &gt; colIndex) &#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-                    return { val: (td.innerText || "").trim() };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-            }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return {};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.score = 0.9;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = function header(element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    var upperTag = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        return element.tagName ? element.tagName.toUpperCase() : element.tagName;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    var getColumnIndex = function (e) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        var maxLevels = 4;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        while (e &amp;&amp; upperTag(e) !== 'TD' &amp;&amp; maxLevels &gt; 0) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+            e = e.parentElement;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+            maxLevels--;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        if (e &amp;&amp; upperTag(e) === 'TD') {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+            var index = 0;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+            while ((e = e.previousElementSibling)) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+                index += e.colSpan || 1;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+            }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+            return index;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        else&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+            return -1;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    var colIndex = getColumnIndex(element);&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    if (colIndex !== -1) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        while (element &amp;&amp; upperTag(element) !== 'TABLE')&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+            element = element.parentElement;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        if (element &amp;&amp; upperTag(element) === 'TABLE') {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+            var tds = element.querySelectorAll('th,thead td');&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+            var index = 0;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+            for (var td of tds) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+                index += td.colSpan || 1;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+                if (index &gt; colIndex) &#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+                    return { val: (td.innerText || "").trim() };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+            }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return {};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.score = 0.9;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 return result;</Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>id</Name>
-      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    if (element.nodeType !== 1)&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        element = element.parentElement;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return { val: element.id };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.score = 0.98;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    if (element.nodeType !== 1)&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        element = element.parentElement;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return { val: element.id };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.score = 0.98;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 return result;</Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>id1</Name>
-      <Value>var result = window.___makeRelatedGatherer('id', function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return element.parentNode;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-});&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.score = 0.91;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = window.___makeRelatedGatherer('id', function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return element.parentNode;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+});&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.score = 0.91;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 return result;</Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>id2</Name>
-      <Value>var result = window.___makeRelatedGatherer('id', function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return element.parentNode.parentNode;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-});&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.score = 0.91;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = window.___makeRelatedGatherer('id', function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return element.parentNode.parentNode;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+});&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.score = 0.91;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 return result;</Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>id3</Name>
-      <Value>var result = window.___makeRelatedGatherer('id', function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return element.parentNode.parentNode.parentNode;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-});&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.score = 0.88;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = window.___makeRelatedGatherer('id', function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return element.parentNode.parentNode.parentNode;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+});&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.score = 0.88;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 return result;</Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>indexes</Name>
-      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    function getElementIndex(node) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        var index = 0;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        while ((node = node.previousSibling)) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-            index++;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        return index;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    var result = {};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    var level = 0;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    var levels = 3;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    while (element &amp;&amp; level &lt; levels) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        result[level] = getElementIndex(element);&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        level++;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        element = element.parentElement&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return result;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.score = 0.86;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    function getElementIndex(node) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        var index = 0;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        while ((node = node.previousSibling)) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+            index++;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        return index;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    var result = {};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    var level = 0;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    var levels = 3;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    while (element &amp;&amp; level &lt; levels) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        result[level] = getElementIndex(element);&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        level++;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        element = element.parentElement&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return result;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.score = 0.86;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 return result;</Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>names</Name>
-      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    function getElementName(node) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        return node.nodeType === 1 ? (node.name || node.getAttribute('name')) : null;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    var result = {};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    var level = 0;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    var levels = 3;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    while (element &amp;&amp; level &lt; levels) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        var name = getElementName(element);&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        if (name) result[level] = name;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        level++;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        element = element.parentElement&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return result;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.score = 0.75;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    function getElementName(node) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        return node.nodeType === 1 ? (node.name || node.getAttribute('name')) : null;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    var result = {};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    var level = 0;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    var levels = 3;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    while (element &amp;&amp; level &lt; levels) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        var name = getElementName(element);&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        if (name) result[level] = name;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        level++;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        element = element.parentElement&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return result;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.score = 0.75;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 return result;</Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>prevText</Name>
-      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    var prevTextOf = function (e) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        var maxDepth = 0;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        var maxLength = 128;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        while (e &amp;&amp; !e.previousElementSibling &amp;&amp; maxDepth &gt; 0) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-            e = e.parentElement;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-            maxDepth--;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        if (e &amp;&amp; e.previousElementSibling) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-            var fullText = e.previousElementSibling.innerText;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-            if (fullText.length &lt; maxLength)&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-                return { val: fullText };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        return null;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    var maxParents = 3;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    do {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        var prevText = prevTextOf(element);&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        if (prevText)&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-            return prevText;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        if (element.parentElement &amp;&amp; maxParents &gt; 0) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-            element = element.parentElement;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-            maxParents--;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        else&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-            return null;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    while (true);&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.score = 0.7; // Default&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    var prevTextOf = function (e) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        var maxDepth = 0;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        var maxLength = 128;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        while (e &amp;&amp; !e.previousElementSibling &amp;&amp; maxDepth &gt; 0) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+            e = e.parentElement;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+            maxDepth--;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        if (e &amp;&amp; e.previousElementSibling) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+            var fullText = e.previousElementSibling.innerText;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+            if (fullText.length &lt; maxLength)&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+                return { val: fullText };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        return null;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    var maxParents = 3;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    do {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        var prevText = prevTextOf(element);&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        if (prevText)&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+            return prevText;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        if (element.parentElement &amp;&amp; maxParents &gt; 0) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+            element = element.parentElement;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+            maxParents--;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        else&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+            return null;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    while (true);&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.score = 0.7; // Default&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 return result;</Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>tag</Name>
-      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    var upperTag = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        return element.nodeType === 1 ? element.tagName.toUpperCase() : "HS-NODE";&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return { val: upperTag(element) };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.score = 1;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    var upperTag = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        return element.nodeType === 1 ? element.tagName.toUpperCase() : "HS-NODE";&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return { val: upperTag(element) };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.score = 1;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 return result;</Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>tag1</Name>
-      <Value>var result = window.___makeRelatedGatherer('tag', function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return element.parentNode;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-});&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.score = 1;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = window.___makeRelatedGatherer('tag', function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return element.parentNode;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+});&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.score = 1;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 return result;</Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>tag2</Name>
-      <Value>var result = window.___makeRelatedGatherer('tag', function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return element.parentNode.parentNode;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-});&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.score = 1;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = window.___makeRelatedGatherer('tag', function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return element.parentNode.parentNode;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+});&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.score = 1;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 return result;</Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>tag3</Name>
-      <Value>var result = window.___makeRelatedGatherer('tag', function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return element.parentNode.parentNode.parentNode;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-});&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.score = 1;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = window.___makeRelatedGatherer('tag', function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return element.parentNode.parentNode.parentNode;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+});&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.score = 1;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 return result;</Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>text</Name>
-      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    if (element.nodeType !== 1)&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        return null;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    if (window.___textTags.has(element.tagName.toUpperCase()))&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        return null;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    var text = element.innerText;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    if (!text)&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        text = (element.querySelector('svg title') || {}).innerHTML;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    if (text &amp;&amp; text.length &gt; 100)&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        return null;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return { val: text };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.score = 0.2;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    if (element.nodeType !== 1)&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        return null;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    if (window.___textTags.has(element.tagName.toUpperCase()))&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        return null;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    var text = element.innerText;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    if (!text)&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        text = (element.querySelector('svg title') || {}).innerHTML;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    if (text &amp;&amp; text.length &gt; 100)&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        return null;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return { val: text };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.score = 0.2;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 return result;</Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>title</Name>
-      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    if (element.nodeType !== 1)&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        element = element.parentElement;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return { val: element.getAttribute('title') };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.score = 0.7;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    if (element.nodeType !== 1)&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        element = element.parentElement;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return { val: element.getAttribute('title') };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.score = 0.7;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 return result;</Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
     </SerializableGatherer>
     <SerializableGatherer>
       <Name>visible</Name>
-      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    if (element.nodeType !== 1)&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        element = element.parentElement;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    return { val: element.offsetParent !== null };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-result.score = 1;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>var result = function (element) {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    if (element.nodeType !== 1)&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        element = element.parentElement;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    return { val: element.offsetParent !== null };&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+};&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+result.score = 1;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 return result;</Value>
       <Visible>false</Visible>
       <Locked>true</Locked>
@@ -1427,14 +1427,14 @@ return result;</Value>
   <Scripts>
     <SerializableNamedPairOfString>
       <Name>Params</Name>
-      <Value>// This scope contains 'element', 'global' and 'argument'&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-return [&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        element: element,&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-        value: argument&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-    }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
-];&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+      <Value>// This scope contains 'element', 'global' and 'argument'&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+return [&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    {&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        element: element,&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+        value: argument&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+    }&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
+];&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 </Value>
     </SerializableNamedPairOfString>
   </Scripts>
@@ -1446,6 +1446,7 @@ return [&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
     <ProxyRotationInterval>100</ProxyRotationInterval>
     <ProxyTestUrl>https://www.totalcorner.com/match/schedule</ProxyTestUrl>
     <AutoParallel>false</AutoParallel>
+    <MaxBrowsers>1</MaxBrowsers>
   </Settings>
   <BlockList>*://*.doubleclick.net/*&#xD;
 *://*.amazon-adsystem.com/*&#xD;
@@ -1457,5 +1458,5 @@ return [&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 *://*.googleadservices.com/*&#xD;
 *://*.scorecardresearch.com/*</BlockList>
   <DynamicInject />
-  <ProjectCode>8a0fb0018def2577a710c2641aa86da4</ProjectCode>
+  <ProjectCode>80bc94ee827c1dc8038c0edbc3918699</ProjectCode>
 </SerializableScraperProject>
