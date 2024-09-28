@@ -104,8 +104,8 @@ def write_sheet_match(wks, match):
         home,
         away,
         '-3.5',  # AP
-        x1,  # X1
-        x2,  # X2
+        x1,  # X1 F
+        x2,  # X2 G
         pais,
         liga,
         home_ft_1,
@@ -118,7 +118,7 @@ def write_sheet_match(wks, match):
         '5',  # no juegos Local
         home_p_hechos,
         home_p_concedidos,
-        x3,  # X3
+        x3,  # X3 T
         away_ft_1,  # U
         away_ft_2,
         away_ft_3,
@@ -138,7 +138,7 @@ def write_sheet_match(wks, match):
         momio_away,
         momio_si,  # AL
         momio_no,
-        dif,
+        '',  # DIF AN
         momio_ht_05,  # AO
         momio_ht_15,
         momio_ht_25,
@@ -159,16 +159,27 @@ def write_sheet_match(wks, match):
         face_35,
         '',  # Total BG
         '',  # Observacion BH
-        f1,  # f1 BI
-        f2,  # f2 BJ
-        f3,  # f3 BK
-        f4,  # f4 BL
-        f5,  # f5 BM
-        f6,  # f6 BN
-        ap,  # AP BO
+        '',  # f1 BI
+        '',  # f2 BJ
+        '',  # f3 BK
+        '',  # f4 BL
+        '',  # f5 BM
+        '',  # f6 BN
+        '',  # AP BO
         revision,  # Revision
         usuario,  # Usuario
         url  # link totalcorner
     ]
     # pprint.pprint(reg)
     wks.update_row(last_row, reg)
+    wks.update_value(f'F{last_row}', x1)
+    wks.update_value(f'G{last_row}', x2)
+    wks.update_value(f'T{last_row}', x3)
+    wks.update_value(f'AN{last_row}', dif)
+    wks.update_value(f'BI{last_row}', f1)
+    wks.update_value(f'BJ{last_row}', f2)
+    wks.update_value(f'BK{last_row}', f3)
+    wks.update_value(f'BL{last_row}', f4)
+    wks.update_value(f'BM{last_row}', f5)
+    wks.update_value(f'BN{last_row}', f6)
+    wks.update_value(f'BO{last_row}', ap)
