@@ -29,8 +29,13 @@ def get_last_row(worksheet, col="A"):
     return len(cells) + 1
 
 
+def update_formula_references(formula, source_row, target_row):
+    pattern = r'([A-Z]+)(\d+)'
+    updated_formula = re.sub(pattern, lambda match: f"{match.group(1)}{int(match.group(2)) - source_row + target_row}", formula)  # noqa
+    return updated_formula
+
+
 def write_sheet_match(wks, match):
-    last_row = get_last_row(wks)
     url = match['url']
     fecha = get_hum_fecha(match['fecha'][:10]) if 'fecha' in match else ''
     hora = match['time']
@@ -87,17 +92,18 @@ def write_sheet_match(wks, match):
     usuario = match['usuario'] if 'usuario' in match else ''
     revision = match['revision'] if 'revision' in match else ''
     # f1 = get_f1(dif_momio_sino)
-    x1 = wks.cell('F3').formula
-    x2 = wks.cell('G3').formula
-    x3 = wks.cell('T3').formula
-    dif = wks.cell('AN3').formula
-    f1 = wks.cell('BI3').formula
-    f2 = wks.cell('BJ3').formula
-    f3 = wks.cell('BK3').formula
-    f4 = wks.cell('BL3').formula
-    f5 = wks.cell('BM3').formula
-    f6 = wks.cell('BN3').formula
-    ap = wks.cell('BO3').formula
+    last_row = get_last_row(wks)
+    x1 = update_formula_references(wks.cell('F3').formula, 3, last_row)
+    x2 = update_formula_references(wks.cell('G3').formula, 3, last_row)
+    x3 = update_formula_references(wks.cell('T3').formula, 3, last_row)
+    dif = update_formula_references(wks.cell('AN3').formula, 3, last_row)
+    f1 = update_formula_references(wks.cell('BI3').formula, 3, last_row)
+    f2 = update_formula_references(wks.cell('BJ3').formula, 3, last_row)
+    f3 = update_formula_references(wks.cell('BK3').formula, 3, last_row)
+    f4 = update_formula_references(wks.cell('BL3').formula, 3, last_row)
+    f5 = update_formula_references(wks.cell('BM3').formula, 3, last_row)
+    f6 = update_formula_references(wks.cell('BN3').formula, 3, last_row)
+    ap = update_formula_references(wks.cell('BO3').formula, 3, last_row)
     reg = [
         fecha[:10],
         hora,
