@@ -1,8 +1,10 @@
 import json
 
+matches_result = []
 
-def save_match(match):
-    global matches_result, matches_result_file
+
+def save_match(matches_result_file, match):
+    global matches_result
     matches_result.append(match)
     with open(matches_result_file, 'w') as file:
         json.dump(matches_result, file, indent=4)
@@ -32,6 +34,22 @@ def es_momio_americano(texto):
         return True
     except ValueError:
         return False
+
+
+def get_f1(val):
+    ranges = [
+        ((-32.04, -19.19), 1),
+        ((-19.08, -11.22), 3),
+        ((-10.07, 28.41), 2)
+    ]
+    if val in ['', '-']:
+        return 'Sin clasificación'
+
+    for (start, end), classification in ranges:
+        if start >= val <= end:
+            return classification
+
+    return 'Sin clasificación'
 
 
 def get_paises_count(paises):
@@ -79,18 +97,18 @@ def get_match_details(match, with_momios=False) -> str:
     away_matches = match['away_matches']
     face_matches = match['face_matches']
     home_gP = home_matches['hechos']
-    home_gM = home_matches['concedidos']
+    home_gM = home_matches['concedidos'][0]
     home_pgP = home_matches['p_hechos']
     home_pgM = home_matches['p_concedidos']
     # home_n_games = len(home_matches)
     home_games = '\n'.join(f'{m["ft"]}    {m["home_ft"]} - {m["away_ft"]}    {m["home"][:5]} - {m["away"][:5]}' for m in home_matches['matches']) # noqa
     away_gP = away_matches['hechos']
-    away_gM = away_matches['concedidos']
+    away_gM = away_matches['concedidos'][0]
     away_pgP = away_matches['p_hechos']
     away_pgM = away_matches['p_concedidos']
     # away_n_games = len(away_matches)
     away_games = '\n'.join(f'{m["ft"]}    {m["home_ft"]} - {m["away_ft"]}    {m["home"][:5]} - {m["away"][:5]}' for m in away_matches['matches']) # noqa
-    face_games = '\n'.join(f'{m["ft"]}    {m["home_ft"]} - {m["away_ft"]}    {m["home"][:5]} - {m["away"][:5]}' for m in face_matches) # noqa
+    face_games = '\n'.join(f'{m["ft"]}    {m["home_ft"]} - {m["away_ft"]}    {m["home"][:5]} - {m["away"][:5]}' for m in face_matches['matches']) # noqa
     result = f'''
 #{id} {fecha}
 {pais}{liga}
