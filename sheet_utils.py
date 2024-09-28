@@ -1,3 +1,29 @@
+import pprint # noqa
+from utils import get_f1
+
+
+def get_hum_fecha(fecha):
+    mes = {
+        '01': 'Ene',
+        '02': 'Feb',
+        '03': 'Mar',
+        '04': 'Abr',
+        '05': 'May',
+        '06': 'Jun',
+        '07': 'Jul',
+        '08': 'Ago',
+        '09': 'Sep',
+        '10': 'Oct',
+        '11': 'Nov',
+        '12': 'Dic',
+    }
+    if fecha:
+        y, m, d = fecha.split('-')
+        return f'{mes[m]} {d} {y}'
+    else:
+        return fecha
+
+
 def get_last_row(worksheet, col="A"):
     cells = worksheet.get_col(1, include_tailing_empty=False)
     return len(cells) + 1
@@ -6,7 +32,7 @@ def get_last_row(worksheet, col="A"):
 def write_sheet_match(wks, match):
     last_row = get_last_row(wks)
     url = match['url']
-    fecha = match['fecha']
+    fecha = get_hum_fecha(match['fecha'][:10]) if 'fecha' in match else ''
     hora = match['time']
     pais = match['pais']
     liga = match['liga']
@@ -23,6 +49,7 @@ def write_sheet_match(wks, match):
     home_concedidos = match['home_matches']['concedidos']
     home_p_hechos = match['home_matches']['p_hechos']
     home_p_concedidos = match['home_matches']['p_concedidos']
+    home_35 = f'{match['home_matches']['p35'] * 100}%'
     away_matches = match['away_matches']['matches']
     away_ft_1 = away_matches[0]['ft']
     away_ft_2 = away_matches[1]['ft']
@@ -33,24 +60,33 @@ def write_sheet_match(wks, match):
     away_concedidos = match['away_matches']['concedidos']
     away_p_hechos = match['away_matches']['p_hechos']
     away_p_concedidos = match['away_matches']['p_concedidos']
-    face_matches = match['face_matches']
+    away_35 = f'{match['away_matches']['p45'] * 100}%'
+    face_matches = match['face_matches']['matches']
     face_ft_1, face_ft_2, face_ft_3, face_ft_4, face_ft_5 = (
         (face_matches[n]['ft'] if n < len(face_matches) else '') for n in range(5) # noqa
     )
-    momio_home = int(match['momio_home']) if 'momio_home' in match else ''
-    momio_away = int(match['momio_away']) if 'momio_away' in match else ''
-    dif_momio_win = momio_home - momio_away
-    momio_si = int(match['momio_si']) if 'momio_si' in match else ''
-    momio_no = int(match['momio_no']) if 'momio_no' in match else ''
-    dif_momio_sino = momio_si - momio_no
-    momio_ht_05 = int(match['momio_ht_05']) if 'momio_ht_05' in match else ''
-    momio_ht_15 = int(match['momio_ht_15']) if 'momio_ht_15' in match else ''
-    momio_ht_25 = int(match['momio_ht_25']) if 'momio_ht_25' in match else ''
-    momio_ft_05 = int(match['momio_ft_05']) if 'momio_ft_05' in match else ''
-    momio_ft_15 = int(match['momio_ft_15']) if 'momio_ft_15' in match else ''
-    momio_ft_25 = int(match['momio_ft_25']) if 'momio_ft_25' in match else ''
-    momio_ft_35 = int(match['momio_ft_35']) if 'momio_ft_35' in match else ''
-    momio_ft_45 = int(match['momio_ft_45']) if 'momio_ft_45' in match else ''
+    face_35 = f'{match['face_matches']['p35'] * 100}%'
+    momio_home = match['momio_home'] if 'momio_home' in match else ''
+    momio_away = match['momio_away'] if 'momio_away' in match else ''
+    dif_momio_win = ''
+    if momio_home != '-' and momio_away != '':
+        dif_momio_win = int(momio_home) - int(momio_away)
+    momio_si = match['momio_si'] if 'momio_si' in match else ''
+    momio_no = match['momio_no'] if 'momio_no' in match else ''
+    dif_momio_sino = ''
+    if momio_si != '-' and momio_no != '':
+        dif_momio_sino = int(momio_si) - int(momio_no)
+    momio_ht_05 = match['momio_ht_05'] if 'momio_ht_05' in match else ''
+    momio_ht_15 = match['momio_ht_15'] if 'momio_ht_15' in match else ''
+    momio_ht_25 = match['momio_ht_25'] if 'momio_ht_25' in match else ''
+    momio_ft_05 = match['momio_ft_05'] if 'momio_ft_05' in match else ''
+    momio_ft_15 = match['momio_ft_15'] if 'momio_ft_15' in match else ''
+    momio_ft_25 = match['momio_ft_25'] if 'momio_ft_25' in match else ''
+    momio_ft_35 = match['momio_ft_35'] if 'momio_ft_35' in match else ''
+    momio_ft_45 = match['momio_ft_45'] if 'momio_ft_45' in match else ''
+    usuario = match['usuario'] if 'usuario' in match else ''
+    revision = match['revision'] if 'revision' in match else ''
+    f1 = get_f1(dif_momio_sino)
     reg = [
         fecha[:10],
         hora,
@@ -66,8 +102,8 @@ def write_sheet_match(wks, match):
         home_ft_4,
         home_ft_5,
         home_hechos,
-        home_concedidos,
-        '5',
+        home_concedidos[0],
+        '5',  # no juegos Local
         home_p_hechos,
         home_p_concedidos,
         away_ft_1,
@@ -76,8 +112,8 @@ def write_sheet_match(wks, match):
         away_ft_4,
         away_ft_5,
         away_hechos,
-        away_concedidos,
-        '5',
+        away_concedidos[0],
+        '5',  # no juegos Visitante
         away_p_hechos,
         away_p_concedidos,
         face_ft_1,
@@ -106,6 +142,21 @@ def write_sheet_match(wks, match):
         '',
         '',
         '',
-        promedio_gol
+        promedio_gol,
+        home_35,
+        away_35,
+        face_35,
+        '',  # Total
+        f1,  # f1
+        '',  # f2
+        '',  # f3
+        '',  # f4
+        '',  # f5
+        '',  # f6
+        '',  # Observacion
+        revision,  # Revision
+        usuario,  # Usuario
+        url  # link totalcorner
     ]
+    # pprint.pprint(reg)
     wks.update_row(last_row, reg)

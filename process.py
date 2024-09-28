@@ -19,7 +19,8 @@ pais_matches = {}
 def encuentros(matches, match_liga, match_home):
     global result_path
     result_matches = []
-    hechos, concedidos = 0, 0
+    hechos = 0
+    concedidos = 0
     p35, p45 = 0, 0
     for match in matches:
         liga = match.league
@@ -71,22 +72,18 @@ def encuentros(matches, match_liga, match_home):
         'matches': result_matches
     }
     juegos = len(result_matches)
+    if juegos > 0:
+        result['p35'] = p35 / juegos
+        result['p45'] = p45 / juegos
     if match_home:
-        result = {
-            'hechos': hechos,
-            'concedidos': concedidos,
-        }
+        result['hechos'] = hechos
+        result['concedidos'] = concedidos,
         if juegos > 0:
             result['p_hechos'] = hechos / juegos
             result['p_concedidos'] = concedidos / juegos
-            result['p35'] = p35 / juegos
-            result['p45'] = p45 / juegos
         return result
     else:
-        if juegos > 0:
-            result['p35'] = p35 / juegos
-            result['p45'] = p45 / juegos
-        return result_matches
+        return result
 
 
 def main(db_file):

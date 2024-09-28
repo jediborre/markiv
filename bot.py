@@ -40,7 +40,6 @@ logging.basicConfig(
     ]
 )
 db_matches = {}
-matches_result = []
 db_pais_matches = {}
 
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
@@ -127,30 +126,27 @@ def handle(message):
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
-    global db_matches, preguntas_momios, wks
+    global db_matches, preguntas_momios
     user_id = call.message.chat.id
     user = user_data[user_id]
-    nombre = user['nombre']
+    # nombre = user['nombre']
+    match_selected = user['match_selected']
+    match = db_matches[match_selected]
+    match['intentos'] = 0
+    match['pregunta_actual'] = 0
+    for p in preguntas_momios:
+        campo, _ = p
+        match[campo] = ''
     if call.data == 'si':
-        match_selected = user['match_selected']
-        match = db_matches[match_selected]
-        match['intentos'] = 0
-        match['pregunta_actual'] = 0
-        for p in preguntas_momios:
-            campo, _ = p
-            match[campo] = ''
-        user_data[user_id][match_selected] = match
-        write_sheet_match(wks, match)
-        preguntar_momio(call.message)
+        match['revision'] = 'SI'
     elif call.data == 'no':
-        send_text(
-            bot,
-            user_id,
-            f'{nombre}\nIngresa otro ID o pais'
-        )
+        match['revision'] = 'NO'
+    user_data[user_id][match_selected] = match
+    preguntar_momio(call.message)
 
 
 def preguntar_momio(message):
+    global matches_result_file, wks
     user_id = message.chat.id
     user = user_data[user_id]
     nombre = user['nombre']
@@ -171,7 +167,9 @@ def preguntar_momio(message):
         bot.register_next_step_handler(message, obtener_momio)
     else:
         msj = get_match_details(match, True)
-        save_match(match)
+        match['usuario'] = nombre
+        save_match(matches_result_file, match)
+        write_sheet_match(wks, match)
         markup = types.InlineKeyboardMarkup()
         if match_url:
             link_boton = types.InlineKeyboardButton('Partido', url=match_url) # noqa
