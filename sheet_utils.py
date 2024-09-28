@@ -73,9 +73,9 @@ def write_sheet_match(wks, match):
     #     dif_momio_win = int(momio_home) - int(momio_away)
     momio_si = match['momio_si'] if 'momio_si' in match else ''
     momio_no = match['momio_no'] if 'momio_no' in match else ''
-    dif_momio_sino = ''
-    if momio_si != '-' and momio_no != '':
-        dif_momio_sino = int(momio_si) - int(momio_no)
+    # dif_momio_sino = ''
+    # if momio_si != '-' and momio_no != '':
+    #     dif_momio_sino = int(momio_si) - int(momio_no)
     momio_ht_05 = match['momio_ht_05'] if 'momio_ht_05' in match else ''
     momio_ht_15 = match['momio_ht_15'] if 'momio_ht_15' in match else ''
     momio_ht_25 = match['momio_ht_25'] if 'momio_ht_25' in match else ''
@@ -87,14 +87,25 @@ def write_sheet_match(wks, match):
     usuario = match['usuario'] if 'usuario' in match else ''
     revision = match['revision'] if 'revision' in match else ''
     # f1 = get_f1(dif_momio_sino)
+    x1 = wks.get_values('F3', returnas='cell').formula
+    x2 = wks.get_values('G3', returnas='cell').formula
+    x3 = wks.get_values('T3', returnas='cell').formula
+    dif = wks.get_values('AN3', returnas='cell').formula
+    f1 = wks.get_values('BI3', returnas='cell').formula
+    f2 = wks.get_values('BJ3', returnas='cell').formula
+    f3 = wks.get_values('BK3', returnas='cell').formula
+    f4 = wks.get_values('BL3', returnas='cell').formula
+    f5 = wks.get_values('BM3', returnas='cell').formula
+    f6 = wks.get_values('BN3', returnas='cell').formula
+    ap = wks.get_values('BO3', returnas='cell').formula
     reg = [
         fecha[:10],
         hora,
         home,
         away,
-        '',  # AP
-        '',  # X1
-        '',  # X2
+        '-3.5',  # AP
+        x1,  # X1
+        x2,  # X2
         pais,
         liga,
         home_ft_1,
@@ -107,7 +118,7 @@ def write_sheet_match(wks, match):
         '5',  # no juegos Local
         home_p_hechos,
         home_p_concedidos,
-        '',  # X3
+        x3,  # X3
         away_ft_1,  # U
         away_ft_2,
         away_ft_3,
@@ -127,7 +138,7 @@ def write_sheet_match(wks, match):
         momio_away,
         momio_si,  # AL
         momio_no,
-        dif_momio_sino,
+        dif,
         momio_ht_05,  # AO
         momio_ht_15,
         momio_ht_25,
@@ -148,13 +159,13 @@ def write_sheet_match(wks, match):
         face_35,
         '',  # Total BG
         '',  # Observacion BH
-        '',  # f1 BI
-        '',  # f2 BJ
-        '',  # f3 BK
-        '',  # f4 BL
-        '',  # f5 BM
-        '',  # f6 BN
-        '',  # AP BO
+        f1,  # f1 BI
+        f2,  # f2 BJ
+        f3,  # f3 BK
+        f4,  # f4 BL
+        f5,  # f5 BM
+        f6,  # f6 BN
+        ap,  # AP BO
         revision,  # Revision
         usuario,  # Usuario
         url  # link totalcorner
