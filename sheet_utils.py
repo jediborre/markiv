@@ -37,7 +37,7 @@ def update_formula(wks, cell, target_row, source_row=3):
     pattern = r'([A-Z]+)(\d+)'
     updated_formula = re.sub(pattern, lambda match: f"{match.group(1)}{int(match.group(2)) - source_row + target_row}", formula)  # noqa
     wks.update_value(target_cell, updated_formula)
-    return updated_formula
+    return wks.cell(target_cell).value
 
 
 def write_sheet_match(wks, match):
