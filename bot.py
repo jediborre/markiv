@@ -177,17 +177,17 @@ def preguntar_momio(message):
         ap = res['ap']
         match['ap'] = ap
         save_match(matches_result_file, match)
-        msj += f'\n\n{ap}'
         markup = types.InlineKeyboardMarkup()
         if match_url:
             link_boton = types.InlineKeyboardButton('Partido', url=match_url) # noqa
             markup.add(link_boton)
-        send_text(
-            bot,
-            user_id,
-            f'{nombre}\n{msj}',
-            markup
-        )
+        for cid in TELEGRAM_CHAT_ID:
+            send_text(
+                bot,
+                cid,
+                f'Apuesta:{ap}\n\n{msj}',
+                markup
+            )
 
 
 def obtener_momio(message):
