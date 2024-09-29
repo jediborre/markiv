@@ -168,8 +168,16 @@ def preguntar_momio(message):
     else:
         msj = get_match_details(match, True)
         match['usuario'] = nombre
+        send_text(
+            bot,
+            user_id,
+            'Calculando...'
+        )
+        res = write_sheet_match(wks, match)
+        ap = res['ap']
+        match['ap'] = ap
         save_match(matches_result_file, match)
-        write_sheet_match(wks, match)
+        msj += f'\n{ap}'
         markup = types.InlineKeyboardMarkup()
         if match_url:
             link_boton = types.InlineKeyboardButton('Partido', url=match_url) # noqa

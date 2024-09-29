@@ -30,9 +30,13 @@ def get_last_row(worksheet, col="A"):
     return len(cells) + 1
 
 
-def update_formula(formula, source_row, target_row):
+def update_formula(wks, cell, target_row, source_row=3):
+    source_cell = f'{cell}{source_row}'
+    target_cell = f'{cell}{target_row}'
+    formula = wks.cell(source_cell).formula
     pattern = r'([A-Z]+)(\d+)'
     updated_formula = re.sub(pattern, lambda match: f"{match.group(1)}{int(match.group(2)) - source_row + target_row}", formula)  # noqa
+    wks.update_value(target_cell, updated_formula)
     return updated_formula
 
 
@@ -55,7 +59,6 @@ def write_sheet_match(wks, match):
     home_concedidos = match['home_matches']['concedidos']
     home_p_hechos = match['home_matches']['p_hechos']
     home_p_concedidos = match['home_matches']['p_concedidos']
-    home_35 = f'{match["home_matches"]["p35"] * 100}%'
     away_matches = match['away_matches']['matches']
     away_ft_1 = away_matches[0]['ft']
     away_ft_2 = away_matches[1]['ft']
@@ -66,12 +69,10 @@ def write_sheet_match(wks, match):
     away_concedidos = match['away_matches']['concedidos']
     away_p_hechos = match['away_matches']['p_hechos']
     away_p_concedidos = match['away_matches']['p_concedidos']
-    away_35 = f'{match["away_matches"]["p45"] * 100}%'
     face_matches = match['face_matches']['matches']
     face_ft_1, face_ft_2, face_ft_3, face_ft_4, face_ft_5 = (
         (face_matches[n]['ft'] if n < len(face_matches) else '') for n in range(5) # noqa
     )
-    face_35 = f'{match["face_matches"]["p35"] * 100}%'
     momio_home = match['momio_home'] if 'momio_home' in match else ''
     momio_away = match['momio_away'] if 'momio_away' in match else ''
     # dif_momio_win = ''
@@ -92,39 +93,14 @@ def write_sheet_match(wks, match):
     momio_ft_45 = match['momio_ft_45'] if 'momio_ft_45' in match else ''
     usuario = match['usuario'] if 'usuario' in match else ''
     revision = match['revision'] if 'revision' in match else ''
-    # f1 = get_f1(dif_momio_sino)
-    last_row = get_last_row(wks)
-    x1 = update_formula(wks.cell('F3').formula, 3, last_row)
-    x2 = update_formula(wks.cell('G3').formula, 3, last_row)
-    x3 = update_formula(wks.cell('T3').formula, 3, last_row)
-    dif = update_formula(wks.cell('AN3').formula, 3, last_row)
-    f1 = update_formula(wks.cell('BI3').formula, 3, last_row)
-    f2 = update_formula(wks.cell('BJ3').formula, 3, last_row)
-    f3 = update_formula(wks.cell('BK3').formula, 3, last_row)
-    f4 = update_formula(wks.cell('BL3').formula, 3, last_row)
-    f5 = update_formula(wks.cell('BM3').formula, 3, last_row)
-    f6 = update_formula(wks.cell('BN3').formula, 3, last_row)
-    ap = update_formula(wks.cell('BO3').formula, 3, last_row)
-    seg1 = update_formula(wks.cell('BP3').formula, 3, last_row)
-    seg2 = update_formula(wks.cell('BQ3').formula, 3, last_row)
-    seg3 = update_formula(wks.cell('BR3').formula, 3, last_row)
-    seg4 = update_formula(wks.cell('BS3').formula, 3, last_row)
-    seg5 = update_formula(wks.cell('BT3').formula, 3, last_row)
-    seg6 = update_formula(wks.cell('BU3').formula, 3, last_row)
-    seg7 = update_formula(wks.cell('BV3').formula, 3, last_row)
-    seg8 = update_formula(wks.cell('BW3').formula, 3, last_row)
-    seg9 = update_formula(wks.cell('BX3').formula, 3, last_row)
-    seg10 = update_formula(wks.cell('BY3').formula, 3, last_row)
-    seg11 = update_formula(wks.cell('BZ3').formula, 3, last_row)
-    seg12 = update_formula(wks.cell('CA3').formula, 3, last_row)
     reg = [
         fecha[:10],
         hora,
         home,
         away,
         '-3.5',  # AP
-        x1,  # X1 F
-        x2,  # X2 G
+        '',  # X1 F
+        '',  # X2 G
         pais,
         liga,
         home_ft_1,
@@ -137,7 +113,7 @@ def write_sheet_match(wks, match):
         '5',  # no juegos Local
         home_p_hechos,
         home_p_concedidos,
-        x3,  # X3 T
+        '',  # X3 T
         away_ft_1,  # U
         away_ft_2,
         away_ft_3,
@@ -173,9 +149,9 @@ def write_sheet_match(wks, match):
         '',  # linea de gol 4  BA
         '',  # ROJA l BB
         '',  # ROJA V BC
-        home_35,  # BD
-        away_35,
-        face_35,
+        '',  # home_35 BD
+        '',  # away_35 BE
+        '',  # face_35 BF
         '',  # Total BG
         '',  # Observacion BH
         '',  # f1 BI
@@ -202,27 +178,34 @@ def write_sheet_match(wks, match):
         url  # link totalcorner
     ]
     # pprint.pprint(reg)
-    wks.update_row(last_row, reg)
-    wks.update_value(f'F{last_row}', x1)
-    wks.update_value(f'G{last_row}', x2)
-    wks.update_value(f'T{last_row}', x3)
-    wks.update_value(f'AN{last_row}', dif)
-    wks.update_value(f'BI{last_row}', f1)
-    wks.update_value(f'BJ{last_row}', f2)
-    wks.update_value(f'BK{last_row}', f3)
-    wks.update_value(f'BL{last_row}', f4)
-    wks.update_value(f'BM{last_row}', f5)
-    wks.update_value(f'BN{last_row}', f6)
-    wks.update_value(f'BO{last_row}', ap)
-    wks.update_value(f'BP{last_row}', seg1)
-    wks.update_value(f'BQ{last_row}', seg2)
-    wks.update_value(f'BR{last_row}', seg3)
-    wks.update_value(f'BS{last_row}', seg4)
-    wks.update_value(f'BT{last_row}', seg5)
-    wks.update_value(f'BU{last_row}', seg6)
-    wks.update_value(f'BV{last_row}', seg7)
-    wks.update_value(f'BW{last_row}', seg8)
-    wks.update_value(f'BX{last_row}', seg9)
-    wks.update_value(f'BY{last_row}', seg10)
-    wks.update_value(f'BZ{last_row}', seg11)
-    wks.update_value(f'CA{last_row}', seg12)
+    row = get_last_row(wks)
+    wks.update_row(row, reg)
+    update_formula(wks, 'BD', row)  # home_35
+    update_formula(wks, 'BE', row)  # away_35
+    update_formula(wks, 'BF', row)  # face_35
+    update_formula(wks, 'AN', row)  # dif
+    update_formula(wks, 'BI', row)  # f1
+    update_formula(wks, 'BJ', row)  # f2
+    update_formula(wks, 'BK', row)  # f3
+    update_formula(wks, 'BL', row)  # f4
+    update_formula(wks, 'BM', row)  # f5
+    update_formula(wks, 'BN', row)  # f6
+    update_formula(wks, 'F3', row)  # x1
+    update_formula(wks, 'G3', row)  # x2
+    update_formula(wks, 'T3', row)  # x3
+    ap = update_formula(wks, 'BO', row)  # ap
+    update_formula(wks, 'BP', row)  # seg1
+    update_formula(wks, 'BQ', row)  # seg2
+    update_formula(wks, 'BR', row)  # seg3
+    update_formula(wks, 'BS', row)  # seg4
+    update_formula(wks, 'BT', row)  # seg5
+    update_formula(wks, 'BU', row)  # seg6
+    update_formula(wks, 'BV', row)  # seg7
+    update_formula(wks, 'BW', row)  # seg8
+    update_formula(wks, 'BX', row)  # seg9
+    update_formula(wks, 'BY', row)  # seg10
+    update_formula(wks, 'BZ', row)  # seg11
+    update_formula(wks, 'CA', row)  # seg12
+    return {
+        'ap': ap
+    }
