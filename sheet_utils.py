@@ -98,9 +98,8 @@ def write_sheet_match(wks, match):
         hora,
         home,
         away,
-        '-3.5',  # AP
-        '',  # X1 F
-        '',  # X2 G
+        '-3.5',
+        '',  # AP F
         pais,
         liga,
         home_ft_1,
@@ -110,102 +109,97 @@ def write_sheet_match(wks, match):
         home_ft_5,
         home_hechos,
         home_concedidos[0],
-        '5',  # no juegos Local
         home_p_hechos,
         home_p_concedidos,
-        '',  # X3 T
-        away_ft_1,  # U
+        away_ft_1,
         away_ft_2,
         away_ft_3,
         away_ft_4,
         away_ft_5,
         away_hechos,
         away_concedidos[0],
-        '5',  # no juegos Visitante
         away_p_hechos,
         away_p_concedidos,
-        face_ft_1,  # AE
+        face_ft_1,
         face_ft_2,
         face_ft_3,
         face_ft_4,
         face_ft_5,
-        momio_home,  # AJ
+        momio_home,
         momio_away,
-        momio_si,  # AL
+        momio_si,
         momio_no,
-        '',  # DIF AN
-        momio_ht_05,  # AO
+        '',  # DIF AJ
+        momio_ht_05,
         momio_ht_15,
         momio_ht_25,
-        momio_ft_05,  # AR
+        momio_ft_05,
         momio_ft_15,
         momio_ft_25,
         momio_ft_35,
         momio_ft_45,
-        '',  # -5.5  AW
-        '',  # linea de gol 1  AX
-        '',  # linea de gol 2  AY
-        '',  # linea de gol 3  AZ
-        '',  # linea de gol 4  BA
-        '',  # ROJA l BB
-        '',  # ROJA V BC
-        '',  # home_35 BD
-        '',  # away_35 BE
-        '',  # face_35 BF
-        '',  # Total BG
-        '',  # Observacion BH
-        '',  # f1 BI
-        '',  # f2 BJ
-        '',  # f3 BK
-        '',  # f4 BL
-        '',  # f5 BM
-        '',  # f6 BN
-        '',  # AP BO
-        '',  # BP
-        '',  # BQ
-        '',  # BR
-        '',  # BS
-        '',  # BT
-        '',  # BU
-        '',  # BV
-        '',  # BW
-        '',  # BX
-        '',  # BY
-        '',  # BZ
-        '',  # CA
-        revision,  # Revision
-        usuario,  # Usuario
-        url  # link totalcorner
+        '',  # linea de gol 1  AS
+        '',  # linea de gol 2  AT
+        '',  # linea de gol 3  AU
+        '',  # linea de gol 4  BV
+        '',  # ROJA l AW
+        '',  # ROJA V AX
+        '',  # PROB LOCAL AY
+        '',  # PROB VISITANTE AZ
+        '',  # PROB EQUIPOS BA
+        '',  # FT BB
+        '',  # F1 BC
+        '',  # F2 BD
+        '',  # F3 BE
+        '',  # F4 BF
+        '',  # F5 BG
+        '',  # F6 BH
+        '',  # 1 BI
+        '',  # L1 /  V0  BJ
+        '',  # 2  BK
+        '',  # L1 /  V0  BL
+        '',  # 3  BM
+        '',  # L1 /  V0  BN
+        '',  # 4  BO
+        '',  # L1 /  V0  BP
+        '',  # Total  BQ
+        '',  # PG  BR
+        '',  # UG  BS
+        '',  # Mensajes  BT
+        revision,
+        usuario,
+        url
     ]
     # pprint.pprint(reg)
     row = get_last_row(wks)
     wks.update_row(row, reg)
-    update_formula(wks, 'BD', row)  # home_35
-    update_formula(wks, 'BE', row)  # away_35
-    update_formula(wks, 'BF', row)  # face_35
-    update_formula(wks, 'AN', row)  # dif
-    update_formula(wks, 'BI', row)  # f1
-    update_formula(wks, 'BJ', row)  # f2
-    update_formula(wks, 'BK', row)  # f3
-    update_formula(wks, 'BL', row)  # f4
-    update_formula(wks, 'BM', row)  # f5
-    update_formula(wks, 'BN', row)  # f6
-    update_formula(wks, 'F3', row)  # x1
-    update_formula(wks, 'G3', row)  # x2
-    update_formula(wks, 'T3', row)  # x3
-    ap = update_formula(wks, 'BO', row)  # ap
-    update_formula(wks, 'BP', row)  # seg1
-    update_formula(wks, 'BQ', row)  # seg2
-    update_formula(wks, 'BR', row)  # seg3
-    update_formula(wks, 'BS', row)  # seg4
-    update_formula(wks, 'BT', row)  # seg5
-    update_formula(wks, 'BU', row)  # seg6
-    update_formula(wks, 'BV', row)  # seg7
-    update_formula(wks, 'BW', row)  # seg8
-    update_formula(wks, 'BX', row)  # seg9
-    update_formula(wks, 'BY', row)  # seg10
-    update_formula(wks, 'BZ', row)  # seg11
-    update_formula(wks, 'CA', row)  # seg12
+    update_formula(wks, 'AJ', row)  # dif
+    update_formula(wks, 'AY', row)  # home_35
+    update_formula(wks, 'AZ', row)  # away_35
+    update_formula(wks, 'BA', row)  # face_35
+    update_formula(wks, 'BC', row)  # F1
+    update_formula(wks, 'BD', row)  # F2
+    update_formula(wks, 'BE', row)  # F3
+    update_formula(wks, 'BF', row)  # F4
+    update_formula(wks, 'BG', row)  # F5
+    update_formula(wks, 'BH', row)  # F6
+    ap = update_formula(wks, 'F', row)  # ap
     return {
-        'ap': ap
+        'ap': ap,
+        'row': row
     }
+
+
+def update_formulas_bot_row(wks, row):
+    update_formula(wks, 'BI', row)  # 1
+    update_formula(wks, 'BJ', row)  # L1 /  V0
+    update_formula(wks, 'BK', row)  # 2
+    update_formula(wks, 'BL', row)  # L1 /  V0
+    update_formula(wks, 'BM', row)  # 3
+    update_formula(wks, 'BN', row)  # L1 /  V0
+    update_formula(wks, 'BO', row)  # 4
+    update_formula(wks, 'BP', row)  # L1 /  V0
+    update_formula(wks, 'BQ', row)  # Total
+    update_formula(wks, 'BR', row)  # PG
+    update_formula(wks, 'BS', row)  # UG
+    update_formula(wks, 'BT', row)  # Mensajes

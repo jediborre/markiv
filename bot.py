@@ -9,9 +9,9 @@ from telebot import types
 from dotenv import load_dotenv
 from utils import es_momio_americano
 from utils import send_text, save_match
-from sheet_utils import write_sheet_match
 from catalogos import paises, user_data, preguntas_momios
 from requests.exceptions import ConnectionError, ReadTimeout
+from sheet_utils import write_sheet_match, update_formulas_bot_row
 from utils import get_match_details, get_match_paises, get_paises_count
 
 load_dotenv()
@@ -175,19 +175,29 @@ def preguntar_momio(message):
         )
         res = write_sheet_match(wks, match)
         ap = res['ap']
+        row = res['row']
         match['ap'] = ap
         save_match(matches_result_file, match)
         markup = types.InlineKeyboardMarkup()
         if match_url:
             link_boton = types.InlineKeyboardButton('Partido', url=match_url) # noqa
             markup.add(link_boton)
-        for cid in TELEGRAM_CHAT_ID:
+        if 'OK' in ap:
+            for cid in TELEGRAM_CHAT_ID:
+                send_text(
+                    bot,
+                    cid,
+                    f'Apuesta:{ap}\n\n{msj}',
+                    markup
+                )
+        else:
             send_text(
                 bot,
-                cid,
-                f'Apuesta:{ap}\n\n{msj}',
+                user_id,
+                f'{msj}\n\nApuesta: {ap}',
                 markup
             )
+        update_formulas_bot_row(wks, row)
 
 
 def obtener_momio(message):
