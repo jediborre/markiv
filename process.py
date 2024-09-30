@@ -107,10 +107,13 @@ def main(db_file):
         home_matches_db = matchstats.home_matches
         away_matches_db = matchstats.away_matches
         face_matches_db = matchstats.face_matches
-        if len(home_matches_db) == 0 or len(away_matches_db) == 0 or len(face_matches_db) == 0: # noqa
-            continue
         id = str(match.id)
         fecha = matchstats.fecha
+        home = match.home
+        away = match.away
+        if len(home_matches_db) == 0 or len(away_matches_db) == 0 or len(face_matches_db) == 0:  # noqa
+            print(fecha, id, home, away, 'PARTIDOS H:', len(home_matches_db), 'A:', len(away_matches_db), 'F:', len(face_matches_db))  # noqa
+            continue
         time = match.time
         liga = match.league
         url = match.url
@@ -118,13 +121,13 @@ def main(db_file):
         tmp_pais = tmp_pais.group(1) if tmp_pais else 'Unknown'
         pais = dic_paises[tmp_pais]
         pais_l = pais.lower()
-        home = match.home
-        away = match.away
         home_matches = encuentros(home_matches_db, liga, home)
         if len(home_matches['matches']) < 5:
+            print(fecha, home, away, 'HOME')
             continue
         away_matches = encuentros(away_matches_db, liga, away)
         if len(away_matches['matches']) < 5:
+            print(fecha, home, away, 'AWAY')
             continue
         phP = home_matches['p_hechos']
         phM = home_matches['p_concedidos']
@@ -150,7 +153,7 @@ def main(db_file):
             result_pais[pais_l] = []
         result[id] = reg
         result_pais[pais_l].append(reg)
-        print(fecha, home, away)
+        # print(fecha, home, away)
     if len(result) > 0:
         print(f'Partidos Procesados {len(result)} - {len(matches)}')
         with open(f'{result_path}/{db_file}.json', 'w') as f:
