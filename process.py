@@ -117,8 +117,10 @@ def main(db_file):
         time = match.time
         liga = match.league
         url = match.url
-        tmp_pais = re.search(r'/(\d+)\.png$', match.pais)
-        tmp_pais = tmp_pais.group(1) if tmp_pais else 'Unknown'
+        tmp_pais = 'Unknown'
+        if match.pais is not None:
+            tmp_pais = re.search(r'/(\d+)\.png$', match.pais)
+            tmp_pais = tmp_pais.group(1) if tmp_pais else 'Unknown'
         pais = dic_paises[tmp_pais]
         pais_l = pais.lower()
         home_matches = encuentros(home_matches_db, liga, home)
