@@ -148,24 +148,25 @@ def write_sheet_match(wks, match):
         '',  # PROB VISITANTE AZ
         '',  # PROB EQUIPOS BA
         '',  # FT BB
-        '',  # F1 BC
-        '',  # F2 BD
-        '',  # F3 BE
-        '',  # F4 BF
-        '',  # F5 BG
-        '',  # F6 BH
-        '',  # 1 BI
-        '',  # L1 /  V0  BJ
-        '',  # 2  BK
-        '',  # L1 /  V0  BL
-        '',  # 3  BM
-        '',  # L1 /  V0  BN
-        '',  # 4  BO
-        '',  # L1 /  V0  BP
-        '',  # Total  BQ
-        '',  # PG  BR
-        '',  # UG  BS
-        '',  # Mensajes  BT
+        '',  # Observaciones BC
+        '',  # F1 BD
+        '',  # F2 BE
+        '',  # F3 BF
+        '',  # F4 BG
+        '',  # F5 BH
+        '',  # F6 BI
+        '',  # 1 BJ
+        '',  # L1 /  V0  BK
+        '',  # 2  BL
+        '',  # L1 /  V0  BM
+        '',  # 3  BN
+        '',  # L1 /  V0  BO
+        '',  # 4  BP
+        '',  # L1 /  V0  BQ
+        '',  # Total  BR
+        '',  # PG  BS
+        '',  # UG  BT
+        '',  # Mensajes  BU
         revision,
         usuario,
         url
@@ -177,12 +178,12 @@ def write_sheet_match(wks, match):
     update_formula(wks, 'AY', row)  # home_35
     update_formula(wks, 'AZ', row)  # away_35
     update_formula(wks, 'BA', row)  # face_35
-    update_formula(wks, 'BC', row)  # F1
-    update_formula(wks, 'BD', row)  # F2
-    update_formula(wks, 'BE', row)  # F3
-    update_formula(wks, 'BF', row)  # F4
-    update_formula(wks, 'BG', row)  # F5
-    update_formula(wks, 'BH', row)  # F6
+    update_formula(wks, 'BD', row)  # F1
+    update_formula(wks, 'BE', row)  # F2
+    update_formula(wks, 'BF', row)  # F3
+    update_formula(wks, 'BG', row)  # F4
+    update_formula(wks, 'BH', row)  # F5
+    update_formula(wks, 'BI', row)  # F6
     ap = update_formula(wks, 'F', row)  # ap
     return {
         'ap': ap,
@@ -191,15 +192,15 @@ def write_sheet_match(wks, match):
 
 
 def update_formulas_bot_row(wks, row):
-    update_formula(wks, 'BI', row)  # 1
-    update_formula(wks, 'BJ', row)  # L1 /  V0
-    update_formula(wks, 'BK', row)  # 2
-    update_formula(wks, 'BL', row)  # L1 /  V0
-    update_formula(wks, 'BM', row)  # 3
-    update_formula(wks, 'BN', row)  # L1 /  V0
-    update_formula(wks, 'BO', row)  # 4
-    update_formula(wks, 'BP', row)  # L1 /  V0
-    update_formula(wks, 'BQ', row)  # Total
-    update_formula(wks, 'BR', row)  # PG
-    update_formula(wks, 'BS', row)  # UG
-    update_formula(wks, 'BT', row)  # Mensajes
+    update_formula(wks, 'BJ', row)  # 1
+    update_formula(wks, 'BK', row)  # L1 /  V0
+    update_formula(wks, 'BL', row)  # 2
+    update_formula(wks, 'BM', row)  # L1 /  V0
+    update_formula(wks, 'BN', row)  # 3
+    update_formula(wks, 'BO', row)  # L1 /  V0
+    update_formula(wks, 'BP', row)  # 4
+    update_formula(wks, 'BQ', row)  # L1 /  V0
+    update_formula(wks, 'BR', row)  # Total
+    update_formula(wks, 'BS', row)  # PG
+    update_formula(wks, 'BT', row)  # UG
+    update_formula(wks, 'BU', row)  # Mensajes

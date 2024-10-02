@@ -183,11 +183,19 @@ def preguntar_momio(message):
             link_boton = types.InlineKeyboardButton('Partido', url=match_url) # noqa
             markup.add(link_boton)
         bot_msj = f'{msj}\n\nApuesta: {ap}'
-        if 'OK' in ap:
-            for cid in TELEGRAM_CHAT_ID:
+        if match['revision'] == 'NO':
+            if 'OK' in ap:
+                for cid in TELEGRAM_CHAT_ID:
+                    send_text(
+                        bot,
+                        cid,
+                        bot_msj,
+                        markup
+                    )
+            else:
                 send_text(
                     bot,
-                    cid,
+                    user_id,
                     bot_msj,
                     markup
                 )
