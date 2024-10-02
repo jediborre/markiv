@@ -31,7 +31,10 @@ def es_momio_americano(texto):
         if texto == '-':
             return True
         momio = int(texto) # noqa
-        return True
+        if momio < -99 or momio > 99:
+            return True
+        else:
+            return False
     except ValueError:
         return False
 
