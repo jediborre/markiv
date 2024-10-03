@@ -1,6 +1,7 @@
 import json
 import base64
 import vertexai
+import pprint
 from vertexai.generative_models import GenerativeModel, Part, SafetySetting
 
 matches_result = []
@@ -198,7 +199,8 @@ Gol FT: {momio_ft_05} {momio_ft_15} {momio_ft_25} {momio_ft_35} {momio_ft_45}'''
 if __name__ == '__main__':
     # momios = get_momios_from_image('img/momios_1.jpg')
     # print(momios)
-    with open('hemini_response.txt', 'rb') as my_file:
+    with open('hemini_response.txt', 'r') as my_file:
         result = my_file.read()
+        result = result.strip('```json').strip()
         json_data = json.loads(result)
-        print(json_data)
+        pprint.pprint(json_data)
