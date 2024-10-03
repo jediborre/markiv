@@ -2,10 +2,8 @@ import os
 import re
 import sys
 import json
-import base64
 import telebot
 import logging
-import vertexai
 import pygsheets
 from telebot import types
 from dotenv import load_dotenv
@@ -15,7 +13,6 @@ from catalogos import paises, user_data, preguntas_momios
 from requests.exceptions import ConnectionError, ReadTimeout
 from sheet_utils import write_sheet_match, update_formulas_bot_row
 from utils import get_match_details, get_match_paises, get_paises_count
-from vertexai.generative_models import GenerativeModel, Part, SafetySetting
 
 load_dotenv()
 

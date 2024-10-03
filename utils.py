@@ -1,6 +1,54 @@
 import json
+import base64
+import vertexai
+from vertexai.generative_models import GenerativeModel, Part, SafetySetting
 
 matches_result = []
+
+
+def generate(image_filename):
+    generation_config = {
+        "max_output_tokens": 1500,
+        "temperature": 1,
+        "top_p": 0.95,
+    }
+
+    safety_settings = [
+        SafetySetting(
+            category=SafetySetting.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+            threshold=SafetySetting.HarmBlockThreshold.OFF
+        ),
+        SafetySetting(
+            category=SafetySetting.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, # noqa
+            threshold=SafetySetting.HarmBlockThreshold.OFF
+        ),
+        SafetySetting(
+            category=SafetySetting.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, # noqa
+            threshold=SafetySetting.HarmBlockThreshold.OFF
+        ),
+        SafetySetting(
+            category=SafetySetting.HarmCategory.HARM_CATEGORY_HARASSMENT,
+            threshold=SafetySetting.HarmBlockThreshold.OFF
+        ),
+    ]
+    with open(image_filename, "rb") as image_file:
+        image_data = base64.b64encode(image_file.read()).decode("utf-8")
+
+    vertexai.init(project="gen-lang-client-0049656829", location="us-west4")
+    model = GenerativeModel("gemini-1.5-flash-002")
+    image_part = Part.from_data(
+        mime_type="image/jpeg",
+        data=base64.b64decode(image_data),
+    )
+    responses = model.generate_content(
+        [image_part, """Momios en JSON"""],
+        generation_config=generation_config,
+        safety_settings=safety_settings,
+        stream=True,
+    )
+    for response in responses:
+        print(response.text, end="")
+        return response.text
 
 
 def save_match(matches_result_file, match):

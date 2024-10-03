@@ -167,6 +167,7 @@ def write_sheet_match(wks, match):
         '',  # PG  BS
         '',  # UG  BT
         '',  # Mensajes  BU
+        '',  # Analisis gol BV
         revision,
         usuario,
         url
