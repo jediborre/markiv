@@ -183,11 +183,19 @@ def preguntar_momio(message):
             link_boton = types.InlineKeyboardButton('Partido', url=match_url) # noqa
             markup.add(link_boton)
         bot_msj = f'{msj}\n\nApuesta: {ap}'
-        if 'OK' in ap:
-            for cid in TELEGRAM_CHAT_ID:
+        if match['revision'] == 'NO':
+            if 'OK' in ap:
+                for cid in TELEGRAM_CHAT_ID:
+                    send_text(
+                        bot,
+                        cid,
+                        bot_msj,
+                        markup
+                    )
+            else:
                 send_text(
                     bot,
-                    cid,
+                    user_id,
                     bot_msj,
                     markup
                 )
@@ -245,7 +253,11 @@ def start_bot(fecha):
     global bot
     logging.info(f'Mark IV BOT {fecha}')
     try:
-        bot.infinity_polling(timeout=40, long_polling_timeout=60)
+        bot.infinity_polling(
+            timeout=60,
+            long_polling_timeout=100,
+            logger_level=None
+        )
     except (ConnectionError, ReadTimeout):
         logging.warning('Telegram conection Timeout...')
     except (KeyboardInterrupt, SystemExit):
@@ -255,7 +267,11 @@ def start_bot(fecha):
         logging.error('Telegram Exception')
         logging.error(str(e))
     else:
-        bot.infinity_polling(timeout=50, long_polling_timeout=70)
+        bot.infinity_polling(
+            timeout=80,
+            long_polling_timeout=150,
+            logger_level=None
+        )
     finally:
         try:
             bot.stop_polling()

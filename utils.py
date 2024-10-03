@@ -1,6 +1,52 @@
 import json
+import base64
+import vertexai
+import pprint
+from vertexai.generative_models import GenerativeModel, Part, SafetySetting
 
 matches_result = []
+
+
+def get_momios_from_image(image_filename):
+    safety_settings = [
+        SafetySetting(
+            category=SafetySetting.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+            threshold=SafetySetting.HarmBlockThreshold.OFF
+        ),
+        SafetySetting(
+            category=SafetySetting.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, # noqa
+            threshold=SafetySetting.HarmBlockThreshold.OFF
+        ),
+        SafetySetting(
+            category=SafetySetting.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, # noqa
+            threshold=SafetySetting.HarmBlockThreshold.OFF
+        ),
+        SafetySetting(
+            category=SafetySetting.HarmCategory.HARM_CATEGORY_HARASSMENT,
+            threshold=SafetySetting.HarmBlockThreshold.OFF
+        ),
+    ]
+    with open(image_filename, "rb") as image_file:
+        image_data = base64.b64encode(image_file.read()).decode("utf-8")
+
+    vertexai.init(project="feroslebos", location="us-west4")
+    model = GenerativeModel("gemini-1.5-flash-002")
+    image_part = Part.from_data(
+        mime_type="image/jpeg",
+        data=base64.b64decode(image_data),
+    )
+    response = model.generate_content(
+        [image_part, "Momios en JSON"],
+        generation_config={
+            'max_output_tokens': 1500,
+            'temperature': 1,
+            'top_p': 0.95,
+        },
+        safety_settings=safety_settings,
+        stream=False,
+    )
+
+    return response.text
 
 
 def save_match(matches_result_file, match):
@@ -31,7 +77,10 @@ def es_momio_americano(texto):
         if texto == '-':
             return True
         momio = int(texto) # noqa
-        return True
+        if momio < -99 or momio > 99:
+            return True
+        else:
+            return False
     except ValueError:
         return False
 
@@ -145,3 +194,13 @@ Ambos Anotan: {momio_si} {momio_no}
 Gol HT: {momio_ht_05} {momio_ht_15} {momio_ht_25}
 Gol FT: {momio_ft_05} {momio_ft_15} {momio_ft_25} {momio_ft_35} {momio_ft_45}''' # noqa
     return result
+
+
+if __name__ == '__main__':
+    # momios = get_momios_from_image('img/momios_1.jpg')
+    # print(momios)
+    with open('hemini_response.txt', 'r') as my_file:
+        result = my_file.read()
+        result = result.strip('```json').strip()
+        json_data = json.loads(result)
+        pprint.pprint(json_data)
