@@ -12,7 +12,7 @@ from utils import send_text, save_match
 from catalogos import paises, user_data, preguntas_momios
 from sheet_utils import write_sheet_match, update_formulas_bot_row
 from utils import get_match_details, get_match_paises, get_paises_count
-from requests.exceptions import ConnectionError, ReadTimeout, RequestException
+from requests.exceptions import ConnectionError, ReadTimeout
 
 load_dotenv()
 
@@ -253,7 +253,11 @@ def start_bot(fecha):
     global bot
     logging.info(f'Mark IV BOT {fecha}')
     try:
-        bot.infinity_polling(timeout=40, long_polling_timeout=60)
+        bot.infinity_polling(
+            timeout=60,
+            long_polling_timeout=100,
+            logger_level=None
+        )
     except (ConnectionError, ReadTimeout):
         logging.warning('Telegram conection Timeout...')
     except (KeyboardInterrupt, SystemExit):
@@ -263,7 +267,11 @@ def start_bot(fecha):
         logging.error('Telegram Exception')
         logging.error(str(e))
     else:
-        bot.infinity_polling(timeout=50, long_polling_timeout=70)
+        bot.infinity_polling(
+            timeout=80,
+            long_polling_timeout=150,
+            logger_level=None
+        )
     finally:
         try:
             bot.stop_polling()
