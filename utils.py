@@ -199,8 +199,39 @@ Gol FT: {momio_ft_05} {momio_ft_15} {momio_ft_25} {momio_ft_35} {momio_ft_45}'''
 if __name__ == '__main__':
     # momios = get_momios_from_image('img/momios_1.jpg')
     # print(momios)
-    with open('hemini_response.txt', 'r') as my_file:
+    with open('hemini_response.txt', encoding='utf-8') as my_file:
         result = my_file.read()
         result = result.strip('```json').strip()
         json_data = json.loads(result)
-        pprint.pprint(json_data)
+        # pprint.pprint(json_data)
+        ht_gol = json_data['1RA MITAD TOTAL DE GOLES OVER/UNDER']
+        ft_gol = json_data['TOTAL GOLES OVER/UNDER']
+        ft = json_data['RESULTADO FINAL (TIEMPO REGULAR)']
+        ambos = json_data['AMBOS EQUIPOS ANOTAN']
+        ht_u05 = ht_gol['U (0.5)'] if 'U (0.5)' in ht_gol else '-'
+        ht_u15 = ht_gol['U (1.5)'] if 'U (1.5)' in ht_gol else '-'
+        ht_u25 = ht_gol['U (2.5)'] if 'U (2.5)' in ht_gol else '-'
+        ft_u05 = ft_gol['U (0.5)'] if 'U (0.5)' in ft_gol else '-'
+        ft_u15 = ft_gol['U (1.5)'] if 'U (1.5)' in ft_gol else '-'
+        ft_u25 = ft_gol['U (2.5)'] if 'U (2.5)' in ft_gol else '-'
+        ft_u35 = ft_gol['U (3.5)'] if 'U (3.5)' in ft_gol else '-'
+        ft_u45 = ft_gol['U (4.5)'] if 'U (4.5)' in ft_gol else '-'
+        momio_home = ft['1'] if '1' in ft else '-'
+        momio_away = ft['2'] if '2' in ft else '-'
+        momio_si = ambos['Y'] if 'Y' in ambos else '-'
+        momio_no = ambos['NO'] if 'NO' in ambos else '-'
+        res = {
+            'momio_home': momio_home,
+            'momio_away': momio_away,
+            'momio_si': momio_si,
+            'momio_no': momio_no,
+            'momio_ht_05': ht_u05,
+            'momio_ht_15': ht_u15,
+            'momio_ht_25': ht_u25,
+            'momio_ft_05': ft_u05,
+            'momio_ft_15': ft_u15,
+            'momio_ft_25': ft_u25,
+            'momio_ft_35': ft_u35,
+            'momio_ft_45': ft_u45,
+        }
+        pprint.pprint(res)
