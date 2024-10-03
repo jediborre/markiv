@@ -99,23 +99,25 @@ def main(db_file):
     result = {}
     result_pais = {}
     for match in matches:
+        id = str(match.id)
+        home = match.home
+        away = match.away
+        time = match.time
+        liga = match.league
+        if all(v is None for v in [liga, time, home, away]):
+            continue
         if match.stats is None:
             continue
         matchstats = match.stats
         if matchstats.fecha is None:
             continue
+        fecha = matchstats.fecha
         home_matches_db = matchstats.home_matches
         away_matches_db = matchstats.away_matches
         face_matches_db = matchstats.face_matches
-        id = str(match.id)
-        fecha = matchstats.fecha
-        home = match.home
-        away = match.away
         if len(home_matches_db) == 0 or len(away_matches_db) == 0 or len(face_matches_db) == 0:  # noqa
             print(fecha, id, home, away, 'PARTIDOS H:', len(home_matches_db), 'A:', len(away_matches_db), 'F:', len(face_matches_db))  # noqa
             continue
-        time = match.time
-        liga = match.league
         url = match.url
         tmp_pais = re.search(r'/(\d+)\.png$', match.pais)
         tmp_pais = tmp_pais.group(1) if tmp_pais else 'Unknown'
