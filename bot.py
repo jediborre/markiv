@@ -10,9 +10,9 @@ from dotenv import load_dotenv
 from utils import es_momio_americano
 from utils import send_text, save_match
 from catalogos import paises, user_data, preguntas_momios
-from requests.exceptions import ConnectionError, ReadTimeout
 from sheet_utils import write_sheet_match, update_formulas_bot_row
 from utils import get_match_details, get_match_paises, get_paises_count
+from requests.exceptions import ConnectionError, ReadTimeout, RequestException
 
 load_dotenv()
 
