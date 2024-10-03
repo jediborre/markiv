@@ -7,12 +7,6 @@ matches_result = []
 
 
 def get_momios_from_image(image_filename):
-    generation_config = {
-        "max_output_tokens": 1500,
-        "temperature": 1,
-        "top_p": 0.95,
-    }
-
     safety_settings = [
         SafetySetting(
             category=SafetySetting.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
@@ -34,21 +28,24 @@ def get_momios_from_image(image_filename):
     with open(image_filename, "rb") as image_file:
         image_data = base64.b64encode(image_file.read()).decode("utf-8")
 
-    vertexai.init(project="gen-lang-client-0049656829", location="us-west4")
+    vertexai.init(project="feroslebos", location="us-west4")
     model = GenerativeModel("gemini-1.5-flash-002")
     image_part = Part.from_data(
         mime_type="image/jpeg",
         data=base64.b64decode(image_data),
     )
-    responses = model.generate_content(
-        [image_part, """Momios en JSON"""],
-        generation_config=generation_config,
+    response = model.generate_content(
+        [image_part, "Momios en JSON"],
+        generation_config={
+            'max_output_tokens': 1500,
+            'temperature': 1,
+            'top_p': 0.95,
+        },
         safety_settings=safety_settings,
-        stream=True,
+        stream=False,
     )
-    for response in responses:
-        print(response.text, end="")
-        return response.text
+
+    return response.text
 
 
 def save_match(matches_result_file, match):
@@ -199,5 +196,9 @@ Gol FT: {momio_ft_05} {momio_ft_15} {momio_ft_25} {momio_ft_35} {momio_ft_45}'''
 
 
 if __name__ == '__main__':
-    momios = get_momios_from_image('img/momios_1.jpg')
-    print(momios)
+    # momios = get_momios_from_image('img/momios_1.jpg')
+    # print(momios)
+    with open('hemini_response.txt', 'rb') as my_file:
+        result = my_file.read()
+        json_data = json.loads(result)
+        print(json_data)
