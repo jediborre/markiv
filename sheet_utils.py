@@ -92,7 +92,7 @@ def write_sheet_match(wks, match):
     momio_ft_35 = match['momio_ft_35'] if 'momio_ft_35' in match else ''
     momio_ft_45 = match['momio_ft_45'] if 'momio_ft_45' in match else ''
     usuario = match['usuario'] if 'usuario' in match else ''
-    revision = match['revision'] if 'revision' in match else ''
+    correcto = match['correcto'] if 'correcto' in match else ''
     reg = [
         fecha[:10],
         hora,
@@ -168,7 +168,7 @@ def write_sheet_match(wks, match):
         '',  # UG  BT
         '',  # Mensajes  BU
         '',  # Analisis gol BV
-        revision,
+        correcto,
         usuario,
         url
     ]
@@ -205,3 +205,4 @@ def update_formulas_bot_row(wks, row):
     update_formula(wks, 'BS', row)  # PG
     update_formula(wks, 'BT', row)  # UG
     update_formula(wks, 'BU', row)  # Mensajes
+    update_formula(wks, 'BV', row)  # Analisis Gol

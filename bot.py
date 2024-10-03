@@ -138,9 +138,9 @@ def callback_query(call):
         campo, _ = p
         match[campo] = ''
     if call.data == 'si':
-        match['revision'] = 'SI'
+        match['correcto'] = 'SI'
     elif call.data == 'no':
-        match['revision'] = 'NO'
+        match['correcto'] = 'NO'
     user_data[user_id][match_selected] = match
     preguntar_momio(call.message)
 
@@ -183,7 +183,7 @@ def preguntar_momio(message):
             link_boton = types.InlineKeyboardButton('Partido', url=match_url) # noqa
             markup.add(link_boton)
         bot_msj = f'{msj}\n\nApuesta: {ap}'
-        if match['revision'] == 'NO':
+        if match['correcto'] == 'SI':
             if 'OK' in ap:
                 for cid in TELEGRAM_CHAT_ID:
                     send_text(
