@@ -6,7 +6,7 @@ from vertexai.generative_models import GenerativeModel, Part, SafetySetting
 matches_result = []
 
 
-def generate(image_filename):
+def get_momios_from_image(image_filename):
     generation_config = {
         "max_output_tokens": 1500,
         "temperature": 1,
@@ -196,3 +196,8 @@ Ambos Anotan: {momio_si} {momio_no}
 Gol HT: {momio_ht_05} {momio_ht_15} {momio_ht_25}
 Gol FT: {momio_ft_05} {momio_ft_15} {momio_ft_25} {momio_ft_35} {momio_ft_45}''' # noqa
     return result
+
+
+if __name__ == '__main__':
+    momios = get_momios_from_image('img/momios_1.jpg')
+    print(momios)
