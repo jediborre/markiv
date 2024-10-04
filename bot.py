@@ -26,6 +26,9 @@ wks = spreadsheet.worksheet_by_title('Bot')
 matches_result_file = ''
 filename = 'partidos_totalcorner'
 script_path = os.path.dirname(os.path.abspath(__file__))
+gemini_path = os.path.join(script_path, 'gemini_path')
+if not os.path.exists(gemini_path):
+    os.makedirs(gemini_path)
 result_path = os.path.join(script_path, 'result')
 if not os.path.exists(result_path):
     os.makedirs(result_path)
