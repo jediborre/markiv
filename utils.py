@@ -1,13 +1,71 @@
+import os
 import json
 import base64
-import vertexai
 import pprint
+import logging
+import vertexai
 from vertexai.generative_models import GenerativeModel, Part, SafetySetting
 
 matches_result = []
 
 
-def get_momios_from_image(image_filename):
+def get_momios_image(img_filename):
+    img_filepath = os.path.join('img', img_filename)
+    if os.path.exists(img_filepath):
+        response_filename = os.path.splitext(os.path.basename(img_filepath))[0]
+        response_filepath = os.path.join('gemini', f'{response_filename}_gemini.json') # noqa
+        processed_filepath = os.path.join('gemini', f'{response_filename}_ok.json') # noqa
+        if not os.path.exists(response_filepath):
+            gemini_response = get_gemini_response(img_filepath)
+            with open(response_filepath, 'w') as f:
+                f.write(gemini_response)
+        result = parse_gemini_response(response_filepath)
+        with open(processed_filepath, 'w') as f:
+            json.dumps(result, f)
+        return result
+    else:
+        logging.error(f'get_momios_image {img_filepath} not exist')
+
+
+def parse_gemini_response(filepath):
+    with open(filepath, encoding='utf-8') as my_file:
+        result = my_file.read()
+        json_data = json.loads(result)
+        # pprint.pprint(json_data)
+        ht_gol = json_data['1RA MITAD TOTAL DE GOLES OVER/UNDER']
+        ft_gol = json_data['TOTAL GOLES OVER/UNDER']
+        ft = json_data['RESULTADO FINAL (TIEMPO REGULAR)']
+        ambos = json_data['AMBOS EQUIPOS ANOTAN']
+        ht_u05 = ht_gol['U (0.5)'] if 'U (0.5)' in ht_gol else '-'
+        ht_u15 = ht_gol['U (1.5)'] if 'U (1.5)' in ht_gol else '-'
+        ht_u25 = ht_gol['U (2.5)'] if 'U (2.5)' in ht_gol else '-'
+        ft_u05 = ft_gol['U (0.5)'] if 'U (0.5)' in ft_gol else '-'
+        ft_u15 = ft_gol['U (1.5)'] if 'U (1.5)' in ft_gol else '-'
+        ft_u25 = ft_gol['U (2.5)'] if 'U (2.5)' in ft_gol else '-'
+        ft_u35 = ft_gol['U (3.5)'] if 'U (3.5)' in ft_gol else '-'
+        ft_u45 = ft_gol['U (4.5)'] if 'U (4.5)' in ft_gol else '-'
+        momio_home = ft['1'] if '1' in ft else '-'
+        momio_away = ft['2'] if '2' in ft else '-'
+        momio_si = ambos['Y'] if 'Y' in ambos else '-'
+        momio_no = ambos['NO'] if 'NO' in ambos else '-'
+        res = {
+            'momio_home': momio_home,
+            'momio_away': momio_away,
+            'momio_si': momio_si,
+            'momio_no': momio_no,
+            'momio_ht_05': ht_u05,
+            'momio_ht_15': ht_u15,
+            'momio_ht_25': ht_u25,
+            'momio_ft_05': ft_u05,
+            'momio_ft_15': ft_u15,
+            'momio_ft_25': ft_u25,
+            'momio_ft_35': ft_u35,
+            'momio_ft_45': ft_u45,
+        }
+        return res
+
+
+def get_gemini_response(image_filename):
     safety_settings = [
         SafetySetting(
             category=SafetySetting.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
@@ -46,14 +104,14 @@ def get_momios_from_image(image_filename):
         stream=False,
     )
 
-    return response.text
+    return response.text.strip('```json').strip()
 
 
 def save_match(matches_result_file, match):
     global matches_result
     matches_result.append(match)
-    with open(matches_result_file, 'w') as file:
-        json.dump(matches_result, file, indent=4)
+    with open(matches_result_file, 'w') as f:
+        json.dump(matches_result, f, indent=4)
 
 
 def send_text(telegram_bot, chat_id, text, markup=None):
@@ -83,22 +141,6 @@ def es_momio_americano(texto):
             return False
     except ValueError:
         return False
-
-
-def get_f1(val):
-    ranges = [
-        ((-32.04, -19.19), 1),
-        ((-19.08, -11.22), 3),
-        ((-10.07, 28.41), 2)
-    ]
-    if val in ['', '-']:
-        return 'Sin clasificación'
-
-    for (start, end), classification in ranges:
-        if start >= val <= end:
-            return classification
-
-    return 'Sin clasificación'
 
 
 def get_paises_count(paises):
@@ -197,41 +239,5 @@ Gol FT: {momio_ft_05} {momio_ft_15} {momio_ft_25} {momio_ft_35} {momio_ft_45}'''
 
 
 if __name__ == '__main__':
-    # momios = get_momios_from_image('img/momios_1.jpg')
-    # print(momios)
-    with open('hemini_response.txt', encoding='utf-8') as my_file:
-        result = my_file.read()
-        result = result.strip('```json').strip()
-        json_data = json.loads(result)
-        # pprint.pprint(json_data)
-        ht_gol = json_data['1RA MITAD TOTAL DE GOLES OVER/UNDER']
-        ft_gol = json_data['TOTAL GOLES OVER/UNDER']
-        ft = json_data['RESULTADO FINAL (TIEMPO REGULAR)']
-        ambos = json_data['AMBOS EQUIPOS ANOTAN']
-        ht_u05 = ht_gol['U (0.5)'] if 'U (0.5)' in ht_gol else '-'
-        ht_u15 = ht_gol['U (1.5)'] if 'U (1.5)' in ht_gol else '-'
-        ht_u25 = ht_gol['U (2.5)'] if 'U (2.5)' in ht_gol else '-'
-        ft_u05 = ft_gol['U (0.5)'] if 'U (0.5)' in ft_gol else '-'
-        ft_u15 = ft_gol['U (1.5)'] if 'U (1.5)' in ft_gol else '-'
-        ft_u25 = ft_gol['U (2.5)'] if 'U (2.5)' in ft_gol else '-'
-        ft_u35 = ft_gol['U (3.5)'] if 'U (3.5)' in ft_gol else '-'
-        ft_u45 = ft_gol['U (4.5)'] if 'U (4.5)' in ft_gol else '-'
-        momio_home = ft['1'] if '1' in ft else '-'
-        momio_away = ft['2'] if '2' in ft else '-'
-        momio_si = ambos['Y'] if 'Y' in ambos else '-'
-        momio_no = ambos['NO'] if 'NO' in ambos else '-'
-        res = {
-            'momio_home': momio_home,
-            'momio_away': momio_away,
-            'momio_si': momio_si,
-            'momio_no': momio_no,
-            'momio_ht_05': ht_u05,
-            'momio_ht_15': ht_u15,
-            'momio_ht_25': ht_u25,
-            'momio_ft_05': ft_u05,
-            'momio_ft_15': ft_u15,
-            'momio_ft_25': ft_u25,
-            'momio_ft_35': ft_u35,
-            'momio_ft_45': ft_u45,
-        }
-        pprint.pprint(res)
+    momios = get_momios_image('momios_1.jpg')
+    pprint.pprint(momios)
