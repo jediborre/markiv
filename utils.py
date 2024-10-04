@@ -15,14 +15,15 @@ def get_momios_image(img_filename):
         response_filename = os.path.splitext(os.path.basename(img_filepath))[0]
         response_filepath = os.path.join('gemini', f'{response_filename}_gemini.json') # noqa
         processed_filepath = os.path.join('gemini', f'{response_filename}_ok.json') # noqa
-        if not os.path.exists(response_filepath):
-            gemini_response = get_gemini_response(img_filepath)
-            with open(response_filepath, 'w') as f:
-                f.write(gemini_response)
-        result = parse_gemini_response(response_filepath)
-        with open(processed_filepath, 'w') as f:
-            json.dumps(result, f)
-        return result
+        print(response_filepath, processed_filepath)
+        # if not os.path.exists(response_filepath):
+        #     gemini_response = get_gemini_response(img_filepath)
+        #     with open(response_filepath, 'w') as f:
+        #         f.write(gemini_response)
+        # result = parse_gemini_response(response_filepath)
+        # with open(processed_filepath, 'w') as f:
+        #     json.dumps(result, f)
+        # return result
     else:
         logging.error(f'get_momios_image {img_filepath} not exist')
 
