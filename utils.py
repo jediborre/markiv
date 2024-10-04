@@ -97,7 +97,7 @@ def get_gemini_response(image_filename):
         data=base64.b64decode(image_data),
     )
     response = model.generate_content(
-        [image_part, "Momios en JSON"],
+        [image_part, "Momios en JSON valido"],
         generation_config={
             'max_output_tokens': 1500,
             'temperature': 1,
@@ -109,8 +109,10 @@ def get_gemini_response(image_filename):
 
     text_response = response.text.strip('```json').strip()
     text_response = re.sub(r'\+', '', text_response)
-    text_response = re.sub(r'OVER \(', 'O (', text_response)
-    text_response = re.sub(r'UNDER \(', 'U (', text_response)
+    text_response = re.sub(r'\(|\)', '', text_response)
+    text_response = re.sub(r'\/)', '_', text_response)
+    text_response = re.sub(r'UNDER ', 'U ', text_response)
+    text_response = re.sub(r'OVER ', 'O ', text_response)
     return text_response
 
 
