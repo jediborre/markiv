@@ -1,3 +1,4 @@
+import re
 import os
 import json
 import base64
@@ -23,7 +24,7 @@ def get_momios_image(img_filename):
                 f.write(gemini_response)
         result = parse_gemini_response(response_filepath)
         with open(processed_filepath, 'w') as f:
-            json.dumps(result, f)
+            json.dump(result, f)
         return result
     else:
         logging.error(f'get_momios_image {img_filepath} not exist')
@@ -106,7 +107,9 @@ def get_gemini_response(image_filename):
         stream=False,
     )
 
-    return response.text.strip('```json').strip()
+    text_response = response.text.strip('```json').strip()
+    text_response = re.sub(r'\+', '', text_response)
+    return text_response
 
 
 def save_match(matches_result_file, match):
