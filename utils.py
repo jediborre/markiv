@@ -35,18 +35,18 @@ def parse_gemini_response(filepath):
         result = my_file.read()
         json_data = json.loads(result)
         # pprint.pprint(json_data)
-        ht_gol = json_data['1RA MITAD TOTAL DE GOLES OVER/UNDER']
-        ft_gol = json_data['TOTAL GOLES OVER/UNDER']
-        ft = json_data['RESULTADO FINAL (TIEMPO REGULAR)']
+        ht_gol = json_data['1RA MITAD TOTAL DE GOLES OVER UNDER']
+        ft_gol = json_data['TOTAL GOLES OVER UNDER']
+        ft = json_data['RESULTADO FINAL TIEMPO REGULAR']
         ambos = json_data['AMBOS EQUIPOS ANOTAN']
-        ht_u05 = ht_gol['U (0.5)'] if 'U (0.5)' in ht_gol else '-'
-        ht_u15 = ht_gol['U (1.5)'] if 'U (1.5)' in ht_gol else '-'
-        ht_u25 = ht_gol['U (2.5)'] if 'U (2.5)' in ht_gol else '-'
-        ft_u05 = ft_gol['U (0.5)'] if 'U (0.5)' in ft_gol else '-'
-        ft_u15 = ft_gol['U (1.5)'] if 'U (1.5)' in ft_gol else '-'
-        ft_u25 = ft_gol['U (2.5)'] if 'U (2.5)' in ft_gol else '-'
-        ft_u35 = ft_gol['U (3.5)'] if 'U (3.5)' in ft_gol else '-'
-        ft_u45 = ft_gol['U (4.5)'] if 'U (4.5)' in ft_gol else '-'
+        ht_u05 = ht_gol['UNDER 0.5'] if 'UNDER 0.5' in ht_gol else '-'
+        ht_u15 = ht_gol['UNDER 1.5'] if 'UNDER 1.5' in ht_gol else '-'
+        ht_u25 = ht_gol['UNDER 2.5'] if 'UNDER 2.5' in ht_gol else '-'
+        ft_u05 = ft_gol['UNDER 0.5'] if 'UNDER 0.5' in ft_gol else '-'
+        ft_u15 = ft_gol['UNDER 1.5'] if 'UNDER 1.5' in ft_gol else '-'
+        ft_u25 = ft_gol['UNDER 2.5'] if 'UNDER 2.5' in ft_gol else '-'
+        ft_u35 = ft_gol['UNDER 3.5'] if 'UNDER 3.5' in ft_gol else '-'
+        ft_u45 = ft_gol['UNDER 4.5'] if 'UNDER 4.5' in ft_gol else '-'
         momio_home = ft['1'] if '1' in ft else '-'
         momio_away = ft['2'] if '2' in ft else '-'
         momio_si = ambos['Y'] if 'Y' in ambos else '-'
@@ -110,9 +110,9 @@ def get_gemini_response(image_filename):
     text_response = response.text.strip('```json').strip()
     text_response = re.sub(r'\+', '', text_response)
     text_response = re.sub(r'\(|\)', '', text_response)
-    text_response = re.sub(r'\/)', '_', text_response)
-    text_response = re.sub(r'UNDER ', 'U ', text_response)
-    text_response = re.sub(r'OVER ', 'O ', text_response)
+    text_response = re.sub(r'\/)', ' ', text_response)
+    text_response = re.sub(r'U ', 'UNDER ', text_response)
+    text_response = re.sub(r'O ', 'OVER ', text_response)
     return text_response
 
 
