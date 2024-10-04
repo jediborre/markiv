@@ -12,13 +12,14 @@ matches_result = []
 def get_momios_image(img_filename):
     img_filepath = os.path.join('img', img_filename)
     if os.path.exists(img_filepath):
+        response_dir = 'gemini'
         response_filename = os.path.splitext(os.path.basename(img_filepath))[0]
-        response_filepath = os.path.join('gemini', f'{response_filename}_gemini.json') # noqa
-        processed_filepath = os.path.join('gemini', f'{response_filename}_ok.json') # noqa
-        print(response_filepath, processed_filepath)
+        response_filepath = os.path.join(response_dir, f'{response_filename}_gemini.json') # noqa
+        processed_filepath = os.path.join(response_dir, f'{response_filename}_ok.json') # noqa
+        os.makedirs(response_dir, exist_ok=True)
         if not os.path.exists(response_filepath):
             gemini_response = get_gemini_response(img_filepath)
-            with open(response_filepath, 'w') as f:
+            with open(response_filepath, 'w', encoding='utf-8') as f:
                 f.write(gemini_response)
         result = parse_gemini_response(response_filepath)
         with open(processed_filepath, 'w') as f:
