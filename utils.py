@@ -109,8 +109,8 @@ def get_gemini_response(image_filename):
 
     text_response = response.text.strip('```json').strip()
     text_response = re.sub(r'\+', '', text_response)
-    text_response = re.sub(r'OVER', 'O', text_response)
-    text_response = re.sub(r'UNDER', 'U', text_response)
+    text_response = re.sub(r'OVER (', 'O (', text_response)
+    text_response = re.sub(r'UNDER (', 'U (', text_response)
     return text_response
 
 
