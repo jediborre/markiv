@@ -1,5 +1,7 @@
 import sys
 import random
+import logging
+import psutil
 from dotenv import load_dotenv
 from selenium import webdriver
 from utils.utils import kill_processes_by_name
@@ -53,7 +55,7 @@ class Web:
             sys.exit(0)
 
     def log(self, message):
-        print(f'{message}')
+        logging.info(f'WEB: {message}')
 
     def random_user_agent(self):
         return random.choice(self.user_agents)
@@ -73,6 +75,11 @@ class Web:
     def get_cookies(self):
         return self.driver.get_cookies()
 
+    def set_coockies(self, cookies):
+        for cookie in cookies:
+            self.driver.add_cookie(cookie)
+        self.driver.refresh()
+
     def open(self, url, debug=False):
         if debug:
             self.log('opening: ' + url)
@@ -88,3 +95,8 @@ class Web:
 
     def save_screenshot(self, filename):
         self.driver.save_screenshot(filename)
+
+    def kill_processes_by_name(self, name):
+        for process in psutil.process_iter(['pid', 'name']):
+            if process.info['name'] == name:
+                process.kill()
