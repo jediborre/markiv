@@ -1,10 +1,9 @@
 import sys
 import random
-import logging
 import psutil
+import logging
 from dotenv import load_dotenv
 from selenium import webdriver
-from utils.utils import kill_processes_by_name
 from selenium.common.exceptions import WebDriverException
 from selenium.common.exceptions import SessionNotCreatedException
 
@@ -69,8 +68,8 @@ class Web:
     def quit(self):
         self.driver.close()
         self.driver.quit()
-        kill_processes_by_name("chrome")
-        kill_processes_by_name("chromedriver")
+        self.kill_processes_by_name("chrome")
+        self.kill_processes_by_name("chromedriver")
 
     def get_cookies(self):
         return self.driver.get_cookies()
