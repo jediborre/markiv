@@ -258,11 +258,6 @@ Gol FT: {momio_ft_05} {momio_ft_15} {momio_ft_25} {momio_ft_35} {momio_ft_45}'''
 
 
 if __name__ == '__main__':
-    momios = get_momios_image('momios_1.jpg')
-    pprint.pprint(momios)
-    momios = get_momios_image('momios_2.jpg')
-    pprint.pprint(momios)
-    momios = get_momios_image('momios_3.jpg')
-    pprint.pprint(momios)
-    momios = get_momios_image('momios_4.jpg')
-    pprint.pprint(momios)
+    for n in range(6):
+        momios = get_momios_image(f'momios_{n}.jpg')
+        pprint.pprint(momios)
