@@ -10,6 +10,15 @@ from vertexai.generative_models import GenerativeModel, Part, SafetySetting
 matches_result = []
 
 
+def keys_uppercase(json_data):
+    if isinstance(json_data, dict):
+        return {key.upper(): keys_uppercase(value) for key, value in json_data.items()} # noqa
+    elif isinstance(json_data, list):
+        return [keys_uppercase(item) for item in json_data]
+    else:
+        return json_data
+
+
 def get_momios_image(img_filename):
     img_filepath = os.path.join('img', img_filename)
     if os.path.exists(img_filepath):
@@ -34,19 +43,20 @@ def parse_gemini_response(filepath):
     with open(filepath, encoding='utf-8') as my_file:
         result = my_file.read()
         json_data = json.loads(result)
+        json_data = keys_uppercase(json_data)
         # pprint.pprint(json_data)
         ht_gol = json_data['1RA MITAD TOTAL DE GOLES OVER UNDER']
         ft_gol = json_data['TOTAL GOLES OVER UNDER']
         ft = json_data['RESULTADO FINAL TIEMPO REGULAR']
         ambos = json_data['AMBOS EQUIPOS ANOTAN']
-        ht_u05 = ht_gol['UNDER 0.5'] if 'UNDER 0.5' in ht_gol else '-'
-        ht_u15 = ht_gol['UNDER 1.5'] if 'UNDER 1.5' in ht_gol else '-'
-        ht_u25 = ht_gol['UNDER 2.5'] if 'UNDER 2.5' in ht_gol else '-'
-        ft_u05 = ft_gol['UNDER 0.5'] if 'UNDER 0.5' in ft_gol else '-'
-        ft_u15 = ft_gol['UNDER 1.5'] if 'UNDER 1.5' in ft_gol else '-'
-        ft_u25 = ft_gol['UNDER 2.5'] if 'UNDER 2.5' in ft_gol else '-'
-        ft_u35 = ft_gol['UNDER 3.5'] if 'UNDER 3.5' in ft_gol else '-'
-        ft_u45 = ft_gol['UNDER 4.5'] if 'UNDER 4.5' in ft_gol else '-'
+        ht_u05 = ht_gol['U 0.5'] if 'U 0.5' in ht_gol else '-'
+        ht_u15 = ht_gol['U 1.5'] if 'U 1.5' in ht_gol else '-'
+        ht_u25 = ht_gol['U 2.5'] if 'U 2.5' in ht_gol else '-'
+        ft_u05 = ft_gol['U 0.5'] if 'U 0.5' in ft_gol else '-'
+        ft_u15 = ft_gol['U 1.5'] if 'U 1.5' in ft_gol else '-'
+        ft_u25 = ft_gol['U 2.5'] if 'U 2.5' in ft_gol else '-'
+        ft_u35 = ft_gol['U 3.5'] if 'U 3.5' in ft_gol else '-'
+        ft_u45 = ft_gol['U 4.5'] if 'U 4.5' in ft_gol else '-'
         momio_home = ft['1'] if '1' in ft else '-'
         momio_away = ft['2'] if '2' in ft else '-'
         momio_si = ambos['Y'] if 'Y' in ambos else '-'
@@ -110,9 +120,9 @@ def get_gemini_response(image_filename):
     text_response = response.text.strip('```json').strip()
     text_response = re.sub(r'\+', '', text_response)
     text_response = re.sub(r'\(|\)', '', text_response)
-    text_response = re.sub(r'\/)', ' ', text_response)
-    text_response = re.sub(r'U ', 'UNDER ', text_response)
-    text_response = re.sub(r'O ', 'OVER ', text_response)
+    text_response = re.sub(r'\/', ' ', text_response)
+    # text_response = re.sub(r'^U (\d+\.\d+)', r'UNDER \1', text_response)
+    # text_response = re.sub(r'^O (\d+\.\d+)', r'OVER \1', text_response)
     return text_response
 
 
