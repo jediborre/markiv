@@ -12,6 +12,7 @@ from utils import send_text, save_match
 from catalogos import paises, user_data, preguntas_momios
 from requests.exceptions import ConnectionError, ReadTimeout
 from sheet_utils import write_sheet_match, update_formulas_bot_row
+from utils import get_momios_image
 from utils import get_match_details, get_match_paises, get_paises_count
 
 load_dotenv()
@@ -165,11 +166,13 @@ def preguntar_momio(message):
         send_text(
             bot,
             user_id,
-            f'{nombre}\n¿{texto_pregunta}? (- Si no hay)'
+            f'''{nombre}
+Ingresa la imagen de los momios o captura
+
+¿{texto_pregunta}? (- Si no hay)'''
         )
-        bot.register_next_step_handler(message, obtener_momio)
+        bot.register_next_step_handler(message, obtener_momios)
     else:
-        msj = get_match_details(match, True)
         match['usuario'] = nombre
         send_text(
             bot,
@@ -185,6 +188,7 @@ def preguntar_momio(message):
         if match_url:
             link_boton = types.InlineKeyboardButton('Partido', url=match_url) # noqa
             markup.add(link_boton)
+        msj = get_match_details(match, True)
         bot_msj = f'{msj}\n\nApuesta: {ap}'
         if match['correcto'] == 'SI':
             if 'OK' in ap:
@@ -212,44 +216,104 @@ def preguntar_momio(message):
         update_formulas_bot_row(wks, row)
 
 
-def obtener_momio(message):
+def obtener_momios(message):
+    global matches_result_file
     chat_id = message.chat.id
-    momio = message.text
     user = user_data[chat_id]
     nombre = user['nombre']
     match_selected = user['match_selected']
     match = db_matches[match_selected]
+    match_url = match['url']
     pregunta_actual = match['pregunta_actual']
+    if message.photo:
+        file_id = message.photo[-1].file_id
+        file_info = bot.get_file(file_id)
+        downloaded_file = bot.download_file(file_info.file_path)
+        img_filename = f'{match_selected}_{chat_id}.jpg'
+        with open(f"img/{img_filename}", 'wb') as f:
+            f.write(downloaded_file)
 
-    if es_momio_americano(momio):
-        campo = preguntas_momios[pregunta_actual][0]
-        match[campo] = momio
-
-        match['intentos'] = 0
-        match['pregunta_actual'] += 1
-
+        send_text(
+            bot,
+            chat_id,
+            f'Obteniendo momios... {img_filename}'
+        )
+        momios = get_momios_image(img_filename)
+        match = {key: momios.get(key, match.get(key)) if match.get(key) == '' else match.get(key) # noqa
+                 for key in set(match) | set(momios)}
+        match['usuario'] = nombre
         user_data[chat_id][match_selected] = match
-
-        preguntar_momio(message)
-    else:
-        match['intentos'] += 1
-        user_data[chat_id][match_selected] = match
-
-        intentos_restantes = 3 - match['intentos']
-
-        if intentos_restantes > 0:
-            send_text(
-                bot,
-                chat_id,
-                f'{nombre}\nEl momio es inválido, intenta de nuevo ({intentos_restantes} intentos).' # noqa
-            )
-            bot.register_next_step_handler(message, obtener_momio)
+        send_text(
+            bot,
+            chat_id,
+            'Calculando Apuesta...'
+        )
+        res = write_sheet_match(wks, match)
+        ap = res['ap']
+        row = res['row']
+        match['ap'] = ap
+        save_match(matches_result_file, match)
+        markup = types.InlineKeyboardMarkup()
+        if match_url:
+            link_boton = types.InlineKeyboardButton('Partido', url=match_url) # noqa
+            markup.add(link_boton)
+        msj = get_match_details(match, True)
+        bot_msj = f'{msj}\n\nApuesta: {ap}'
+        if match['correcto'] == 'SI':
+            if 'OK' in ap:
+                for cid in TELEGRAM_CHAT_ID:
+                    send_text(
+                        bot,
+                        cid,
+                        bot_msj,
+                        markup
+                    )
+            else:
+                send_text(
+                    bot,
+                    user_id,
+                    bot_msj,
+                    markup
+                )
         else:
             send_text(
                 bot,
-                chat_id,
-                '{nombre}\nVuelve a ingresar el id del partido para volver a empezar.' # noqa
+                user_id,
+                bot_msj,
+                markup
             )
+        update_formulas_bot_row(wks, row)
+    else:
+        momio = message.text
+        if es_momio_americano(momio):
+            campo = preguntas_momios[pregunta_actual][0]
+            match[campo] = momio
+
+            match['intentos'] = 0
+            match['pregunta_actual'] += 1
+
+            user_data[chat_id][match_selected] = match
+
+            preguntar_momio(message)
+        else:
+            match['intentos'] += 1
+            user_data[chat_id][match_selected] = match
+
+            intentos_restantes = 3 - match['intentos']
+
+            if intentos_restantes > 0:
+                send_text(
+                    bot,
+                    chat_id,
+                    f'{nombre}\nEl momio es inválido, intenta de nuevo ({intentos_restantes} intentos).' # noqa
+                )
+                bot.register_next_step_handler(message, obtener_momios)
+            else:
+                send_text(
+                    bot,
+                    chat_id,
+                    '{nombre}\nVuelve a ingresar el id del partido para volver a empezar.' # noqa
+                )
 
 
 def start_bot(fecha):
