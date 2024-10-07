@@ -59,7 +59,7 @@ def parse_gemini_response(filepath):
         ft_u45 = ft_gol['U 4.5'] if 'U 4.5' in ft_gol else '-'
         momio_home = ft['1'] if '1' in ft else '-'
         momio_away = ft['2'] if '2' in ft else '-'
-        momio_si = ambos['Y'] if 'Y' in ambos else '-'
+        momio_si = ambos['SI'] if 'SI' in ambos else '-'
         momio_no = ambos['NO'] if 'NO' in ambos else '-'
         res = {
             'momio_home': momio_home,

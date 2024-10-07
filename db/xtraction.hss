@@ -1442,9 +1442,11 @@ return [&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
   <JsonReaders />
   <AjaxReaders />
   <Settings>
-    <GlobalTimeout>120</GlobalTimeout>
-    <ElementTimeout>16</ElementTimeout>
+    <AutoWait>250</AutoWait>
+    <GlobalTimeout>25</GlobalTimeout>
+    <ElementTimeout>10</ElementTimeout>
     <MaxRetries>5</MaxRetries>
+    <ImageHandling>Intercept</ImageHandling>
     <EnableProxies>true</EnableProxies>
     <ProxyRotationInterval>100</ProxyRotationInterval>
     <ProxyTestUrl>https://www.totalcorner.com/match/schedule</ProxyTestUrl>
@@ -1462,5 +1464,5 @@ return [&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 *://*.googleadservices.com/*&#xD;
 *://*.scorecardresearch.com/*</BlockList>
   <DynamicInject />
-  <ProjectCode>760928b49455153dedbab3066409c8ad</ProjectCode>
+  <ProjectCode>f877addc8c5d5dfaf4150e4186eb41bb</ProjectCode>
 </SerializableScraperProject>

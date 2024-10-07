@@ -226,7 +226,13 @@ def obtener_momios(message):
     match_url = match['url']
     pregunta_actual = match['pregunta_actual']
     if message.photo:
-        file_id = message.photo[-1].file_id
+        send_text(
+            bot,
+            chat_id,
+            'Reenvia captura sin comprimir...'
+        )
+    if message.document:
+        file_id = message.document.file_id
         file_info = bot.get_file(file_id)
         downloaded_file = bot.download_file(file_info.file_path)
         img_filename = f'{match_selected}_{chat_id}.jpg'
@@ -239,6 +245,7 @@ def obtener_momios(message):
             f'Obteniendo momios... {img_filename}'
         )
         momios = get_momios_image(img_filename)
+        print(momios)
         match = {key: momios.get(key, match.get(key)) if match.get(key) == '' else match.get(key) # noqa
                  for key in set(match) | set(momios)}
         match['usuario'] = nombre
@@ -271,14 +278,14 @@ def obtener_momios(message):
             else:
                 send_text(
                     bot,
-                    user_id,
+                    chat_id,
                     bot_msj,
                     markup
                 )
         else:
             send_text(
                 bot,
-                user_id,
+                chat_id,
                 bot_msj,
                 markup
             )
