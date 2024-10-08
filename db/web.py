@@ -15,7 +15,7 @@ load_dotenv()
 class Web:
     driver: webdriver.Chrome = None
 
-    def __init__(self, proxy_url=None) -> None:
+    def __init__(self, proxy_url=None, url=None) -> None:
         self.user_agents = [
             # Desktop
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Safari/537.36", # noqa
@@ -44,7 +44,10 @@ class Web:
         if not self.proxies:
             raise Exception("No proxies available")
 
-        self.start_browser()
+        if url:
+            self.open(url)
+        else:
+            self.start_browser()
 
     def get_proxies_from_url(self, url):
         try:
@@ -64,6 +67,7 @@ class Web:
         chrome_options.add_argument("--disable-extensions")
         chrome_options.add_argument(f"user-agent={self.random_user_agent()}")
         chrome_options.add_argument(f"--proxy-server={self.random_proxy()}")
+        chrome_options.debugger_address = "localhost:9222"
 
         try:
             self.driver = webdriver.Chrome(options=chrome_options)
@@ -74,6 +78,9 @@ class Web:
 
     def log(self, message):
         logging.info(f'WEB: {message}')
+
+    def random_proxy(self):
+        return random.choice(self.proxies)
 
     def random_user_agent(self):
         return random.choice(self.user_agents)
