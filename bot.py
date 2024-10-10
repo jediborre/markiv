@@ -190,6 +190,7 @@ Ingresa la imagen de los momios o captura
             markup.add(link_boton)
         msj = get_match_details(match, True)
         bot_msj = f'{msj}\n\nApuesta: {ap}'
+        logging.info(bot_msj)
         if match['correcto'] == 'SI':
             if 'OK' in ap:
                 for cid in TELEGRAM_CHAT_ID:
@@ -238,14 +239,14 @@ def obtener_momios(message):
         img_filename = f'{match_selected}_{chat_id}.jpg'
         with open(f"img/{img_filename}", 'wb') as f:
             f.write(downloaded_file)
-
+        logging.info(f'Obteniendo momios... {img_filename}')
         send_text(
             bot,
             chat_id,
-            f'Obteniendo momios... {img_filename}'
+            'Obteniendo momios...'
         )
         momios = get_momios_image(img_filename)
-        print(momios)
+        logging.info(momios)
         match = {key: momios.get(key, match.get(key)) if match.get(key) == '' else match.get(key) # noqa
                  for key in set(match) | set(momios)}
         match['usuario'] = nombre

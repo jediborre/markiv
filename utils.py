@@ -121,6 +121,7 @@ def get_gemini_response(image_filename):
     text_response = re.sub(r'\+', '', text_response)
     text_response = re.sub(r'\(|\)', '', text_response)
     text_response = re.sub(r'\/', ' ', text_response)
+    logging.info(text_response)
     # text_response = re.sub(r'^U (\d+\.\d+)', r'UNDER \1', text_response)
     # text_response = re.sub(r'^O (\d+\.\d+)', r'OVER \1', text_response)
     return text_response
