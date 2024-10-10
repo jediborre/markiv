@@ -164,10 +164,10 @@ def write_sheet_match(wks, match):
         '',  # 4  BP
         '',  # L1 /  V0  BQ
         '',  # Total  BR
-        '',  # PG  BS
-        '',  # UG  BT
-        '',  # Mensajes  BU
-        '',  # Analisis gol BV
+        # '',  # PG  BS
+        # '',  # UG  BT
+        # '',  # Mensajes  BU
+        # '',  # Analisis gol BV
         correcto,
         usuario,
         url
@@ -202,7 +202,4 @@ def update_formulas_bot_row(wks, row):
     update_formula(wks, 'BP', row)  # 4
     update_formula(wks, 'BQ', row)  # L1 /  V0
     update_formula(wks, 'BR', row)  # Total
-    update_formula(wks, 'BS', row)  # PG
-    update_formula(wks, 'BT', row)  # UG
-    update_formula(wks, 'BU', row)  # Mensajes
-    update_formula(wks, 'BV', row)  # Analisis Gol
+    update_formula(wks, 'BC', row)  # Observaciones
