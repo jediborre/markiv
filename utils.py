@@ -34,6 +34,7 @@ def get_momios_image(img_filename):
         result = parse_gemini_response(response_filepath)
         with open(processed_filepath, 'w') as f:
             json.dump(result, f)
+        logging.info('Momios Procesados')
         return result
     else:
         logging.error(f'get_momios_image {img_filepath} not exist')
@@ -121,7 +122,7 @@ def get_gemini_response(image_filename):
     text_response = re.sub(r'\+', '', text_response)
     text_response = re.sub(r'\(|\)', '', text_response)
     text_response = re.sub(r'\/', ' ', text_response)
-    logging.info(text_response)
+    logging.info('Momios Recibidos...')
     # text_response = re.sub(r'^U (\d+\.\d+)', r'UNDER \1', text_response)
     # text_response = re.sub(r'^O (\d+\.\d+)', r'OVER \1', text_response)
     return text_response
