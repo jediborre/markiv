@@ -1443,8 +1443,8 @@ return [&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
   <AjaxReaders />
   <Settings>
     <AutoWait>250</AutoWait>
-    <GlobalTimeout>25</GlobalTimeout>
-    <ElementTimeout>10</ElementTimeout>
+    <GlobalTimeout>30</GlobalTimeout>
+    <ElementTimeout>11</ElementTimeout>
     <MaxRetries>5</MaxRetries>
     <ImageHandling>Intercept</ImageHandling>
     <EnableProxies>true</EnableProxies>
@@ -1464,5 +1464,5 @@ return [&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;&#xD;
 *://*.googleadservices.com/*&#xD;
 *://*.scorecardresearch.com/*</BlockList>
   <DynamicInject />
-  <ProjectCode>f877addc8c5d5dfaf4150e4186eb41bb</ProjectCode>
+  <ProjectCode>d4ce8e6259216cc295151b62fb3127a6</ProjectCode>
 </SerializableScraperProject>
