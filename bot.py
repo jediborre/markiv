@@ -146,6 +146,7 @@ def callback_query(call):
     elif call.data == 'no':
         match['correcto'] = 'NO'
     user_data[user_id][match_selected] = match
+    logging.info('Esperando Momios')
     preguntar_momio(call.message)
 
 
@@ -239,7 +240,6 @@ def obtener_momios(message):
         img_filename = f'{match_selected}_{chat_id}.jpg'
         with open(f"img/{img_filename}", 'wb') as f:
             f.write(downloaded_file)
-        logging.info(f'Obteniendo momios... {img_filename}')
         send_text(
             bot,
             chat_id,
