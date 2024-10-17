@@ -6,10 +6,31 @@ import requests
 from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.webelement import WebElement
 from selenium.common.exceptions import WebDriverException
 from selenium.common.exceptions import SessionNotCreatedException
 
 load_dotenv()
+
+class ChainedWeb:
+    def __init__(self, element: WebElement):
+        self.element = element
+
+    def TAG(self, tag_name):
+        return ChainedWeb(self.element.find_element(By.TAG_NAME, tag_name))
+
+    def CLASS(self, class_name):
+        return ChainedWeb(self.element.find_element(By.CLASS_NAME, class_name))
+
+    def click(self):
+        self.element.click()
+        return self
+
+    def text(self):
+        return self.element.text
+
+    def get_attribute(self, attribute_name):
+        return self.element.get_attribute(attribute_name)
 
 
 class Web:
@@ -45,6 +66,7 @@ class Web:
             raise Exception("No proxies available")
 
         if url:
+            logging.info(f'Opening: {url}')
             self.open(url)
         else:
             self.start_browser()
@@ -120,10 +142,20 @@ class Web:
             self.log(f"Error opening URL: {e.msg}")
 
     def ID(self, id):
-        return self.driver.find_element(By.ID, id)
+        element = self.driver.find_element(By.ID, id)
+        return ChainedWeb(element)
+
+    def XPATH(self, xpath):
+        element = self.driver.find_element(By.XPATH, xpath)
+        return ChainedWeb(element)
 
     def CLASS(self, class_name):
-        return self.driver.find_element(By.CLASS_NAME, class_name)
+        element = self.driver.find_element(By.CLASS_NAME, class_name)
+        return ChainedWeb(element)
+
+    def TAG(self, tag):
+        element = self.driver.find_element(By.TAG_NAME, tag)
+        return ChainedWeb(element)
 
     def source(self):
         return self.driver.page_source
