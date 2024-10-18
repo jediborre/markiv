@@ -36,21 +36,15 @@ proxy_url = 'https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_
 # label        class="radioButton settings__label" Hora de Inicioi
 # div cerrar   class="header__button header__button--active"
 
-tomorrow = (
-    datetime.datetime.today() + datetime.timedelta(days=1)
-).strftime('%Y%m%d')
-flashcore_page_filename = f'flashscore/{tomorrow}.html'
+today = datetime.datetime.today()
+tomorrow = (today + datetime.timedelta(days=1))
+flashcore_page_filename = f'flashscore/{tomorrow.strftime('%Y%m%d')}.html'
 domain = 'https://www.flashscore.com.mx'
 mobile_url = 'https://m.flashscore.com.mx/?d=1'
 proxy_url = 'https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&country=mx,us,ca&protocol=http&proxy_format=ipport&format=text&timeout=4000' # noqa
 if not os.path.exists(flashcore_page_filename):
     web = Web(proxy_url=proxy_url, url=mobile_url)
     open(flashcore_page_filename, 'w', encoding='utf-8').write(web.source())
-
-# partidos = web.ID('score-data')
-# ligas = web.TAG('h4')
-# for liga in ligas:
-#     print(liga.text)
 
 resultados = []
 with open(flashcore_page_filename, 'r', encoding='utf-8') as file:
@@ -62,16 +56,15 @@ for liga in ligas:
     pais, nombre_liga = tmp_liga.split(': ')
     partido_actual = liga.find_next_sibling()
 
-    # Recorrer los partidos hasta llegar a la próxima liga o el fin
     while partido_actual and partido_actual.name != 'h4':
-        if partido_actual.name == 'span':  # Indica un nuevo partido
+        if partido_actual.name == 'span':
             hora = partido_actual.get_text(strip=True)
             equipos = partido_actual.find_next_sibling(text=True).strip() # noqa
             try:
                 local, visitante = equipos.split(' - ')
                 link = partido_actual.find_next_sibling('a')['href']
                 url = f'{domain}{link}#/h2h/overall'
-                resultados.append((pais, nombre_liga, hora, local, visitante, url))
+                resultados.append((pais, nombre_liga, hora, local, visitante, url)) # noqa
             except ValueError:
                 pass
         partido_actual = partido_actual.find_next_sibling()
@@ -85,11 +78,3 @@ for pais, liga, hora, local, visitante, link in resultados_ordenados:
 
 print(f'{len(resultados_ordenados)} Partidos')
 lista_paises_unicos = sorted(paises_unicos)
-
-# for pais in lista_paises_unicos:
-#     print(pais)
-
-# response = requests.get(url)
-# if response.status_code == 200:
-#     with open(f'flashscore/{local}{visitante}.html', 'w', encoding='utf-8') as file:
-#         file.write(response.text)
