@@ -12,6 +12,7 @@ from selenium.common.exceptions import SessionNotCreatedException
 
 load_dotenv()
 
+
 class ChainedWeb:
     def __init__(self, element: WebElement):
         self.element = element
