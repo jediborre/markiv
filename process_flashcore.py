@@ -44,7 +44,7 @@ logging.basicConfig(
 def main():
     global source_path, flashcore_page_filename
     if not os.path.exists(flashcore_page_filename):
-        web = Web(proxy_url=proxy_url, url=mobile_url)
+        web = Web(proxy_url=proxy_url, url=mobile_url, sessionUser=True)
         open(flashcore_page_filename, 'w', encoding='utf-8').write(web.source()) # noqa
 
     resultados = []
