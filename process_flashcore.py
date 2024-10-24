@@ -19,7 +19,8 @@ if not os.path.exists(source_path):
     os.makedirs(source_path)
 today = datetime.datetime.today()
 tomorrow = (today + datetime.timedelta(days=1))
-flashcore_page_filename = f'flashscore/{tomorrow.strftime("%Y%m%d")}.html'
+db_file = tomorrow.strftime('%Y%m%d')
+flashcore_page_filename = f'{source_path}/{tomorrow.strftime("%Y%m%d")}.html'
 domain = 'https://www.flashscore.com.mx'
 mobile_url = 'https://m.flashscore.com.mx/?d=1'
 proxy_url = 'https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&country=mx,us,ca&protocol=http&proxy_format=ipport&format=text&timeout=4000' # noqa
@@ -42,9 +43,11 @@ logging.basicConfig(
 
 
 def main():
+    global today, tomorrow, db_file
     global source_path, flashcore_page_filename
     if not os.path.exists(flashcore_page_filename):
-        web = Web(proxy_url=proxy_url, url=mobile_url, sessionUser=True)
+        web = Web(proxy_url=proxy_url, url=mobile_url)
+        web.wait_idElement('main', 5)
         open(flashcore_page_filename, 'w', encoding='utf-8').write(web.source()) # noqa
 
     resultados = []
@@ -70,15 +73,15 @@ def main():
                     pass
             partido_actual = partido_actual.find_next_sibling()
 
+    n = 1
     result = {}
     result_pais = {}
     fecha = today.strftime('%Y-%m-%d')
-    db_file = today.strftime('%Y%m%d')
     resultados_ordenados = sorted(resultados, key=lambda x: x[2])
-    for n, pais, liga, hora, home, away, link in enumerate(resultados_ordenados): # noqa
+    for pais, liga, hora, home, away, link in resultados_ordenados: # noqa
         print(f"{hora} {pais} {liga} {home} - {away} {url}")
         reg = {
-            'id': n,
+            'id': str(n),
             'time': hora,
             'fecha': fecha,
             'pais': pais,
@@ -91,9 +94,10 @@ def main():
             'away_matches': [],
             'face_matches': []
         }
+        n = n + 1
         if pais not in result_pais:
             result_pais[pais] = []
-        result[id] = reg
+        result[reg['id']] = reg
         result_pais[pais].append(reg)
 
     if len(result) > 0:
