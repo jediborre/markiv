@@ -1,13 +1,17 @@
 import sys
+import time
 import random
 import psutil
 import logging
 import requests
+import subprocess
 from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import WebDriverException
+from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import SessionNotCreatedException
 
 load_dotenv()
@@ -66,11 +70,10 @@ class Web:
         if not self.proxies:
             raise Exception("No proxies available")
 
+        self.open_chrome()
         if url:
             logging.info(f'Opening: {url}')
             self.open(url)
-        else:
-            self.start_browser()
 
     def get_proxies_from_url(self, url):
         try:
@@ -81,6 +84,10 @@ class Web:
         except requests.RequestException as e:
             print(f"Error fetching proxies from {url}: {e}")
             return []
+
+    def open_chrome(self):
+        cmd = r'chrome --remote-debugging-port=9222 --user-data-dir="C:\Log"'
+        subprocess.Popen(cmd, shell=True)
 
     def start_browser(self):
         chrome_options = webdriver.ChromeOptions()
@@ -98,6 +105,14 @@ class Web:
         except SessionNotCreatedException as e:
             print(e.msg)
             sys.exit(0)
+
+    def wait(self, secs):
+        time.sleep(secs)
+
+    def wait_idElement(self, ID, secs):
+        WebDriverWait(self.driver, secs).until(
+            EC.presence_of_element_located((By.ID, ID))
+        )
 
     def log(self, message):
         logging.info(f'WEB: {message}')
