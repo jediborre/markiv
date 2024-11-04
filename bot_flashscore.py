@@ -20,17 +20,13 @@ load_dotenv()
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID').split(',')
 
-gc = pygsheets.authorize(service_file='feorslebosgc.json')
-spreadsheet = gc.open('Mark 4')
-wks = spreadsheet.worksheet_by_title('Bot')
-
 matches_result_file = ''
 filename = 'partidos_totalcorner'
 script_path = os.path.dirname(os.path.abspath(__file__))
 gemini_path = os.path.join(script_path, 'gemini_path')
 if not os.path.exists(gemini_path):
     os.makedirs(gemini_path)
-result_path = os.path.join(script_path, 'result')
+result_path = os.path.join(script_path, 'db', 'flashscore')
 if not os.path.exists(result_path):
     os.makedirs(result_path)
 log_file_path = os.path.join(script_path, 'log_markiv.log')
@@ -43,9 +39,23 @@ logging.basicConfig(
         logging.StreamHandler()
     ]
 )
+
 db_matches = {}
 db_pais_matches = {}
+args = sys.argv[1:]
+if len(args) == 0:
+    logging.error('Falta expecificar nombre de archivo')
+    sys.exit()
 
+db_file = args[0]
+match_file = os.path.join(result_path, f'{db_file}.json')
+pais_match_file = os.path.join(result_path, f'{db_file}_pais.json')
+matches_result_file = os.path.join(result_path, f'matches_{db_file}.json') # noqa
+execute = os.path.exists(match_file) and os.path.exists(pais_match_file)
+
+gc = pygsheets.authorize(service_file='feroslebosgc.json')
+spreadsheet = gc.open('Mark 4')
+wks = spreadsheet.worksheet_by_title('Bot')
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 
 
@@ -355,29 +365,21 @@ def start_bot(fecha):
 
 
 if __name__ == '__main__':
-    args = sys.argv[1:]
-    if len(args) > 0:
-        db_file = args[0]
-        match_file = os.path.join(result_path, f'{db_file}.json')
-        matches_result_file = os.path.join(result_path, f'matches_{db_file}.json') # noqa
-        pais_match_file = os.path.join(result_path, f'{db_file}_pais.json')
-        if os.path.exists(match_file) and os.path.exists(pais_match_file):
-            execute = True
-            try:
-                db_matches = json.load(open(match_file))
-            except Exception as e:
-                execute = False
-                logging.error(match_file)
-                logging.error(str(e))
-            try:
-                db_pais_matches = json.load(open(pais_match_file))
-            except Exception as e:
-                execute = False
-                logging.error(pais_match_file)
-                logging.error(str(e))
-            if execute:
-                start_bot(db_file)
-        else:
-            logging.error('Archivo de base no existe, lo escribiste bien?')
+    if execute:
+        try:
+            db_matches = json.load(open(match_file))
+        except Exception as e:
+            execute = False
+            logging.error(match_file)
+            logging.error(str(e))
+        try:
+            db_pais_matches = json.load(open(pais_match_file))
+        except Exception as e:
+            execute = False
+            logging.error(pais_match_file)
+            logging.error(str(e))
+
+        if execute:
+            start_bot(db_file)
     else:
-        logging.error('Falta expecificar nombre de archivo')
+        logging.error('Archivo de base no existe, lo escribiste bien?')
