@@ -41,7 +41,7 @@ class ChainedWeb:
 class Web:
     driver: webdriver.Chrome = None
 
-    def __init__(self, proxy_url=None, url=None) -> None:
+    def __init__(self, proxy_url=None, url=None, sessionUser=None) -> None:
         self.user_agents = [
             # Desktop
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Safari/537.36", # noqa
@@ -92,12 +92,14 @@ class Web:
     def start_browser(self):
         chrome_options = webdriver.ChromeOptions()
         chrome_options.add_argument('log-level=3')
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        chrome_options.add_argument("--disable-extensions")
-        chrome_options.add_argument(f"user-agent={self.random_user_agent()}")
-        chrome_options.add_argument(f"--proxy-server={self.random_proxy()}")
-        chrome_options.debugger_address = "localhost:9222"
+        chrome_options.add_argument('--no-sandbox')
+        chrome_options.add_argument('--disable-dev-shm-usage')
+        chrome_options.add_argument('--disable-extensions')
+        chrome_options.add_argument(f'user-agent={self.random_user_agent()}')
+        chrome_options.add_argument(f'--proxy-server={self.random_proxy()}')
+        if sessionUser:
+            chrome_options.debugger_address = 'localhost:9222'
+            self.open_chome()
 
         try:
             self.driver = webdriver.Chrome(options=chrome_options)
@@ -128,6 +130,10 @@ class Web:
             self.driver.close()
         except Exception:
             pass
+
+    def open_chome():
+        cmd = r'chrome --remote-debugging-port=9222 --user-data-dir="C:\Log"' # noqa
+        subprocess.run(cmd, shell=True)
 
     def quit(self):
         self.driver.close()
