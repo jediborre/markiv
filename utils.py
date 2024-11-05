@@ -204,7 +204,7 @@ def get_match_details(match, with_momios=False) -> str:
     away = match['away']
     liga = match['liga']
     pais = match['pais'] + ' ' if match['pais'] != 'sinpais' else ''
-    pGol = match['promedio_gol']
+    pGol = match[' ']
     home_matches = match['home_matches']
     away_matches = match['away_matches']
     face_matches = match['face_matches']

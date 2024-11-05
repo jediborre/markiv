@@ -4,7 +4,7 @@ import sys
 import json
 import telebot
 import logging
-import pprint
+import pprint # noqa
 import pygsheets
 from telebot import types
 from dotenv import load_dotenv
@@ -85,7 +85,7 @@ def handle(message):
                     user_id,
                     f'{nombre}\nNo hay partidos, falla la Base?'
                 )
-        elif msj_u in paises:
+        if msj_u in paises:
             pais = msj_u
             matches = db_pais_matches[pais]
             str_paises = get_match_paises(matches)
@@ -95,10 +95,11 @@ def handle(message):
                 str_paises
             )
 
-        elif re.fullmatch(r'^#\d{1,}$', msj):
+        if re.fullmatch(r'^#\d{1,}$', msj.strip()):
             id = str(re.sub(r'\#', '', msj))
             if id in db_matches:
                 match = db_matches[id]
+                pprint.pprint(match)
                 user_data[user_id]['match_selected'] = id
                 match_url = match['url']
 
@@ -119,6 +120,7 @@ def handle(message):
                     markup
                 )
             else:
+                print(f'id {id} no')
                 send_text(
                     bot,
                     user_id,
@@ -126,7 +128,6 @@ def handle(message):
                 )
         else:
             print(f'{msj} not in pattern')
-        print(re.fullmatch(r'^#\d{1,}$', msj), msj)
     else:
         send_text(
             bot,
