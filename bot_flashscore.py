@@ -4,12 +4,13 @@ import sys
 import json
 import telebot
 import logging
+import pprint
 import pygsheets
 from telebot import types
 from dotenv import load_dotenv
 from utils import es_momio_americano
 from utils import send_text, save_match
-from catalogos import paises, user_data, preguntas_momios
+from catalogos import user_data, preguntas_momios
 from requests.exceptions import ConnectionError, ReadTimeout
 from sheet_utils import write_sheet_match, update_formulas_bot_row
 from utils import get_momios_image
@@ -40,6 +41,7 @@ logging.basicConfig(
     ]
 )
 
+paises = []
 db_matches = {}
 db_pais_matches = {}
 args = sys.argv[1:]
@@ -65,17 +67,17 @@ def handle(message):
     user_id = message.chat.id
     user = user_data[user_id]
     nombre = user['nombre']
-    pattern = r'^#\d{1,}$'
     msj = message.text
     if msj:
+        msj_u = msj.upper()
         msj_l = msj.lower()
         if msj_l == 'paises':
             if db_pais_matches:
-                paises_count = get_paises_count(db_pais_matches)
+                lista_paises = get_paises_count(db_pais_matches)
                 send_text(
                     bot,
                     user_id,
-                    paises_count
+                    lista_paises
                 )
             else:
                 send_text(
@@ -83,25 +85,17 @@ def handle(message):
                     user_id,
                     f'{nombre}\nNo hay partidos, falla la Base?'
                 )
+        elif msj_u in paises:
+            pais = msj_u
+            matches = db_pais_matches[pais]
+            str_paises = get_match_paises(matches)
+            send_text(
+                bot,
+                user_id,
+                str_paises
+            )
 
-        if msj_l in paises:
-            pais = msj_l
-            if pais in db_pais_matches:
-                matches = db_pais_matches[pais]
-                str_paises = get_match_paises(matches)
-                send_text(
-                    bot,
-                    user_id,
-                    str_paises
-                )
-            else:
-                send_text(
-                    bot,
-                    user_id,
-                    f'{nombre}\nNo hay partidos en {pais}'
-                )
-
-        if re.fullmatch(pattern, msj):
+        elif re.fullmatch(r'^#\d{1,}$', msj):
             id = str(re.sub(r'\#', '', msj))
             if id in db_matches:
                 match = db_matches[id]
@@ -130,6 +124,9 @@ def handle(message):
                     user_id,
                     f'{nombre}\nPartido #{id} no encontrado.'
                 )
+        else:
+            print(f'{msj} not in pattern')
+        print(re.fullmatch(r'^#\d{1,}$', msj), msj)
     else:
         send_text(
             bot,
@@ -374,6 +371,8 @@ if __name__ == '__main__':
             logging.error(str(e))
         try:
             db_pais_matches = json.load(open(pais_match_file))
+            for pais in db_pais_matches:
+                paises.append(pais)
         except Exception as e:
             execute = False
             logging.error(pais_match_file)
@@ -382,4 +381,4 @@ if __name__ == '__main__':
         if execute:
             start_bot(db_file)
     else:
-        logging.error('Archivo de base no existe, lo escribiste bien?')
+        logging.error(f'Archivo de base no existe, lo escribiste bien? {match_file}') # noqa
