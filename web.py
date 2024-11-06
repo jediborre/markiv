@@ -41,7 +41,7 @@ class ChainedWeb:
 class Web:
     driver: webdriver.Chrome = None
 
-    def __init__(self, proxy_url=None, url=None, sessionUser=None) -> None:
+    def __init__(self, proxy_url=None, url=None) -> None:
         self.user_agents = [
             # Desktop
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Safari/537.36", # noqa
@@ -97,11 +97,10 @@ class Web:
         chrome_options.add_argument('--disable-extensions')
         chrome_options.add_argument(f'user-agent={self.random_user_agent()}')
         chrome_options.add_argument(f'--proxy-server={self.random_proxy()}')
-        if sessionUser:
-            chrome_options.debugger_address = 'localhost:9222'
-            self.open_chome()
+        chrome_options.debugger_address = 'localhost:9222'
 
         try:
+            # self.open_chome()
             self.driver = webdriver.Chrome(options=chrome_options)
             self.driver.maximize_window()
         except SessionNotCreatedException as e:
@@ -111,9 +110,14 @@ class Web:
     def wait(self, secs):
         time.sleep(secs)
 
-    def wait_idElement(self, ID, secs):
+    def wait_ID(self, ID, secs):
         WebDriverWait(self.driver, secs).until(
             EC.presence_of_element_located((By.ID, ID))
+        )
+
+    def wait_Class(self, CLASS, secs):
+        WebDriverWait(self.driver, secs).until(
+            EC.presence_of_element_located((By.CLASS_NAME, CLASS))
         )
 
     def log(self, message):
@@ -132,6 +136,7 @@ class Web:
             pass
 
     def open_chome():
+        print('Abriendo Chrome Port 9222')
         cmd = r'chrome --remote-debugging-port=9222 --user-data-dir="C:\Log"' # noqa
         subprocess.run(cmd, shell=True)
 

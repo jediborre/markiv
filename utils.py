@@ -198,43 +198,56 @@ def get_match_paises(matches) -> str:
 
 
 def get_match_details(match, with_momios=False) -> str:
+    # print(match)
     id = match['id']
     fecha = match['fecha']
     home = match['home']
     away = match['away']
     liga = match['liga']
     pais = match['pais'] + ' ' if match['pais'] != 'sinpais' else ''
-    pGol = match[' ']
+    pGol = match['promedio_gol']
     home_matches = match['home_matches']
     away_matches = match['away_matches']
     face_matches = match['face_matches']
-    home_gP = home_matches['hechos']
-    home_gM = home_matches['concedidos'][0]
-    home_pgP = home_matches['p_hechos']
-    home_pgM = home_matches['p_concedidos']
-    # home_n_games = len(home_matches)
-    home_games = '\n'.join(f'{m["ft"]}    {m["home_ft"]} - {m["away_ft"]}    {m["home"][:5]} - {m["away"][:5]}' for m in home_matches['matches']) # noqa
-    away_gP = away_matches['hechos']
-    away_gM = away_matches['concedidos'][0]
-    away_pgP = away_matches['p_hechos']
-    away_pgM = away_matches['p_concedidos']
-    # away_n_games = len(away_matches)
-    away_games = '\n'.join(f'{m["ft"]}    {m["home_ft"]} - {m["away_ft"]}    {m["home"][:5]} - {m["away"][:5]}' for m in away_matches['matches']) # noqa
-    face_games = '\n'.join(f'{m["ft"]}    {m["home_ft"]} - {m["away_ft"]}    {m["home"][:5]} - {m["away"][:5]}' for m in face_matches['matches']) # noqa
+
+    home_games, home_gP, home_gM, home_pgP, home_pgM = '', '', '', '', ''
+    if len(home_matches) > 0:
+        home_gP = home_matches['hechos']
+        home_gM = home_matches['concedidos'][0]
+        home_pgP = home_matches['p_hechos']
+        home_pgM = home_matches['p_concedidos']
+        home_games = '\n'.join(f'{m["ft"]}    {m["home_ft"]} - {m["away_ft"]}    {m["home"][:5]} - {m["away"][:5]}' for m in home_matches['matches']) # noqa
+
+    away_gP, away_gM, away_pgP, away_pgM, away_games = '', '', '', '', ''
+    if len(away_matches) > 0:
+        away_gP = away_matches['hechos']
+        away_gM = away_matches['concedidos'][0]
+        away_pgP = away_matches['p_hechos']
+        away_pgM = away_matches['p_concedidos']
+        away_games = '\n'.join(f'{m["ft"]}    {m["home_ft"]} - {m["away_ft"]}    {m["home"][:5]} - {m["away"][:5]}' for m in away_matches['matches']) # noqa
+
+    face_games = ''
+    if len(face_matches) > 0:
+        face_games = '\n'.join(f'{m["ft"]}    {m["home_ft"]} - {m["away_ft"]}    {m["home"][:5]} - {m["away"][:5]}' for m in face_matches['matches']) # noqa
+
     result = f'''
 #{id} {fecha}
 {pais}{liga}
-{home} v {away}
+{home} v {away}'''
 
-G PARTIDO: {pGol}
+    if all([pGol != '', home_gP != '', home_gM != '', home_pgP != '', home_pgM != '', home_games != '']): # noqa
+        result += f'''G PARTIDO: {pGol}
 {home}
 +: {home_gP} -: {home_gM} P+: {home_pgP} P-: {home_pgM}
-{home_games}
+{home_games}'''
 
+    if all([away_gP != '', away_gM != '', away_pgP != '', away_pgM != '', away_games != '']): # noqa
+        result += f'''
 {away}
 +: {away_gP} -: {away_gM} P+: {away_pgP} P-: {away_pgM}
-{away_games}
-
+{away_games}'''
+    if face_games != '':
+        result += f'''
 vs
 {face_games}''' # noqa
     if with_momios:
@@ -255,7 +268,7 @@ vs
 Ganador: {momio_home} {momio_away}
 Ambos Anotan: {momio_si} {momio_no}
 Gol HT: {momio_ht_05} {momio_ht_15} {momio_ht_25}
-Gol FT: {momio_ft_05} {momio_ft_15} {momio_ft_25} {momio_ft_35} {momio_ft_45}''' # noqa
+ bvnGol FT: {momio_ft_05} {momio_ft_15} {momio_ft_25} {momio_ft_35} {momio_ft_45}''' # noqa
     return result
 
 

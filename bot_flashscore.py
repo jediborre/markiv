@@ -99,10 +99,9 @@ def handle(message):
             id = str(re.sub(r'\#', '', msj))
             if id in db_matches:
                 match = db_matches[id]
-                pprint.pprint(match)
-                user_data[user_id]['match_selected'] = id
                 match_url = match['url']
-
+                user_data[user_id]['match_selected'] = id
+                print(f'#{id} Match')
                 markup = types.InlineKeyboardMarkup()
                 si_boton = types.InlineKeyboardButton('Sí', callback_data='si')
                 no_boton = types.InlineKeyboardButton('No', callback_data='no')
@@ -112,7 +111,8 @@ def handle(message):
                     markup.add(link_boton)
 
                 str_match_detail = get_match_details(match)
-                logging.info(str_match_detail)
+
+                logging.info(f'{str_match_detail}')
                 send_text(
                     bot,
                     user_id,
@@ -127,7 +127,8 @@ def handle(message):
                     f'{nombre}\nPartido #{id} no encontrado.'
                 )
         else:
-            print(f'{msj} not in pattern')
+            pass
+            # print(f'{msj} not in pattern')
     else:
         send_text(
             bot,

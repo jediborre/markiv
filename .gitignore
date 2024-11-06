@@ -15,3 +15,5 @@ __pycache__/*.pyc
 settings.json
 Data.sqlite
 Data.sqlite-journal
+chromedriver.exe
+*.html
