@@ -1,6 +1,7 @@
 import re
 import os
 import json
+import pprint # noqa
 import logging
 import datetime
 import argparse
@@ -57,15 +58,15 @@ def parse_matches(matches, match_home=None):
         league_name = event['title']
 
         home_team = match.find('span', class_='h2h__homeParticipant')
-        home_team_name = home_team.find('span', class_='h2h__participantInner').text
+        home_team_name = home_team.find('span', class_='h2h__participantInner').text # noqa
 
         away_team = match.find('span', class_='h2h__awayParticipant')
-        away_team_name = away_team.find('span', class_='h2h__participantInner').text
+        away_team_name = away_team.find('span', class_='h2h__participantInner').text # noqa
 
         result_span = match.find('span', class_='h2h__result')
         scores = result_span.find_all('span')
 
-        home_FT = int(scores[0]).text
+        home_FT = int(scores[0].text)
         away_FT = int(scores[1].text)
 
         FT = home_FT + away_FT
@@ -77,11 +78,11 @@ def parse_matches(matches, match_home=None):
 
         if match_home:
             if home_team_name == match_home:
-                hechos += home_FT
-                concedidos += away_FT
+                hechos = hechos + home_FT
+                concedidos = concedidos + away_FT
             else:
-                hechos += away_FT
-                concedidos += home_FT
+                hechos = hechos + away_FT
+                concedidos = concedidos + home_FT
 
         result_matches.append({
             'ft': FT,
@@ -100,9 +101,12 @@ def parse_matches(matches, match_home=None):
     if juegos > 0:
         result['p35'] = p35 / juegos
         result['p45'] = p45 / juegos
+    result['match_home'] = match_home
     if match_home:
+        # print(f'hechos {hechos}')
+        # print(f'concedidos {concedidos}')
         result['hechos'] = hechos
-        result['concedidos'] = concedidos,
+        result['concedidos'] = concedidos
         if juegos > 0:
             result['p_hechos'] = hechos / juegos
             result['p_concedidos'] = concedidos / juegos
@@ -138,8 +142,8 @@ def get_partidos(link, filename, home, away):
     tmp_matches_away = tmp_matches_away.find_all('div', class_='h2h__row')
     tmp_matches_face = tmp_matches_face.find_all('div', class_='h2h__row')
 
-    home_matches = parse_matches(tmp_matches_home)
-    away_matches = parse_matches(tmp_matches_away)
+    home_matches = parse_matches(tmp_matches_home, home)
+    away_matches = parse_matches(tmp_matches_away, away)
     face_matches = parse_matches(tmp_matches_face)
 
     OK = len(home_matches['matches']) == 5 and len(away_matches['matches']) == 5 and len(face_matches['matches']) > 3 # noqa
@@ -228,32 +232,32 @@ def main(hoy=False, reescribir=False):
     f.write("fecha,hora,pais,liga,local,visitante,link\n")
     for pais, liga, hora, home, away, link, link_momios_1x2, link_momios_goles, link_momios_ambos in resultados_ordenados: # noqa
         matches = get_partidos(link, f'{fecha}{hora}_{n}', home, away)
-        print(matches)
+        if matches['OK']:
+            f.write(f"{fecha},{hora},{pais},{liga},{home},{away},{link}\n")
+            reg = {
+                'id': str(n),
+                'time': hora,
+                'fecha': fecha,
+                'pais': pais,
+                'liga': liga,
+                'home': home,
+                'away': away,
+                'url': link,
+                'momios_1x2': link_momios_1x2,
+                'momios_goles': link_momios_goles,
+                'momios_ambos': link_momios_ambos,
+                'promedio_gol': '',
+                'home_matches': [],
+                'away_matches': [],
+                'face_matches': []
+            }
+            n = n + 1
+            if pais not in result_pais:
+                result_pais[pais] = []
+            result[reg['id']] = reg
+            result_pais[pais].append(reg)
         print('Pausa')
         input('')
-        f.write(f"{fecha},{hora},{pais},{liga},{home},{away},{link}\n")
-        reg = {
-            'id': str(n),
-            'time': hora,
-            'fecha': fecha,
-            'pais': pais,
-            'liga': liga,
-            'home': home,
-            'away': away,
-            'url': link,
-            'momios_1x2': link_momios_1x2,
-            'momios_goles': link_momios_goles,
-            'momios_ambos': link_momios_ambos,
-            'promedio_gol': '',
-            'home_matches': [],
-            'away_matches': [],
-            'face_matches': []
-        }
-        n = n + 1
-        if pais not in result_pais:
-            result_pais[pais] = []
-        result[reg['id']] = reg
-        result_pais[pais].append(reg)
     f.close()
 
     if len(result) > 0:
