@@ -45,8 +45,11 @@ logging.basicConfig(
 )
 
 
-def parse_matches(matches):
-    result = []
+def parse_matches(matches, match_home=None):
+    hechos = 0
+    concedidos = 0
+    p35, p45 = 0, 0
+    result_matches = []
     for match in matches:
         date = match.find('span', class_='h2h__date').text
 
@@ -62,23 +65,53 @@ def parse_matches(matches):
         result_span = match.find('span', class_='h2h__result')
         scores = result_span.find_all('span')
 
-        home_score = scores[0].text
-        away_score = scores[1].text
+        home_FT = int(scores[0]).text
+        away_FT = int(scores[1].text)
 
-        print(date, league_name, home_team_name, away_team_name, home_score, away_score)
-        result.append({
+        FT = home_FT + away_FT
+
+        if FT <= 3:
+            p35 += 1
+        if FT <= 4:
+            p45 += 1
+
+        if match_home:
+            if home_team_name == match_home:
+                hechos += home_FT
+                concedidos += away_FT
+            else:
+                hechos += away_FT
+                concedidos += home_FT
+
+        result_matches.append({
+            'ft': FT,
             'date': date,
             'liga': league_name,
-            'home_name': home_team_name,
-            'away_name': away_team_name,
-            'home': home_score,
-            'away': away_score
+            'home': home_team_name,
+            'home_ft': home_FT,
+            'away': away_team_name,
+            'away_ft': away_FT,
         })
-    print('-------------------')
-    return result
+    # print('-------------------')
+    result = {
+        'matches': result_matches
+    }
+    juegos = len(result_matches)
+    if juegos > 0:
+        result['p35'] = p35 / juegos
+        result['p45'] = p45 / juegos
+    if match_home:
+        result['hechos'] = hechos
+        result['concedidos'] = concedidos,
+        if juegos > 0:
+            result['p_hechos'] = hechos / juegos
+            result['p_concedidos'] = concedidos / juegos
+        return result
+    else:
+        return result
 
 
-def get_partidos(link, filename):
+def get_partidos(link, filename, home, away):
     global tmp_path
     global opened_web, web, proxy_url
     filename = re.sub(r'-|:', '', filename)
@@ -88,7 +121,7 @@ def get_partidos(link, filename):
             web.open(link)
         else:
             web = Web(proxy_url=proxy_url, url=link)
-        web.wait_Class('h2h__section', 15)
+        web.wait_Class('h2h__section', 20)
         # web.click_id('onetrust-accept-btn-handler')  # Click boton Aceptar
         with open(html_path, 'w', encoding='utf-8') as f:
             f.write(web.source())
@@ -109,11 +142,13 @@ def get_partidos(link, filename):
     away_matches = parse_matches(tmp_matches_away)
     face_matches = parse_matches(tmp_matches_face)
 
-    print(
-        len(home_matches),
-        len(away_matches),
-        len(face_matches)
-    )
+    OK = len(home_matches['matches']) == 5 and len(away_matches['matches']) == 5 and len(face_matches['matches']) > 3 # noqa
+    return {
+        'home_matches': home_matches,
+        'away_matches': away_matches,
+        'face_matches': face_matches,
+        'OK': OK
+    }
 
 
 def main(hoy=False, reescribir=False):
@@ -137,7 +172,7 @@ def main(hoy=False, reescribir=False):
 
     if not os.path.exists(flashcore_page_filename) and not reescribir:
         web = Web(proxy_url=proxy_url, url=mobile_url)
-        web.wait_idElement('main', 5)
+        web.wait_ID('main', 5)
         opened_web = True
         open(flashcore_page_filename, 'w', encoding='utf-8').write(web.source()) # noqa
     else:
@@ -192,8 +227,8 @@ def main(hoy=False, reescribir=False):
     f = open(f'{source_path}/{db_file}.csv', 'w')
     f.write("fecha,hora,pais,liga,local,visitante,link\n")
     for pais, liga, hora, home, away, link, link_momios_1x2, link_momios_goles, link_momios_ambos in resultados_ordenados: # noqa
-        matches = get_partidos(link, f'{fecha}{hora}_{n}')
-        # print(matches)
+        matches = get_partidos(link, f'{fecha}{hora}_{n}', home, away)
+        print(matches)
         print('Pausa')
         input('')
         f.write(f"{fecha},{hora},{pais},{liga},{home},{away},{link}\n")
