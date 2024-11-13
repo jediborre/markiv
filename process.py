@@ -4,6 +4,7 @@ import sys
 import json
 from model import Match
 from model.db import Base
+from fuzzywuzzy import fuzz
 from catalogos import dic_paises
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
@@ -31,6 +32,8 @@ def encuentros(matches, match_liga, match_home):
         away_FT = int(match.away_FT)
         ft = home_FT + away_FT
         if match_liga:
+            similarity_threshold = 80
+
             if liga == match_liga:
                 if len(result_matches) < 5:
                     if ft <= 3:

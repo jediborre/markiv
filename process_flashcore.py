@@ -6,7 +6,9 @@ import logging
 import datetime
 import argparse
 from web import Web
+from fuzzywuzzy import fuzz
 from bs4 import BeautifulSoup
+from text_unidecode import unidecode
 # https://app.dataimpulse.com/plans/create-new
 # https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json
 
@@ -46,6 +48,12 @@ logging.basicConfig(
 )
 
 
+def limpia_nombre(nombre, post=True):
+    nombre = re.sub(r'\s+', ' ', re.sub(r'\.|\/|\(|\)', '', nombre)).strip()
+    nombre = unidecode(nombre)
+    return nombre
+
+
 def parse_matches(matches, match_home=None, liga=None):
     hechos = 0
     concedidos = 0
@@ -72,7 +80,12 @@ def parse_matches(matches, match_home=None, liga=None):
         FT = home_FT + away_FT
 
         if liga:
-            if liga == league_name:
+            similarity_threshold = 80
+            liga_clean = limpia_nombre(liga)
+            league_name_clean = limpia_nombre(league_name)
+            liga_similarity = fuzz.ratio(liga_clean, league_name_clean)
+            liga_similar = liga_similarity >= similarity_threshold
+            if liga_similar:
                 if len(result_matches) < 5:
                     if FT <= 3:
                         p35 += 1
