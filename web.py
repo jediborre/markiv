@@ -13,22 +13,39 @@ from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import SessionNotCreatedException
+from selenium.common.exceptions import ElementClickInterceptedException
 
 load_dotenv()
 
 
 class ChainedWeb:
-    def __init__(self, element: WebElement):
+    def __init__(self, element: WebElement, driver: webdriver.Chrome) -> None:
         self.element = element
+        self.driver = driver
 
     def TAG(self, tag_name):
-        return ChainedWeb(self.element.find_element(By.TAG_NAME, tag_name))
+        element = self.element.find_element(By.TAG_NAME, tag_name)
+        return ChainedWeb(element, self.driver)
 
     def CLASS(self, class_name):
-        return ChainedWeb(self.element.find_element(By.CLASS_NAME, class_name))
+        element = self.element.find_elements(By.CLASS_NAME, class_name)
+        return ChainedWeb(element, self.driver)
 
     def click(self):
-        self.element.click()
+        try:
+            self.element.click()
+            return self
+        except ElementClickInterceptedException:
+            # print('Can\'t click')
+            pass
+        return self
+
+    def scroll_to(self, offset=0):
+        self.driver.execute_script(f"window.scrollTo(0, arguments[0].getBoundingClientRect().top + window.scrollY - {offset});", self.element) # noqa
+        return self
+
+    def scrollY(self, x_offset=0, y_offset=150):
+        self.driver.execute_script(f"window.scrollBy({x_offset}, {y_offset});")
         return self
 
     def text(self):
@@ -70,7 +87,6 @@ class Web:
         if not self.proxies:
             raise Exception("No proxies available")
 
-        self.open_chrome()
         if url:
             logging.info(f'Opening: {url}')
             self.open(url)
@@ -100,14 +116,14 @@ class Web:
         chrome_options.debugger_address = 'localhost:9222'
 
         try:
-            # self.open_chome()
+            self.open_chrome()
             self.driver = webdriver.Chrome(options=chrome_options)
             self.driver.maximize_window()
         except SessionNotCreatedException as e:
             print(e.msg)
             sys.exit(0)
 
-    def wait(self, secs):
+    def wait(self, secs=1):
         time.sleep(secs)
 
     def wait_ID(self, ID, secs):
@@ -161,7 +177,7 @@ class Web:
         self.start_browser()
 
         if debug:
-            self.log('Opening: ' + url)
+            self.log('open: ' + url)
 
         try:
             self.driver.get(url)
@@ -170,19 +186,27 @@ class Web:
 
     def ID(self, id):
         element = self.driver.find_element(By.ID, id)
-        return ChainedWeb(element)
+        return ChainedWeb(element, self.driver)
 
     def XPATH(self, xpath):
         element = self.driver.find_element(By.XPATH, xpath)
-        return ChainedWeb(element)
+        return ChainedWeb(element, self.driver)
 
-    def CLASS(self, class_name):
-        element = self.driver.find_element(By.CLASS_NAME, class_name)
-        return ChainedWeb(element)
+    def EXIST_CLASS(self, class_name):
+        elements = self.driver.find_elements(By.CLASS_NAME, class_name)
+        return len(elements) > 0
+
+    def CLASS(self, class_name, multiples=False):
+        if multiples:
+            elements = self.driver.find_elements(By.CLASS_NAME, class_name)
+            return [ChainedWeb(element, self.driver) for element in elements]
+        else:
+            element = self.driver.find_element(By.CLASS_NAME, class_name)
+            return ChainedWeb(element, self.driver)
 
     def TAG(self, tag):
         element = self.driver.find_element(By.TAG_NAME, tag)
-        return ChainedWeb(element)
+        return ChainedWeb(element, self.driver)
 
     def source(self):
         return self.driver.page_source
@@ -199,6 +223,7 @@ class Web:
         try:
             element = self.ID(id)
             element.click()
+            return ChainedWeb(element, self.driver)
         except WebDriverException as e:
             self.log(f"Failed to click element by ID: {id}. Error: {str(e)}")
 
@@ -206,5 +231,6 @@ class Web:
         try:
             element = self.CLASS(class_name)
             element.click()
+            return ChainedWeb(element, self.driver)
         except WebDriverException as e:
             self.log(f"Failed to click element by class: {class_name}. Error: {str(e)}") # noqa
