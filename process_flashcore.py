@@ -24,8 +24,11 @@ parser.add_argument('--over', action='store_true', help="Sobreescribir")
 args = parser.parse_args()
 script_path = os.path.dirname(os.path.abspath(__file__))
 log_filepath = os.path.join(script_path, 'web_markiv.log')
+result_path = os.path.join(script_path, 'result', 'matches')
 source_path = os.path.join(script_path, 'db', 'flashscore')
 tmp_path = os.path.join(script_path, 'tmp')
+if not os.path.exists(result_path):
+    os.makedirs(result_path)
 if not os.path.exists(tmp_path):
     os.makedirs(tmp_path)
 if not os.path.exists(source_path):
@@ -65,7 +68,7 @@ def parse_matches(matches, match_home=None, liga=None):
         event = match.find('span', class_='h2h__event')
         league_name = event['title']
         league_name = re.sub(r'\s*\([^)]*\)$', '', league_name)
-        league_name = league_name.rstrip()
+        league_name = re.sub(r'\s+$', '', league_name)
 
         home_team = match.find('span', class_='h2h__homeParticipant')
         home_team_name = home_team.find('span', class_='h2h__participantInner').text # noqa
@@ -154,7 +157,9 @@ def parse_matches(matches, match_home=None, liga=None):
 def click_more():
     if web.EXIST_CLASS('showMore'):
         # print('Show More')
-        web.CLASS('showMore').click().scrollY(600)
+        web.scrollY(-100)
+        web.CLASS('showMore').click()
+        web.scrollY(600)
         web.wait()
         click_more()
 
@@ -164,14 +169,14 @@ def get_partidos(link, filename, home, away, liga, overwrite=False):
     global opened_web, web, proxy_url
     filename = re.sub(r'-|:', '', filename)
     html_path = os.path.join(tmp_path, filename) + '.html'
-    print('Procesando Partido', link)
+    print('Procesando Partido', link, html_path, os.path.exists(html_path))
     if not os.path.exists(html_path) or overwrite:
         if not opened_web:
             web = Web(proxy_url=proxy_url, url=link)
         else:
             web.open(link, True)
         web.wait_Class('h2h__section', 20)
-        print('More matches...')
+        print('Getting More matches...')
         web.scroll_top()
         click_more()
         # web.click_id('onetrust-accept-btn-handler')  # Click boton Aceptar
@@ -199,6 +204,9 @@ def get_partidos(link, filename, home, away, liga, overwrite=False):
         'home_matches': home_matches,
         'away_matches': away_matches,
         'face_matches': face_matches,
+        'home_nmatches': len(home_matches['matches']),
+        'away_nmatches': len(away_matches['matches']),
+        'face_nmatches': len(face_matches['matches']),
         'OK': OK
     }
 
@@ -255,11 +263,11 @@ def main(hoy=False, overwrite=False):
     for liga in ligas:
         tmp_liga = ''.join([str(content) for content in liga.contents if not content.name]) # noqa
         pais, nombre_liga = tmp_liga.split(': ')
-        print(nombre_liga)
+        nombre_liga = re.sub(r'\s+$', '', nombre_liga)
         partido_actual = liga.find_next_sibling()
 
         if any([x in nombre_liga.lower() for x in filter_ligas]):
-            print(f'Liga no deseada: "{nombre_liga}"------------------')
+            # print(f'Liga no deseada: "{nombre_liga}"------------------')
             continue
 
         while partido_actual and partido_actual.name != 'h4':
@@ -294,6 +302,7 @@ def main(hoy=False, overwrite=False):
     fecha = tomorrow.strftime('%Y-%m-%d')
     resultados_ordenados = sorted(resultados, key=lambda x: x[2])
 
+    print(f'{source_path}/{db_file}.csv')
     f = open(f'{source_path}/{db_file}.csv', 'w', encoding='utf-8')
     f.write("fecha,hora,pais,liga,local,visitante,link\n")
     for pais, liga, hora, home, away, link, link_momios_1x2, link_momios_goles, link_momios_ambos in resultados_ordenados: # noqa
@@ -317,14 +326,21 @@ def main(hoy=False, overwrite=False):
                 'away_matches': matches['away_matches'],
                 'face_matches': matches['face_matches']
             }
-            n = n + 1
             if pais not in result_pais:
                 result_pais[pais] = []
             result[reg['id']] = reg
             result_pais[pais].append(reg)
-            pprint.pprint(reg)
+            match_filename = f'{re.sub(r"-", "", fecha)}{re.sub(r":", "", hora)}_{n}.json' # noqa
+            result_file = f'{result_path}/{match_filename}'
+            if os.path.exists(result_file) and overwrite: # noqa
+                os.remove(result_file)
+            g = open(result_file, 'w', encoding='utf-8') # noqa
+            g.write(json.dumps(reg))
+            g.close()
+            print('OK', match_filename, liga, home, away)
         else:
-            pprint.pprint(matches)
+            print(f'DESCARTADO home: {matches["home_nmatches"]} away: {matches["away_nmatches"]} face: {matches["face_nmatches"]}', liga, home, away) # noqa
+        n += 1
         print('Pausa')
         input('')
     f.close()
