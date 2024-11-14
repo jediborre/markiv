@@ -40,6 +40,9 @@ class ChainedWeb:
             pass
         return self
 
+    def scroll_top(self):
+        self.driver.execute_script("window.scrollTo(0, 0);")
+
     def scroll_to(self, offset=0):
         self.driver.execute_script(f"window.scrollTo(0, arguments[0].getBoundingClientRect().top + window.scrollY - {offset});", self.element) # noqa
         return self
@@ -234,3 +237,10 @@ class Web:
             return ChainedWeb(element, self.driver)
         except WebDriverException as e:
             self.log(f"Failed to click element by class: {class_name}. Error: {str(e)}") # noqa
+
+    def scroll_top(self):
+        self.driver.execute_script("window.scrollTo(0, 0);")
+
+    def scrollY(self, x_offset=0, y_offset=150):
+        self.driver.execute_script(f"window.scrollBy({x_offset}, {y_offset});")
+        return self

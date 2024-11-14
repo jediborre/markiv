@@ -64,6 +64,8 @@ def parse_matches(matches, match_home=None, liga=None):
 
         event = match.find('span', class_='h2h__event')
         league_name = event['title']
+        league_name = re.sub(r'\s*\([^)]*\)$', '', league_name)
+        league_name = league_name.rstrip()
 
         home_team = match.find('span', class_='h2h__homeParticipant')
         home_team_name = home_team.find('span', class_='h2h__participantInner').text # noqa
@@ -84,8 +86,10 @@ def parse_matches(matches, match_home=None, liga=None):
             liga_clean = limpia_nombre(liga)
             league_name_clean = limpia_nombre(league_name)
             liga_similarity = fuzz.ratio(liga_clean, league_name_clean)
+            liga_psimilarity = fuzz.partial_ratio(liga_clean, league_name_clean) # noqa
             liga_similar = liga_similarity >= similarity_threshold
-            if liga_similar:
+            liga_psimilar = liga_psimilarity >= similarity_threshold
+            if liga_similar or liga_psimilar:
                 if len(result_matches) < 5:
                     if FT <= 3:
                         p35 += 1
@@ -109,8 +113,9 @@ def parse_matches(matches, match_home=None, liga=None):
                         'away': away_team_name,
                         'away_ft': away_FT,
                     })
+                # print(f'Liga coincide: "{liga}" "{league_name}" {liga_similarity} {liga_psimilarity}-----------') # noqa
             else:
-                print(f'Liga no coincide: "{liga}" "{league_name}"')
+                print(f'Liga no coincide: "{liga}" "{league_name}" {liga_similarity} {liga_psimilarity}') # noqa
         else:
             if len(result_matches) < 5:
                 result_matches.append({
@@ -167,6 +172,7 @@ def get_partidos(link, filename, home, away, liga, overwrite=False):
             web.open(link, True)
         web.wait_Class('h2h__section', 20)
         print('More matches...')
+        web.scroll_top()
         click_more()
         # web.click_id('onetrust-accept-btn-handler')  # Click boton Aceptar
         with open(html_path, 'w', encoding='utf-8') as f:
@@ -232,11 +238,29 @@ def main(hoy=False, overwrite=False):
     with open(flashcore_page_filename, 'r', encoding='utf-8') as file:
         soup = BeautifulSoup(file, 'html.parser')
 
+    filter_ligas = [
+        'amistoso',
+        'amistosos',
+        'cup',
+        'copa',
+        'femenino',
+        'femenina',
+        'mundial',
+        'playoffs',
+        'internacional',
+        'women',
+    ]
+
     ligas = soup.find_all('h4')
     for liga in ligas:
-        tmp_liga = liga.get_text(strip=True)
+        tmp_liga = ''.join([str(content) for content in liga.contents if not content.name]) # noqa
         pais, nombre_liga = tmp_liga.split(': ')
+        print(nombre_liga)
         partido_actual = liga.find_next_sibling()
+
+        if any([x in nombre_liga.lower() for x in filter_ligas]):
+            print(f'Liga no deseada: "{nombre_liga}"------------------')
+            continue
 
         while partido_actual and partido_actual.name != 'h4':
             if partido_actual.name == 'span':
