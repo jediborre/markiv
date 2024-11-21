@@ -57,7 +57,7 @@ def limpia_nombre(nombre, post=True):
     return nombre
 
 
-def parse_matches(matches, match_home=None, liga=None):
+def parse_section(matches, match_home=None, liga=None):
     hechos = 0
     concedidos = 0
     p35, p45 = 0, 0
@@ -154,14 +154,47 @@ def parse_matches(matches, match_home=None, liga=None):
         return result
 
 
-def click_more():
-    if web.EXIST_CLASS('showMore'):
-        # print('Show More')
+def click_more(team):
+    sections = web.CLASS('h2h__section', multiples=True)
+    if team == 'home':
+        section = sections[0]
+    elif team == 'away':
+        section = sections[1]
+
+    if section.EXIST_CLASS('showMore'):
         web.scrollY(-100)
-        web.CLASS('showMore').click()
+        section.CLASS('showMore').click()
         web.scrollY(600)
         web.wait()
-        click_more()
+        click_more(team)
+
+
+def parse_matches_html(html, home, away, liga):
+    soup = BeautifulSoup(html, 'html.parser')
+    sections = soup.find_all('div', class_='h2h__section')
+
+    tmp_matches_home = sections[0].find('div', class_='rows') if len(sections) > 0 else [] # noqa
+    tmp_matches_away = sections[1].find('div', class_='rows') if len(sections) > 0 else [] # noqa
+    tmp_matches_face = sections[2].find('div', class_='rows') if len(sections) > 0 else [] # noqa
+
+    tmp_matches_home = tmp_matches_home.find_all('div', class_='h2h__row')
+    tmp_matches_away = tmp_matches_away.find_all('div', class_='h2h__row')
+    tmp_matches_face = tmp_matches_face.find_all('div', class_='h2h__row')
+
+    home_matches = parse_section(tmp_matches_home, home, liga)
+    away_matches = parse_section(tmp_matches_away, away, liga)
+    face_matches = parse_section(tmp_matches_face)
+
+    OK = len(home_matches['matches']) == 5 and len(away_matches['matches']) == 5 and len(face_matches['matches']) > 3 # noqa
+    return {
+        'OK': OK,
+        'home_matches': home_matches,
+        'away_matches': away_matches,
+        'face_matches': face_matches,
+        'home_nmatches': len(home_matches['matches']),
+        'away_nmatches': len(away_matches['matches']),
+        'face_nmatches': len(face_matches['matches'])
+    }
 
 
 def get_partidos(link, filename, home, away, liga, overwrite=False):
@@ -176,39 +209,17 @@ def get_partidos(link, filename, home, away, liga, overwrite=False):
         else:
             web.open(link, True)
         web.wait_Class('h2h__section', 20)
-        print('Getting More matches...')
-        web.scroll_top()
-        click_more()
-        # web.click_id('onetrust-accept-btn-handler')  # Click boton Aceptar
-        with open(html_path, 'w', encoding='utf-8') as f:
-            f.write(web.source())
+        result = parse_matches_html(web.source(), home, away, liga)
+        print(f'VS Matches: {result["face_nmatches"]}')
+        if result['face_nmatches'] > 3:
+            print('More Home matches...')
+            click_more('home')
+            print('More Away matches...')
+            click_more('away')
+            with open(html_path, 'w', encoding='utf-8') as f:
+                f.write(web.source())
     with open(html_path, 'r', encoding='utf-8') as file:
-        soup = BeautifulSoup(file, 'html.parser')
-
-    sections = soup.find_all('div', class_='h2h__section')
-
-    tmp_matches_home = sections[0].find('div', class_='rows') if len(sections) > 0 else [] # noqa
-    tmp_matches_away = sections[1].find('div', class_='rows') if len(sections) > 0 else [] # noqa
-    tmp_matches_face = sections[2].find('div', class_='rows') if len(sections) > 0 else [] # noqa
-
-    tmp_matches_home = tmp_matches_home.find_all('div', class_='h2h__row')
-    tmp_matches_away = tmp_matches_away.find_all('div', class_='h2h__row')
-    tmp_matches_face = tmp_matches_face.find_all('div', class_='h2h__row')
-
-    home_matches = parse_matches(tmp_matches_home, home, liga)
-    away_matches = parse_matches(tmp_matches_away, away, liga)
-    face_matches = parse_matches(tmp_matches_face)
-
-    OK = len(home_matches['matches']) == 5 and len(away_matches['matches']) == 5 and len(face_matches['matches']) > 3 # noqa
-    return {
-        'home_matches': home_matches,
-        'away_matches': away_matches,
-        'face_matches': face_matches,
-        'home_nmatches': len(home_matches['matches']),
-        'away_nmatches': len(away_matches['matches']),
-        'face_nmatches': len(face_matches['matches']),
-        'OK': OK
-    }
+        return parse_matches_html(file, home, away, liga)
 
 
 def main(hoy=False, overwrite=False):

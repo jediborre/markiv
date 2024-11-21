@@ -34,6 +34,7 @@ class ChainedWeb:
     def click(self):
         try:
             self.element.click()
+            print('Click')
             return self
         except ElementClickInterceptedException:
             print('Can\'t click')
