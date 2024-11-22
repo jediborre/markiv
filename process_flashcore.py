@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 from text_unidecode import unidecode
 # https://app.dataimpulse.com/plans/create-new
 # https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json
-
+# 131.0.6778.85
 # .venv/Scripts/Activate.ps1
 # chrome --remote-debugging-port=9222 --user-data-dir="C:\Log"
 # python db/flashcore.py
@@ -57,7 +57,7 @@ def limpia_nombre(nombre, post=True):
     return nombre
 
 
-def parse_section(matches, match_home=None, liga=None):
+def parse_section(matches, team=None, team_name=None, liga=None):
     hechos = 0
     concedidos = 0
     p35, p45 = 0, 0
@@ -99,14 +99,15 @@ def parse_section(matches, match_home=None, liga=None):
                     if FT <= 4:
                         p45 += 1
 
-                    if match_home:
-                        if home_team_name == match_home:
+                    if team_name:
+                        if home_team_name == team_name:
                             hechos = hechos + home_FT
                             concedidos = concedidos + away_FT
                         else:
                             hechos = hechos + away_FT
                             concedidos = concedidos + home_FT
 
+                    print(f'{team}: {len(result_matches)} | "{league_name}" "{home_team_name}"') # noqa
                     result_matches.append({
                         'ft': FT,
                         'date': date,
@@ -116,9 +117,9 @@ def parse_section(matches, match_home=None, liga=None):
                         'away': away_team_name,
                         'away_ft': away_FT,
                     })
-                # print(f'Liga coincide: "{liga}" "{league_name}" {liga_similarity} {liga_psimilarity}-----------') # noqa
             else:
-                print(f'Liga no coincide: "{liga}" "{league_name}" {liga_similarity} {liga_psimilarity}') # noqa
+                if len(result_matches) < 5:
+                    print(f'{team}: {len(result_matches)} | Liga no coincide: "{liga}":{liga_similarity} "{league_name}":{liga_psimilarity}') # noqa
         else:
             if len(result_matches) < 5:
                 result_matches.append({
@@ -132,7 +133,6 @@ def parse_section(matches, match_home=None, liga=None):
                 })
             else:
                 break
-    # print('-------------------')
     result = {
         'matches': result_matches
     }
@@ -140,10 +140,8 @@ def parse_section(matches, match_home=None, liga=None):
     if juegos > 0:
         result['p35'] = p35 / juegos
         result['p45'] = p45 / juegos
-    result['match_home'] = match_home
-    if match_home:
-        # print(f'hechos {hechos}')
-        # print(f'concedidos {concedidos}')
+    result['match_home'] = team_name
+    if team_name:
         result['hechos'] = hechos
         result['concedidos'] = concedidos
         if juegos > 0:
@@ -154,22 +152,28 @@ def parse_section(matches, match_home=None, liga=None):
         return result
 
 
-def click_more(team):
+def click_more(web, team, team_name, liga):
     sections = web.CLASS('h2h__section', multiples=True)
-    if team == 'home':
-        section = sections[0]
-    elif team == 'away':
-        section = sections[1]
-
-    if section.EXIST_CLASS('showMore'):
-        web.scrollY(-100)
-        section.CLASS('showMore').click()
-        web.scrollY(600)
+    section = sections[0] if team == 'home' else sections[1]
+    result = parse_matches_html(web.source(), team, team_name=team_name, liga=liga) # noqa
+    num_matches = result['home_nmatches'] if team == 'home' else result['away_nmatches'] # noqa
+    print(f'{team} matches: {num_matches}')
+    if result['OK'] and section.EXIST_CLASS('showMore'):
+        btn_showMore = section.CLASS('showMore')
+        btn_showMore.scroll_to()
+        if not btn_showMore.click():
+            web.scrollY(-150)
+            btn_showMore.click()
+            print('ShowMore can\'t click')
+        else:
+            print('ShowMore click')
         web.wait()
-        click_more(team)
+        click_more(web, team, team_name, liga)
+    else:
+        print(f'{team} matches: {num_matches} DONE')
 
 
-def parse_matches_html(html, home, away, liga):
+def parse_matches_html(html, team, team_name='', home='', away='', liga=''):
     soup = BeautifulSoup(html, 'html.parser')
     sections = soup.find_all('div', class_='h2h__section')
 
@@ -181,19 +185,34 @@ def parse_matches_html(html, home, away, liga):
     tmp_matches_away = tmp_matches_away.find_all('div', class_='h2h__row')
     tmp_matches_face = tmp_matches_face.find_all('div', class_='h2h__row')
 
-    home_matches = parse_section(tmp_matches_home, home, liga)
-    away_matches = parse_section(tmp_matches_away, away, liga)
-    face_matches = parse_section(tmp_matches_face)
+    if team == 'all':
+        home_matches = parse_section(tmp_matches_home, team, home, liga)
+        away_matches = parse_section(tmp_matches_away, team, away, liga)
+        face_matches = parse_section(tmp_matches_face)
 
-    OK = len(home_matches['matches']) == 5 and len(away_matches['matches']) == 5 and len(face_matches['matches']) > 3 # noqa
+        OK = len(home_matches['matches']) == 5 and len(away_matches['matches']) == 5 and len(face_matches['matches']) > 3 # noqa
+        return {
+            'OK': OK,
+            'home_matches': home_matches,
+            'away_matches': away_matches,
+            'face_matches': face_matches,
+            'home_nmatches': len(home_matches['matches']),
+            'away_nmatches': len(away_matches['matches']),
+            'face_nmatches': len(face_matches['matches'])
+        }
+    elif team == 'home':
+        team_matches = parse_section(tmp_matches_home, team, team_name, liga)
+        ok = len(team_matches['matches']) == 5
+    elif team == 'away':
+        team_matches = parse_section(tmp_matches_away, team, team_name, liga)
+        ok = len(team_matches['matches']) == 5
+    elif team == 'face':
+        team_matches = parse_section(tmp_matches_face)
+        ok = len(team_matches['matches']) > 3
     return {
-        'OK': OK,
-        'home_matches': home_matches,
-        'away_matches': away_matches,
-        'face_matches': face_matches,
-        'home_nmatches': len(home_matches['matches']),
-        'away_nmatches': len(away_matches['matches']),
-        'face_nmatches': len(face_matches['matches'])
+        'OK': ok,
+        f'{team}_matches': team_matches,
+        f'{team}_nmatches': len(team_matches['matches']),
     }
 
 
@@ -209,17 +228,17 @@ def get_partidos(link, filename, home, away, liga, overwrite=False):
         else:
             web.open(link, True)
         web.wait_Class('h2h__section', 20)
-        result = parse_matches_html(web.source(), home, away, liga)
+        result = parse_matches_html(web.source(), 'face')
         print(f'VS Matches: {result["face_nmatches"]}')
         if result['face_nmatches'] > 3:
             print('More Home matches...')
-            click_more('home')
+            click_more(web, 'home', home, liga)
             print('More Away matches...')
-            click_more('away')
+            click_more(web, 'away', away, liga)
             with open(html_path, 'w', encoding='utf-8') as f:
                 f.write(web.source())
     with open(html_path, 'r', encoding='utf-8') as file:
-        return parse_matches_html(file, home, away, liga)
+        return parse_matches_html(file, 'all', home=home, away=away, liga=liga)
 
 
 def main(hoy=False, overwrite=False):

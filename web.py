@@ -13,6 +13,7 @@ from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import SessionNotCreatedException
+from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import ElementClickInterceptedException
 
 load_dotenv()
@@ -23,23 +24,56 @@ class ChainedWeb:
         self.element = element
         self.driver = driver
 
-    def TAG(self, tag_name):
-        element = self.element.find_element(By.TAG_NAME, tag_name)
-        return ChainedWeb(element, self.driver)
+    def ID(self, id_name, multiples=False):
+        if multiples:
+            elements = self.element.find_elements(By.ID, id_name)
+            return [ChainedWeb(element, self.driver) for element in elements]
+        else:
+            element = self.element.find_element(By.ID, id_name)
+            return ChainedWeb(element, self.driver)
 
-    def CLASS(self, class_name):
-        element = self.element.find_elements(By.CLASS_NAME, class_name)
-        return ChainedWeb(element, self.driver)
+    def TAG(self, tag_name, multiples=False):
+        if multiples:
+            elements = self.element.find_elements(By.TAG_NAME, tag_name)
+            return [ChainedWeb(element, self.driver) for element in elements]
+        else:
+            element = self.element.find_element(By.TAG_NAME, tag_name)
+            return ChainedWeb(element, self.driver)
+
+    def EXIST_CLASS(self, class_name):
+        elements = self.element.find_elements(By.CLASS_NAME, class_name)
+        return len(elements) > 0
+
+    def CLASS(self, class_name, multiples=False):
+        if multiples:
+            elements = self.element.find_elements(By.CLASS_NAME, class_name) # noqa
+            return [ChainedWeb(element, self.driver) for element in elements]
+        else:
+            element = self.element.find_element(By.CLASS_NAME, class_name) # noqa
+            return ChainedWeb(element, self.driver)
+
+    def DIV_CLASS(self, class_name, multiples=False):
+        if multiples:
+            try:
+                elements = self.element.find_elements(By.CLASS_NAME, f'div.{class_name}') # noqa
+                return [ChainedWeb(element, self.driver) for element in elements] # noqa
+            except NoSuchElementException as e:
+                raise NoSuchElementException(f"NoSuchElementException: No se encontraron elementos con la clase '{class_name}'. Detalles: {e.args}") # noqa
+        else:
+            try:
+                element = self.element.find_element(By.CLASS_NAME, f'div.{class_name}') # noqa
+                return ChainedWeb(element, self.driver)
+            except NoSuchElementException as e:
+                raise NoSuchElementException(f"NoSuchElementException: No se encontraron elementos con la clase '{class_name}'. Detalles: {e.args}") # noqa
 
     def click(self):
         try:
             self.element.click()
-            print('Click')
+            # print('Click')
             return self
         except ElementClickInterceptedException:
-            print('Can\'t click')
-            pass
-        return self
+            # print('Can\'t click')
+            return False
 
     def scroll_top(self):
         self.driver.execute_script("window.scrollTo(0, 0);")
@@ -48,8 +82,8 @@ class ChainedWeb:
         self.driver.execute_script(f"window.scrollTo(0, arguments[0].getBoundingClientRect().top + window.scrollY - {offset});", self.element) # noqa
         return self
 
-    def scrollY(self, x_offset=0, y_offset=150):
-        self.driver.execute_script(f"window.scrollBy({x_offset}, {y_offset});")
+    def scrollY(self, y_offset=150):
+        self.driver.execute_script(f"window.scrollBy(0, {y_offset});")
         return self
 
     def text(self):
@@ -188,9 +222,13 @@ class Web:
         except WebDriverException as e:
             self.log(f"Error opening URL: {e.msg}")
 
-    def ID(self, id):
-        element = self.driver.find_element(By.ID, id)
-        return ChainedWeb(element, self.driver)
+    def ID(self, id_name, multiples=False):
+        if multiples:
+            elements = self.driver.find_elements(By.ID, id_name)
+            return [ChainedWeb(element, self.driver) for element in elements]
+        else:
+            element = self.driver.find_element(By.ID, id_name)
+            return ChainedWeb(element, self.driver)
 
     def XPATH(self, xpath):
         element = self.driver.find_element(By.XPATH, xpath)
@@ -211,6 +249,14 @@ class Web:
     def TAG(self, tag):
         element = self.driver.find_element(By.TAG_NAME, tag)
         return ChainedWeb(element, self.driver)
+
+    def DIV_CLASS(self, class_name, multiples=False):
+        if multiples:
+            elements = self.driver.find_elements(By.CLASS_NAME, f'div.{class_name}') # noqa
+            return [ChainedWeb(element, self.driver) for element in elements]
+        else:
+            element = self.driver.find_element(By.CLASS_NAME, f'div.{class_name}') # noqa
+            return ChainedWeb(element, self.driver)
 
     def source(self):
         return self.driver.page_source
@@ -242,6 +288,6 @@ class Web:
     def scroll_top(self):
         self.driver.execute_script("window.scrollTo(0, 0);")
 
-    def scrollY(self, x_offset=0, y_offset=150):
-        self.driver.execute_script(f"window.scrollBy({x_offset}, {y_offset});")
+    def scrollY(self, y_offset=150):
+        self.driver.execute_script(f"window.scrollBy(0, {y_offset});")
         return self
