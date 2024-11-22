@@ -157,8 +157,8 @@ def click_more(web, team, team_name, liga):
     section = sections[0] if team == 'home' else sections[1]
     result = parse_matches_html(web.source(), team, team_name=team_name, liga=liga) # noqa
     num_matches = result['home_nmatches'] if team == 'home' else result['away_nmatches'] # noqa
-    print(f'{team} matches: {num_matches}')
-    if result['OK'] and section.EXIST_CLASS('showMore'):
+    print(f'{team} matches: {num_matches} {result["OK"]}')
+    if not result['OK'] and section.EXIST_CLASS('showMore'):
         btn_showMore = section.CLASS('showMore')
         btn_showMore.scroll_to()
         if not btn_showMore.click():
@@ -203,12 +203,15 @@ def parse_matches_html(html, team, team_name='', home='', away='', liga=''):
     elif team == 'home':
         team_matches = parse_section(tmp_matches_home, team, team_name, liga)
         ok = len(team_matches['matches']) == 5
+        # print(f'Home Matches: {len(team_matches["matches"])} {ok}')
     elif team == 'away':
         team_matches = parse_section(tmp_matches_away, team, team_name, liga)
         ok = len(team_matches['matches']) == 5
+        # print(f'Away Matches: {len(team_matches["matches"])} {ok}')
     elif team == 'face':
         team_matches = parse_section(tmp_matches_face)
         ok = len(team_matches['matches']) > 3
+        # print(f'Face Matches: {len(team_matches["matches"])} {ok}')
     return {
         'OK': ok,
         f'{team}_matches': team_matches,
