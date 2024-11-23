@@ -57,7 +57,7 @@ def limpia_nombre(nombre, post=True):
     return nombre
 
 
-def parse_section(matches, team=None, team_name=None, liga=None):
+def parse_section(matches, team=None, team_name=None, liga=None, debug=False):
     hechos = 0
     concedidos = 0
     p35, p45 = 0, 0
@@ -107,7 +107,8 @@ def parse_section(matches, team=None, team_name=None, liga=None):
                             hechos = hechos + away_FT
                             concedidos = concedidos + home_FT
 
-                    print(f'{team}: {len(result_matches)} | "{league_name}" "{home_team_name}"') # noqa
+                    if debug:
+                        print(f'{team}: {len(result_matches)} | "{league_name}" "{home_team_name}"') # noqa
                     result_matches.append({
                         'ft': FT,
                         'date': date,
@@ -119,7 +120,8 @@ def parse_section(matches, team=None, team_name=None, liga=None):
                     })
             else:
                 if len(result_matches) < 5:
-                    print(f'{team}: {len(result_matches)} | Liga no coincide: "{liga}":{liga_similarity} "{league_name}":{liga_psimilarity}') # noqa
+                    if debug:
+                        print(f'{team}: {len(result_matches)} | Liga no coincide: "{liga}":{liga_similarity} "{league_name}":{liga_psimilarity}') # noqa
         else:
             if len(result_matches) < 5:
                 result_matches.append({
@@ -173,7 +175,7 @@ def click_more(web, team, team_name, liga):
         print(f'{team} matches: {num_matches} DONE')
 
 
-def parse_matches_html(html, team, team_name='', home='', away='', liga=''):
+def parse_matches_html(html, team, team_name='', home='', away='', liga='', debug=False): # noqa
     soup = BeautifulSoup(html, 'html.parser')
     sections = soup.find_all('div', class_='h2h__section')
 
@@ -186,9 +188,9 @@ def parse_matches_html(html, team, team_name='', home='', away='', liga=''):
     tmp_matches_face = tmp_matches_face.find_all('div', class_='h2h__row')
 
     if team == 'all':
-        home_matches = parse_section(tmp_matches_home, team, home, liga)
-        away_matches = parse_section(tmp_matches_away, team, away, liga)
-        face_matches = parse_section(tmp_matches_face)
+        home_matches = parse_section(tmp_matches_home, team, home, liga, debug)
+        away_matches = parse_section(tmp_matches_away, team, away, liga, debug)
+        face_matches = parse_section(tmp_matches_face, debug=debug)
 
         OK = len(home_matches['matches']) == 5 and len(away_matches['matches']) == 5 and len(face_matches['matches']) > 3 # noqa
         return {
@@ -201,15 +203,15 @@ def parse_matches_html(html, team, team_name='', home='', away='', liga=''):
             'face_nmatches': len(face_matches['matches'])
         }
     elif team == 'home':
-        team_matches = parse_section(tmp_matches_home, team, team_name, liga)
+        team_matches = parse_section(tmp_matches_home, team, team_name, liga, debug) # noqa
         ok = len(team_matches['matches']) == 5
         # print(f'Home Matches: {len(team_matches["matches"])} {ok}')
     elif team == 'away':
-        team_matches = parse_section(tmp_matches_away, team, team_name, liga)
+        team_matches = parse_section(tmp_matches_away, team, team_name, liga, debug) # noqa
         ok = len(team_matches['matches']) == 5
         # print(f'Away Matches: {len(team_matches["matches"])} {ok}')
     elif team == 'face':
-        team_matches = parse_section(tmp_matches_face)
+        team_matches = parse_section(tmp_matches_face, debug=debug)
         ok = len(team_matches['matches']) > 3
         # print(f'Face Matches: {len(team_matches["matches"])} {ok}')
     return {
@@ -224,7 +226,7 @@ def get_partidos(link, filename, home, away, liga, overwrite=False):
     global opened_web, web, proxy_url
     filename = re.sub(r'-|:', '', filename)
     html_path = os.path.join(tmp_path, filename) + '.html'
-    print('Procesando Partido', link, html_path, os.path.exists(html_path))
+    print('Procesando Partido', link, html_path, 'existe' if os.path.exists(html_path) else 'No existe') # noqa
     if not os.path.exists(html_path) or overwrite:
         if not opened_web:
             web = Web(proxy_url=proxy_url, url=link)
@@ -242,6 +244,44 @@ def get_partidos(link, filename, home, away, liga, overwrite=False):
                 f.write(web.source())
     with open(html_path, 'r', encoding='utf-8') as file:
         return parse_matches_html(file, 'all', home=home, away=away, liga=liga)
+
+
+def parse_odds_1x2(html):
+    soup = BeautifulSoup(html, 'html.parser')
+    odds_row = soup.find_all('div', class_='ui-table__row')
+    prematchLogo = odds_row.find('img', class_='prematchLogo')
+    casa_apuesta = prematchLogo['title'] if prematchLogo and 'title' in prematchLogo.attrs else '' # noqa
+    odds = [span.text for span in odds_row.find_all('span') if span.text]
+    if casa_apuesta == 'Calientemx':
+        return {
+            'casa': casa_apuesta,
+            'odds': odds
+        }
+
+
+def get_momios(filename, link_momios_1x2, link_momios_goles, link_momios_ambos, overwrite=False): # noqa
+    global tmp_path
+    global opened_web, web, proxy_url
+    filename = re.sub(r'-|:', '', filename)
+    html_path = os.path.join(tmp_path, filename) + '_momios.html'
+    print('Procesando Partido', link_momios_1x2, html_path, 'existe' if os.path.exists(html_path) else 'No existe') # noqa
+    if not os.path.exists(html_path) or overwrite:
+        if not opened_web:
+            web = Web(proxy_url=proxy_url, url=link_momios_1x2)
+        else:
+            web.open(link_momios_1x2, True)
+
+        with open(html_path, 'w', encoding='utf-8') as f:
+            f.write(web.source())
+
+        with open(html_path, 'r', encoding='utf-8') as file:
+            odds_1x2 = parse_odds_1x2(file, 'face')
+
+        return {
+            'odds_1x2': odds_1x2,
+            'odds_goles': {},
+            'odds_ambos': {},
+        }
 
 
 def main(hoy=False, overwrite=False):
@@ -341,7 +381,18 @@ def main(hoy=False, overwrite=False):
     for pais, liga, hora, home, away, link, link_momios_1x2, link_momios_goles, link_momios_ambos in resultados_ordenados: # noqa
         matches = get_partidos(link, f'{fecha}{hora}_{n}', home, away, liga, overwrite) # noqa
         if matches['OK']:
-            f.write(f"{fecha},{hora},{pais},{liga},{home},{away},{link}\n")
+            momios = get_momios(f'{fecha}{hora}_{n}', link_momios_1x2, link_momios_goles, link_momios_ambos) # noqa
+            l_reg = [
+                fecha,
+                hora,
+                pais,
+                liga,
+                home,
+                away,
+                link
+            ]
+            print(','.join(l_reg))
+            f.write(','.join(l_reg) + '\n')
             reg = {
                 'id': str(n),
                 'time': hora,
