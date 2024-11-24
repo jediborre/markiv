@@ -159,16 +159,15 @@ def click_more(web, team, team_name, liga):
     section = sections[0] if team == 'home' else sections[1]
     result = parse_matches_html(web.source(), team, team_name=team_name, liga=liga) # noqa
     num_matches = result['home_nmatches'] if team == 'home' else result['away_nmatches'] # noqa
-    print(f'{team} matches: {num_matches} {result["OK"]}')
     if not result['OK'] and section.EXIST_CLASS('showMore'):
         btn_showMore = section.CLASS('showMore')
         btn_showMore.scroll_to()
-        if not btn_showMore.click():
+        if btn_showMore.click():
+            print(f'{team} matches: {num_matches} MORE')
+        else:
             web.scrollY(-150)
             btn_showMore.click()
-            print('ShowMore can\'t click')
-        else:
-            print('ShowMore click')
+            print(f'{team} matches: {num_matches} CANT CLICK MORE')
         web.wait()
         click_more(web, team, team_name, liga)
     else:
@@ -224,17 +223,18 @@ def parse_matches_html(html, team, team_name='', home='', away='', liga='', debu
 def get_partidos(link, filename, home, away, liga, overwrite=False):
     global tmp_path
     global opened_web, web, proxy_url
-    filename = re.sub(r'-|:', '', filename)
-    html_path = os.path.join(tmp_path, filename) + '.html'
-    print('Procesando Partido', link, html_path, 'existe' if os.path.exists(html_path) else 'No existe') # noqa
+    filename = re.sub(r'-|:', '', filename) + '_h2h.html'
+    html_path = os.path.join(tmp_path, filename)
     if not os.path.exists(html_path) or overwrite:
+        print('Partido', link, '→', filename) # noqa
         if not opened_web:
             web = Web(proxy_url=proxy_url, url=link)
         else:
             web.open(link, True)
+
         web.wait_Class('h2h__section', 20)
         result = parse_matches_html(web.source(), 'face')
-        print(f'VS Matches: {result["face_nmatches"]}')
+        # print(f'VS Matches: {result["face_nmatches"]}')
         if result['face_nmatches'] > 3:
             print('More Home matches...')
             click_more(web, 'home', home, liga)
@@ -242,46 +242,178 @@ def get_partidos(link, filename, home, away, liga, overwrite=False):
             click_more(web, 'away', away, liga)
             with open(html_path, 'w', encoding='utf-8') as f:
                 f.write(web.source())
-    with open(html_path, 'r', encoding='utf-8') as file:
-        return parse_matches_html(file, 'all', home=home, away=away, liga=liga)
+        else:
+            return {
+                'OK': False,
+                'home_nmatches': '-',
+                'away_nmatches': '-',
+                'face_nmatches': result['face_nmatches']
+            }
+    else:
+        print('Partido', '←', filename)
+
+    if os.path.exists(html_path):
+        with open(html_path, 'r', encoding='utf-8') as file:
+            return parse_matches_html(file, 'all', home=home, away=away, liga=liga) # noqa
+
+
+def parse_odds_goles(html):
+    soup = BeautifulSoup(html, 'html.parser')
+
+
+def parse_odds_ambos(html):
+    soup = BeautifulSoup(html, 'html.parser')
 
 
 def parse_odds_1x2(html):
     soup = BeautifulSoup(html, 'html.parser')
     odds_row = soup.find_all('div', class_='ui-table__row')
-    prematchLogo = odds_row.find('img', class_='prematchLogo')
-    casa_apuesta = prematchLogo['title'] if prematchLogo and 'title' in prematchLogo.attrs else '' # noqa
-    odds = [span.text for span in odds_row.find_all('span') if span.text]
-    if casa_apuesta == 'Calientemx':
+    if odds_row:
+        print('ODDS 1x2')
+        for row in odds_row:
+            prematchLogo = row.find('img', class_='prematchLogo')
+            casa_apuesta = prematchLogo['title'] if prematchLogo and 'title' in prematchLogo.attrs else '' # noqa
+            odds = [span.text for span in row.find_all('span') if span.text]
+            if casa_apuesta == 'Calientemx':
+                return {
+                    'OK': True,
+                    'casa': casa_apuesta,
+                    'odds': odds
+                }
+    return {
+        'OK': False,
+        'casa': '',
+        'odds': []
+    }
+
+
+def getmGoles(filename, link, overwrite=False):
+    global tmp_path
+    global opened_web, web, proxy_url
+    nom = 'Goles'
+    filename = re.sub(r'-|:', '', filename) + f'_{nom}.html'
+    html_path = os.path.join(tmp_path, filename)
+    if not os.path.exists(html_path) or overwrite:
+        print('Momios {nom}', link, '→', filename)
+        if not opened_web:
+            web = Web(proxy_url=proxy_url, url=link)
+        else:
+            web.open(link)
+
+        web.save(html_path)
+    else:
+        print('Momios {nom}', '←', filename)
+
+    if os.path.exists(html_path):
+        with open(html_path, 'r', encoding='utf-8') as file:
+            odds = parse_odds_goles(file)
+            return {
+                'OK': True,
+                'odds': odds,
+            }
+    else:
         return {
-            'casa': casa_apuesta,
-            'odds': odds
+            'OK': False,
+            'odds': {}
+        }
+
+
+def getAmbos(filename, link, overwrite=False):
+    global tmp_path
+    global opened_web, web, proxy_url
+    nom = 'Ambos'
+    filename = re.sub(r'-|:', '', filename) + f'_{nom}.html'
+    html_path = os.path.join(tmp_path, filename)
+    if not os.path.exists(html_path) or overwrite:
+        print('Momios {nom}', link, '→', filename)
+        if not opened_web:
+            web = Web(proxy_url=proxy_url, url=link)
+        else:
+            web.open(link)
+
+        web.save(html_path)
+    else:
+        print('Momios {nom}', '←', filename)
+
+    if os.path.exists(html_path):
+        with open(html_path, 'r', encoding='utf-8') as file:
+            odds = parse_odds_ambos(file)
+            return {
+                'OK': True,
+                'odds': odds,
+            }
+    else:
+        return {
+            'OK': False,
+            'odds': {}
+        }
+
+
+def get1x2(filename, link, overwrite=False):
+    global tmp_path
+    global opened_web, web, proxy_url
+    nom = '1x2'
+    filename = re.sub(r'-|:', '', filename) + f'_{nom}.html'
+    html_path = os.path.join(tmp_path, filename)
+    if not os.path.exists(html_path) or overwrite:
+        print('Momios {nom}', link, '→', filename)
+        if not opened_web:
+            web = Web(proxy_url=proxy_url, url=link)
+        else:
+            web.open(link)
+
+        web.save(html_path)
+    else:
+        print('Momios {nom}', '←', filename)
+
+    if os.path.exists(html_path):
+        with open(html_path, 'r', encoding='utf-8') as file:
+            odds = parse_odds_1x2(file)
+            return {
+                'OK': True,
+                'odds': odds,
+            }
+    else:
+        return {
+            'OK': False,
+            'odds': {}
         }
 
 
 def get_momios(filename, link_momios_1x2, link_momios_goles, link_momios_ambos, overwrite=False): # noqa
-    global tmp_path
-    global opened_web, web, proxy_url
-    filename = re.sub(r'-|:', '', filename)
-    html_path = os.path.join(tmp_path, filename) + '_momios.html'
-    print('Procesando Partido', link_momios_1x2, html_path, 'existe' if os.path.exists(html_path) else 'No existe') # noqa
-    if not os.path.exists(html_path) or overwrite:
-        if not opened_web:
-            web = Web(proxy_url=proxy_url, url=link_momios_1x2)
-        else:
-            web.open(link_momios_1x2, True)
-
-        with open(html_path, 'w', encoding='utf-8') as f:
-            f.write(web.source())
-
-        with open(html_path, 'r', encoding='utf-8') as file:
-            odds_1x2 = parse_odds_1x2(file, 'face')
-
+    momios_1x2 = get1x2(filename, link_momios_1x2, overwrite)
+    if not momios_1x2['OK']:
         return {
-            'odds_1x2': odds_1x2,
+            'OK': False,
+            'odds_1x2': momios_1x2,
             'odds_goles': {},
             'odds_ambos': {},
         }
+
+    momios_goles = getmGoles(filename, link_momios_goles, overwrite)
+    if not momios_goles['OK']:
+        return {
+            'OK': False,
+            'odds_1x2': momios_1x2,
+            'odds_goles': momios_goles,
+            'odds_ambos': {},
+        }
+
+    momios_ambos = getAmbos(filename, link_momios_ambos, overwrite)
+    if not momios_ambos['OK']:
+        return {
+            'OK': False,
+            'odds_1x2': momios_1x2,
+            'odds_goles': momios_goles,
+            'odds_ambos': momios_ambos,
+        }
+
+    return {
+        'OK': momios_ambos['OK'] and momios_goles['OK'] and momios_1x2['OK'],
+        'odds_1x2': momios_1x2,
+        'odds_goles': momios_goles,
+        'odds_ambos': momios_ambos,
+    }
 
 
 def main(hoy=False, overwrite=False):
@@ -307,13 +439,13 @@ def main(hoy=False, overwrite=False):
         web = Web(proxy_url=proxy_url, url=mobile_url)
         web.wait_ID('main', 5)
         opened_web = True
-        open(flashcore_page_filename, 'w', encoding='utf-8').write(web.source()) # noqa
+        web.save(flashcore_page_filename)
     else:
         if overwrite:
             web = Web(proxy_url=proxy_url, url=mobile_url)
             web.wait_ID('main', 5)
             opened_web = True
-            open(flashcore_page_filename, 'w', encoding='utf-8').write(web.source()) # noqa
+            web.save(flashcore_page_filename)
 
     resultados = []
     with open(flashcore_page_filename, 'r', encoding='utf-8') as file:
@@ -379,10 +511,12 @@ def main(hoy=False, overwrite=False):
     f = open(f'{source_path}/{db_file}.csv', 'w', encoding='utf-8')
     f.write("fecha,hora,pais,liga,local,visitante,link\n")
     for pais, liga, hora, home, away, link, link_momios_1x2, link_momios_goles, link_momios_ambos in resultados_ordenados: # noqa
-        matches = get_partidos(link, f'{fecha}{hora}_{n}', home, away, liga, overwrite) # noqa
+        filename = f'{n}_{re.sub(r"-", "", fecha)}{re.sub(r":", "", hora)}'
+        matches = get_partidos(link, filename, home, away, liga, overwrite) # noqa
         if matches['OK']:
-            momios = get_momios(f'{fecha}{hora}_{n}', link_momios_1x2, link_momios_goles, link_momios_ambos) # noqa
-            l_reg = [
+            momios = get_momios(filename, link_momios_1x2, link_momios_goles, link_momios_ambos) # noqa
+            pprint.pprint(momios)
+            f.write(','.join([
                 fecha,
                 hora,
                 pais,
@@ -390,9 +524,7 @@ def main(hoy=False, overwrite=False):
                 home,
                 away,
                 link
-            ]
-            print(','.join(l_reg))
-            f.write(','.join(l_reg) + '\n')
+            ]) + '\n')
             reg = {
                 'id': str(n),
                 'time': hora,
@@ -414,19 +546,26 @@ def main(hoy=False, overwrite=False):
                 result_pais[pais] = []
             result[reg['id']] = reg
             result_pais[pais].append(reg)
-            match_filename = f'{re.sub(r"-", "", fecha)}{re.sub(r":", "", hora)}_{n}.json' # noqa
+            match_filename = f'{filename}.json' # noqa
             result_file = f'{result_path}/{match_filename}'
-            if os.path.exists(result_file) and overwrite: # noqa
+            if os.path.exists(result_file) and overwrite:
                 os.remove(result_file)
-            g = open(result_file, 'w', encoding='utf-8') # noqa
-            g.write(json.dumps(reg))
-            g.close()
+            open(result_file, 'w', encoding='utf-8').write(json.dumps(reg))
             print('OK', match_filename, liga, home, away)
         else:
-            print(f'DESCARTADO home: {matches["home_nmatches"]} away: {matches["away_nmatches"]} face: {matches["face_nmatches"]}', liga, home, away) # noqa
+            print(
+                'DESCARTADO',
+                liga,
+                home,
+                away,
+                f'home: {matches["home_nmatches"]}'
+                f'away: {matches["away_nmatches"]}'
+                f'face: {matches["face_nmatches"]}'
+            )
         n += 1
-        print('Pausa')
-        input('')
+        if matches['OK']:
+            print('Pausa')
+            input('')
     f.close()
 
     if len(result) > 0:

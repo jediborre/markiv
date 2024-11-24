@@ -126,7 +126,7 @@ class Web:
             raise Exception("No proxies available")
 
         if url:
-            logging.info(f'Opening: {url}')
+            # logging.info(f'Opening: {url}')
             self.open(url)
 
     def get_proxies_from_url(self, url):
@@ -260,6 +260,9 @@ class Web:
 
     def source(self):
         return self.driver.page_source
+
+    def save(self, filename):
+        open(filename, 'w', encoding='utf-8').write(self.source())
 
     def save_screenshot(self, filename):
         self.driver.save_screenshot(filename)
