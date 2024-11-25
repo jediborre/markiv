@@ -5,9 +5,109 @@ import base64
 import pprint
 import logging
 import vertexai
+if os.name == 'nt':
+    import win32com.client
+from datetime import datetime
 from vertexai.generative_models import GenerativeModel, Part, SafetySetting
+from text_unidecode import unidecode
 
 matches_result = []
+
+
+def wakeup(match_id: int, date_ht: str):
+    try:
+        if os.name == 'nt':
+            WD = os.getcwd()
+            trigger_time = datetime.strptime(date_ht, '%Y-%m-%d %H:%M:%S')
+            match_id = str(match_id)
+            script_path = os.path.join(WD, 'match_performance.py')
+            python_path = os.path.join(WD, '.venv', 'Scripts', 'python.exe')
+            if not os.path.exists(python_path):
+                logging.error(f"Python executable not found at {python_path}")
+                return
+            if not os.path.exists(script_path):
+                logging.error(f"Script not found at {script_path}")
+                return
+            logging.info(f"Scheduling task to run script at {script_path} with Python at {python_path}") # noqa
+
+            create_task(
+                f'MATCH_{match_id}',
+                python_path,
+                script_path,
+                match_id,
+                trigger_time
+            )
+    except Exception as e:
+        logging.exception(f"Exception occurred in wakeup function: {e}")
+
+
+def create_task(task_name, python_path, script_path, args, trigger_time):
+    try:
+        if os.name == 'nt':
+            scheduler = win32com.client.Dispatch('Schedule.Service')
+            scheduler.Connect()
+
+            rootFolder = scheduler.GetFolder('\\')
+
+            taskDef = scheduler.NewTask(0)
+
+            trigger = taskDef.Triggers.Create(1)
+            trigger.StartBoundary = trigger_time.isoformat()
+            trigger.Enabled = True
+
+            action = taskDef.Actions.Create(0)
+            action.Path = python_path
+            action.Arguments = f'"{script_path}" {args}'
+
+            taskDef.RegistrationInfo.Description = f"Wakeup Match {args}"
+            taskDef.Principal.UserId = "SYSTEM"
+            taskDef.Principal.LogonType = 3
+
+            rootFolder.RegisterTaskDefinition(
+                task_name,
+                taskDef,
+                6,  # TASK_CREATE_OR_UPDATE
+                None,  # No user
+                None,  # No password
+                3,  # TASK_LOGON_SERVICE_ACCOUNT
+                None
+            )
+
+            logging.info(f"Task '{task_name}' has been created successfully and will run at {trigger_time}") # noqa
+        else:
+            logging.error("Unsupported operating system")
+
+    except Exception as e:
+        logging.exception(f"Exception occurred while creating the task: {e}")
+
+
+def limpia_nombre(nombre, post=True):
+    nombre = re.sub(r'\s+', ' ', re.sub(r'\.|\/|\(|\)', '', nombre)).strip()
+    nombre = unidecode(nombre)
+    return nombre
+
+
+def prepare():
+    script_path = os.path.dirname(os.path.abspath(__file__))
+    tmp_path = os.path.join(script_path, 'tmp')
+    log_filepath = os.path.join(script_path, 'web_markiv.log')
+    result_path = os.path.join(script_path, 'result', 'matches')
+    source_path = os.path.join(script_path, 'db', 'flashscore')
+    if not os.path.exists(result_path):
+        os.makedirs(result_path)
+    if not os.path.exists(tmp_path):
+        os.makedirs(tmp_path)
+    if not os.path.exists(source_path):
+        os.makedirs(source_path)
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler(log_filepath),
+            logging.StreamHandler()
+        ]
+    )
 
 
 def keys_uppercase(json_data):
@@ -128,10 +228,18 @@ def get_gemini_response(image_filename):
     return text_response
 
 
-def save_match(matches_result_file, match):
+def save_matches(filename, matches, overwrite=False):
+    if overwrite:
+        os.remove(filename)
+    if not os.path.exists(filename) or overwrite:
+        with open(filename, 'w', encoding='utf-8') as f:
+            json.dump(matches, f, indent=4)
+
+
+def save_match(filename, match):
     global matches_result
     matches_result.append(match)
-    with open(matches_result_file, 'w') as f:
+    with open(filename, 'w', encoding='utf-8') as f:
         json.dump(matches_result, f, indent=4)
 
 

@@ -2,19 +2,22 @@ import re
 import os
 import json
 import pprint # noqa
-import logging
 import datetime
 import argparse
 from web import Web
 from fuzzywuzzy import fuzz
+from utils import save_matches
 from bs4 import BeautifulSoup
-from text_unidecode import unidecode
+from utils import prepare, limpia_nombre
+
 # https://app.dataimpulse.com/plans/create-new
 # https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json
 # 131.0.6778.85
 # .venv/Scripts/Activate.ps1
 # chrome --remote-debugging-port=9222 --user-data-dir="C:\Log"
 # python db/flashcore.py
+
+prepare()
 web = None
 opened_web = False
 parser = argparse.ArgumentParser(description="Solicita partidos de hoy o mañana de flashscore") # noqa
@@ -22,17 +25,6 @@ parser.add_argument('--today', action='store_true', help="Partidos Hoy")
 parser.add_argument('--tomorrow', action='store_true', help="Partidos Mañana")
 parser.add_argument('--over', action='store_true', help="Sobreescribir")
 args = parser.parse_args()
-script_path = os.path.dirname(os.path.abspath(__file__))
-log_filepath = os.path.join(script_path, 'web_markiv.log')
-result_path = os.path.join(script_path, 'result', 'matches')
-source_path = os.path.join(script_path, 'db', 'flashscore')
-tmp_path = os.path.join(script_path, 'tmp')
-if not os.path.exists(result_path):
-    os.makedirs(result_path)
-if not os.path.exists(tmp_path):
-    os.makedirs(tmp_path)
-if not os.path.exists(source_path):
-    os.makedirs(source_path)
 today = datetime.datetime.today()
 tomorrow = (today + datetime.timedelta(days=1))
 db_file = tomorrow.strftime('%Y%m%d')
@@ -40,21 +32,6 @@ domain = 'https://www.flashscore.com.mx'
 mobile_today_url = 'https://m.flashscore.com.mx/'
 mobile_tomorrow_url = 'https://m.flashscore.com.mx/?d=1'
 proxy_url = 'https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&country=mx,us,ca&protocol=http&proxy_format=ipport&format=text&timeout=4000' # noqa
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(log_filepath),
-        logging.StreamHandler()
-    ]
-)
-
-
-def limpia_nombre(nombre, post=True):
-    nombre = re.sub(r'\s+', ' ', re.sub(r'\.|\/|\(|\)', '', nombre)).strip()
-    nombre = unidecode(nombre)
-    return nombre
 
 
 def parse_section(matches, team=None, team_name=None, liga=None, debug=False):
@@ -576,11 +553,14 @@ def main(hoy=False, overwrite=False):
                     result_pais[pais] = []
                 result[reg['id']] = reg
                 result_pais[pais].append(reg)
-                match_filename = f'{filename}.json' # noqa
-                result_file = f'{result_path}/{match_filename}'
-                if os.path.exists(result_file) and overwrite:
-                    os.remove(result_file)
-                open(result_file, 'w', encoding='utf-8').write(json.dumps(reg))
+                match_filename = f'{filename}.json'
+                result_file = os.path.join(
+                    os.path.dirname(os.path.abspath(__file__)),
+                    'result',
+                    'match',
+                    match_filename
+                )
+                save_matches(result_file, reg)
                 print('OK', match_filename, liga, home, away)
                 input('')
                 print('Continuar')
