@@ -228,13 +228,13 @@ def get_partidos(link, filename, home, away, liga, overwrite=False):
     if not os.path.exists(html_path) or overwrite:
         print('Partido', link, '→', filename) # noqa
         if not opened_web:
+            opened_web = True
             web = Web(proxy_url=proxy_url, url=link)
         else:
-            web.open(link, True)
+            web.open(link)
 
         web.wait_Class('h2h__section', 20)
         result = parse_matches_html(web.source(), 'face')
-        # print(f'VS Matches: {result["face_nmatches"]}')
         if result['face_nmatches'] > 3:
             print('More Home matches...')
             click_more(web, 'home', home, liga)
@@ -258,11 +258,105 @@ def get_partidos(link, filename, home, away, liga, overwrite=False):
 
 
 def parse_odds_goles(html):
+    result = []
     soup = BeautifulSoup(html, 'html.parser')
+    odds_row = soup.find_all('div', class_='ui-table__row')
+    if odds_row:
+        print('ODDS Goles')
+        for row in odds_row:
+            prematchLogo = row.find('img', class_='prematchLogo')
+            casa_apuesta = prematchLogo['title'] if prematchLogo and 'title' in prematchLogo.attrs else '' # noqa
+            odds = [span.text for span in row.find_all('span') if span.text]
+            if casa_apuesta == 'Calientemx':
+                result.append({
+                    'casa': casa_apuesta,
+                    'odds': odds
+                })
+    if len(result) > 0:
+        return {
+            'OK': True,
+            'odds': result
+        }
+    else:
+        return {
+            'OK': False
+        }
+
+
+def getmGoles(filename, link, overwrite=False):
+    global tmp_path
+    global opened_web, web, proxy_url
+    nom = 'Goles'
+    filename = re.sub(r'-|:', '', filename) + f'_{nom}.html'
+    html_path = os.path.join(tmp_path, filename)
+    if not os.path.exists(html_path) or overwrite:
+        print(f'Momios {nom}', link, '→', filename)
+        if not opened_web:
+            opened_web = True
+            web = Web(proxy_url=proxy_url, url=link)
+        else:
+            web.open(link)
+
+        web.save(html_path)
+    else:
+        print(f'Momios {nom}', '←', filename)
+
+    if os.path.exists(html_path):
+        with open(html_path, 'r', encoding='utf-8') as file:
+            odds = parse_odds_goles(file)
+            return odds
+    else:
+        return {
+            'OK': False
+        }
 
 
 def parse_odds_ambos(html):
     soup = BeautifulSoup(html, 'html.parser')
+    odds_row = soup.find_all('div', class_='ui-table__row')
+    if odds_row:
+        print('ODDS Ambos Marcan')
+        for row in odds_row:
+            prematchLogo = row.find('img', class_='prematchLogo')
+            casa_apuesta = prematchLogo['title'] if prematchLogo and 'title' in prematchLogo.attrs else '' # noqa
+            odds = [span.text for span in row.find_all('span') if span.text]
+            if casa_apuesta == 'Calientemx':
+                return {
+                    'OK': True,
+                    'casa': casa_apuesta,
+                    'odds': odds
+                }
+    return {
+        'OK': False
+    }
+
+
+def getAmbos(filename, link, overwrite=False):
+    global tmp_path
+    global opened_web, web, proxy_url
+    nom = 'Ambos'
+    filename = re.sub(r'-|:', '', filename) + f'_{nom}.html'
+    html_path = os.path.join(tmp_path, filename)
+    if not os.path.exists(html_path) or overwrite:
+        print(f'Momios {nom}', link, '→', filename)
+        if not opened_web:
+            opened_web = True
+            web = Web(proxy_url=proxy_url, url=link)
+        else:
+            web.open(link)
+
+        web.save(html_path)
+    else:
+        print(f'Momios {nom}', '←', filename)
+
+    if os.path.exists(html_path):
+        with open(html_path, 'r', encoding='utf-8') as file:
+            odds = parse_odds_ambos(file)
+            return odds
+    else:
+        return {
+            'OK': False
+        }
 
 
 def parse_odds_1x2(html):
@@ -281,72 +375,8 @@ def parse_odds_1x2(html):
                     'odds': odds
                 }
     return {
-        'OK': False,
-        'casa': '',
-        'odds': []
+        'OK': False
     }
-
-
-def getmGoles(filename, link, overwrite=False):
-    global tmp_path
-    global opened_web, web, proxy_url
-    nom = 'Goles'
-    filename = re.sub(r'-|:', '', filename) + f'_{nom}.html'
-    html_path = os.path.join(tmp_path, filename)
-    if not os.path.exists(html_path) or overwrite:
-        print('Momios {nom}', link, '→', filename)
-        if not opened_web:
-            web = Web(proxy_url=proxy_url, url=link)
-        else:
-            web.open(link)
-
-        web.save(html_path)
-    else:
-        print('Momios {nom}', '←', filename)
-
-    if os.path.exists(html_path):
-        with open(html_path, 'r', encoding='utf-8') as file:
-            odds = parse_odds_goles(file)
-            return {
-                'OK': True,
-                'odds': odds,
-            }
-    else:
-        return {
-            'OK': False,
-            'odds': {}
-        }
-
-
-def getAmbos(filename, link, overwrite=False):
-    global tmp_path
-    global opened_web, web, proxy_url
-    nom = 'Ambos'
-    filename = re.sub(r'-|:', '', filename) + f'_{nom}.html'
-    html_path = os.path.join(tmp_path, filename)
-    if not os.path.exists(html_path) or overwrite:
-        print('Momios {nom}', link, '→', filename)
-        if not opened_web:
-            web = Web(proxy_url=proxy_url, url=link)
-        else:
-            web.open(link)
-
-        web.save(html_path)
-    else:
-        print('Momios {nom}', '←', filename)
-
-    if os.path.exists(html_path):
-        with open(html_path, 'r', encoding='utf-8') as file:
-            odds = parse_odds_ambos(file)
-            return {
-                'OK': True,
-                'odds': odds,
-            }
-    else:
-        return {
-            'OK': False,
-            'odds': {}
-        }
 
 
 def get1x2(filename, link, overwrite=False):
@@ -356,27 +386,24 @@ def get1x2(filename, link, overwrite=False):
     filename = re.sub(r'-|:', '', filename) + f'_{nom}.html'
     html_path = os.path.join(tmp_path, filename)
     if not os.path.exists(html_path) or overwrite:
-        print('Momios {nom}', link, '→', filename)
+        print(f'Momios {nom}', link, '→', filename)
         if not opened_web:
+            opened_web = True
             web = Web(proxy_url=proxy_url, url=link)
         else:
             web.open(link)
 
         web.save(html_path)
     else:
-        print('Momios {nom}', '←', filename)
+        print(f'Momios {nom}', '←', filename)
 
     if os.path.exists(html_path):
         with open(html_path, 'r', encoding='utf-8') as file:
             odds = parse_odds_1x2(file)
-            return {
-                'OK': True,
-                'odds': odds,
-            }
+            return odds
     else:
         return {
-            'OK': False,
-            'odds': {}
+            'OK': False
         }
 
 
@@ -514,58 +541,71 @@ def main(hoy=False, overwrite=False):
         filename = f'{n}_{re.sub(r"-", "", fecha)}{re.sub(r":", "", hora)}'
         matches = get_partidos(link, filename, home, away, liga, overwrite) # noqa
         if matches['OK']:
-            momios = get_momios(filename, link_momios_1x2, link_momios_goles, link_momios_ambos) # noqa
-            pprint.pprint(momios)
-            f.write(','.join([
-                fecha,
-                hora,
-                pais,
-                liga,
-                home,
-                away,
-                link
-            ]) + '\n')
-            reg = {
-                'id': str(n),
-                'time': hora,
-                'fecha': fecha,
-                'pais': pais,
-                'liga': liga,
-                'home': home,
-                'away': away,
-                'url': link,
-                'momios_1x2': link_momios_1x2,
-                'momios_goles': link_momios_goles,
-                'momios_ambos': link_momios_ambos,
-                'promedio_gol': '',
-                'home_matches': matches['home_matches'],
-                'away_matches': matches['away_matches'],
-                'face_matches': matches['face_matches']
-            }
-            if pais not in result_pais:
-                result_pais[pais] = []
-            result[reg['id']] = reg
-            result_pais[pais].append(reg)
-            match_filename = f'{filename}.json' # noqa
-            result_file = f'{result_path}/{match_filename}'
-            if os.path.exists(result_file) and overwrite:
-                os.remove(result_file)
-            open(result_file, 'w', encoding='utf-8').write(json.dumps(reg))
-            print('OK', match_filename, liga, home, away)
+            momios = get_momios(filename, link_momios_1x2, link_momios_goles, link_momios_ambos, overwrite) # noqa
+            if momios['OK']:
+                f.write(','.join([
+                    fecha,
+                    hora,
+                    pais,
+                    liga,
+                    home,
+                    away,
+                    link
+                ]) + '\n')
+                reg = {
+                    'id': str(n),
+                    'time': hora,
+                    'fecha': fecha,
+                    'pais': pais,
+                    'liga': liga,
+                    'home': home,
+                    'away': away,
+                    'url': link,
+                    '1x2': momios['odds_1x2'],
+                    'goles': momios['odds_goles'],
+                    'ambos': momios['odds_ambos'],
+                    'link_1x2': link_momios_1x2,
+                    'link_goles': link_momios_goles,
+                    'link_ambos': link_momios_ambos,
+                    'promedio_gol': '',
+                    'home_matches': matches['home_matches'],
+                    'away_matches': matches['away_matches'],
+                    'face_matches': matches['face_matches']
+                }
+                if pais not in result_pais:
+                    result_pais[pais] = []
+                result[reg['id']] = reg
+                result_pais[pais].append(reg)
+                match_filename = f'{filename}.json' # noqa
+                result_file = f'{result_path}/{match_filename}'
+                if os.path.exists(result_file) and overwrite:
+                    os.remove(result_file)
+                open(result_file, 'w', encoding='utf-8').write(json.dumps(reg))
+                print('OK', match_filename, liga, home, away)
+                input('')
+                print('Continuar')
+            else:
+                print(
+                    'DESCARTADO MOMIOS',
+                    liga,
+                    home,
+                    away,
+                    f'home: {matches["home_nmatches"]}',
+                    f'away: {matches["away_nmatches"]}',
+                    f'face: {matches["face_nmatches"]}'
+                )
+                pprint.pprint(momios)
         else:
             print(
                 'DESCARTADO',
                 liga,
                 home,
                 away,
-                f'home: {matches["home_nmatches"]}'
-                f'away: {matches["away_nmatches"]}'
+                f'home: {matches["home_nmatches"]}',
+                f'away: {matches["away_nmatches"]}',
                 f'face: {matches["face_nmatches"]}'
             )
         n += 1
-        if matches['OK']:
-            print('Pausa')
-            input('')
     f.close()
 
     if len(result) > 0:
