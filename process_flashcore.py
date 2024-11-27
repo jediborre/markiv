@@ -284,7 +284,7 @@ def main(hoy=False, overwrite=False):
     for pais, liga, hora, home, away, link, link_momios_1x2, link_momios_goles, link_momios_ambos in day_matches: # noqa
         match_filename = f'{n}_{date_filename}{re.sub(r":", "", hora)}'
         match_json = os.path.join(path_json, f'{match_filename}.json')
-        matches = get_tean_matches(
+        matches = get_team_matches(
             match_filename,
             link,
             home,
