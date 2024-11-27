@@ -211,3 +211,60 @@ def parse_team_matches(html, team, team_name='', home='', away='', liga='', debu
         f'{team}_matches': team_matches,
         f'{team}_nmatches': len(team_matches['matches']),
     }
+
+
+def parse_all_matches(html):
+    domain = 'https://www.flashscore.com.mx'
+    filter_ligas = [
+        'amistoso',
+        'amistosos',
+        'cup',
+        'copa',
+        'femenino',
+        'femenina',
+        'mundial',
+        'playoffs',
+        'internacional',
+        'women',
+    ]
+
+    resultados = []
+    soup = BeautifulSoup(html, 'html.parser')
+    ligas = soup.find_all('h4')
+    for liga in ligas:
+        tmp_liga = ''.join([str(content) for content in liga.contents if not content.name]) # noqa
+        pais, nombre_liga = tmp_liga.split(': ')
+        nombre_liga = re.sub(r'\s+$', '', nombre_liga)
+        partido_actual = liga.find_next_sibling()
+
+        if any([x in nombre_liga.lower() for x in filter_ligas]):
+            # print(f'Liga no deseada: "{nombre_liga}"------------------')
+            continue
+
+        while partido_actual and partido_actual.name != 'h4':
+            if partido_actual.name == 'span':
+                hora = partido_actual.get_text(strip=True)
+                equipos = partido_actual.find_next_sibling(string=True).strip() # noqa
+                try:
+                    local, visitante = equipos.split(' - ')
+                    link = partido_actual.find_next_sibling('a')['href']
+                    url = f'{domain}{link}#/h2h/overall'
+                    url_momios_1x2 = f'{domain}{link}#/comparacion-de-momios/momios-1x2/partido' # noqa
+                    url_momios_goles = f'{domain}{link}#/comparacion-de-momios/mas-de-menos-de/partido' # noqa
+                    url_momios_ambos = f'{domain}{link}#/comparacion-de-momios/ambos-equipos-marcaran/partido' # noqa
+                    resultados.append((
+                        pais,
+                        nombre_liga,
+                        hora,
+                        local,
+                        visitante,
+                        url,
+                        url_momios_1x2,
+                        url_momios_goles,
+                        url_momios_ambos
+                    )) # noqa
+                except ValueError:
+                    pass
+            partido_actual = partido_actual.find_next_sibling()
+    resultados_ordenados = sorted(resultados, key=lambda x: x[2])
+    return resultados_ordenados

@@ -89,16 +89,22 @@ def limpia_nombre(nombre, post=True):
 
 def prepare():
     script_path = os.path.dirname(os.path.abspath(__file__))
-    tmp_path = os.path.join(script_path, 'tmp')
+    path_tmp = os.path.join(script_path, 'tmp')
     log_filepath = os.path.join(script_path, 'web_markiv.log')
-    result_path = os.path.join(script_path, 'result', 'matches')
-    source_path = os.path.join(script_path, 'db', 'flashscore')
-    if not os.path.exists(result_path):
-        os.makedirs(result_path)
-    if not os.path.exists(tmp_path):
-        os.makedirs(tmp_path)
-    if not os.path.exists(source_path):
-        os.makedirs(source_path)
+    path_result = os.path.join(script_path, 'result', 'matches')
+    path_csv = os.path.join(path_tmp, 'csv')
+    path_html = os.path.join(path_tmp, 'html')
+    path_json = os.path.join(path_tmp, 'json')
+    if not os.path.exists(path_result):
+        os.makedirs(path_result)
+    if not os.path.exists(path_tmp):
+        os.makedirs(path_tmp)
+    if not os.path.exists(path_csv):
+        os.makedirs(path_csv)
+    if not os.path.exists(path_html):
+        os.makedirs(path_html)
+    if not os.path.exists(path_json):
+        os.makedirs(path_json)
 
     logging.basicConfig(
         level=logging.INFO,
@@ -108,6 +114,12 @@ def prepare():
             logging.StreamHandler()
         ]
     )
+    return [
+        path_result,
+        path_csv,
+        path_json,
+        path_html
+    ]
 
 
 def keys_uppercase(json_data):
@@ -231,6 +243,7 @@ def get_gemini_response(image_filename):
 def save_matches(filename, matches, overwrite=False):
     if overwrite:
         os.remove(filename)
+
     if not os.path.exists(filename) or overwrite:
         with open(filename, 'w', encoding='utf-8') as f:
             json.dump(matches, f, indent=4)

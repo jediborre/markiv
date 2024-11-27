@@ -1,14 +1,18 @@
 import re
 import os
-import json
 import pprint # noqa
+import logging
 import datetime
 import argparse
 from web import Web
 from utils import prepare
 from utils import save_matches
-from bs4 import BeautifulSoup
-from parse import parse_team_matches, parse_odds_ambos, parse_odds_1x2, parse_odds_goles # noqa
+from parse import parse_team_matches
+from parse import parse_odds_ambos
+from parse import parse_odds_1x2
+from parse import parse_odds_goles
+from parse import parse_all_matches
+
 
 # https://app.dataimpulse.com/plans/create-new
 # https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json
@@ -17,20 +21,16 @@ from parse import parse_team_matches, parse_odds_ambos, parse_odds_1x2, parse_od
 # chrome --remote-debugging-port=9222 --user-data-dir="C:\Log"
 # python db/flashcore.py
 
-prepare()
 web = None
 opened_web = False
+path_result, path_csv, path_json, path_html = prepare()
 parser = argparse.ArgumentParser(description="Solicita partidos de hoy o mañana de flashscore") # noqa
 parser.add_argument('--today', action='store_true', help="Partidos Hoy")
 parser.add_argument('--tomorrow', action='store_true', help="Partidos Mañana")
 parser.add_argument('--over', action='store_true', help="Sobreescribir")
 args = parser.parse_args()
-today = datetime.datetime.today()
-tomorrow = (today + datetime.timedelta(days=1))
-db_file = tomorrow.strftime('%Y%m%d')
-domain = 'https://www.flashscore.com.mx'
-mobile_today_url = 'https://m.flashscore.com.mx/'
-mobile_tomorrow_url = 'https://m.flashscore.com.mx/?d=1'
+matches_today_url = 'https://m.flashscore.com.mx/'
+matches_tomorrow_url = 'https://m.flashscore.com.mx/?d=1'
 proxy_url = 'https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&country=mx,us,ca&protocol=http&proxy_format=ipport&format=text&timeout=4000' # noqa
 
 
@@ -54,7 +54,7 @@ def click_more(web, team, team_name, liga):
         print(f'{team} matches: {num_matches} DONE')
 
 
-def get_tean_matches(link, filename, home, away, liga, overwrite=False):
+def get_tean_matches(filename, link, home, away, liga, overwrite=False):
     global tmp_path
     global opened_web, web, proxy_url
     filename = re.sub(r'-|:', '', filename) + '_h2h.html'
@@ -120,11 +120,11 @@ def getmGoles(filename, link, overwrite=False):
 
 
 def getAmbos(filename, link, overwrite=False):
-    global tmp_path
+    global path_tmp_html
     global opened_web, web, proxy_url
     nom = 'Ambos'
-    filename = re.sub(r'-|:', '', filename) + f'_{nom}.html'
-    html_path = os.path.join(tmp_path, filename)
+    filename = f'{filename}_{nom}.html'
+    html_path = os.path.join(path_tmp_html, filename)
     if not os.path.exists(html_path) or overwrite:
         print(f'Momios {nom}', link, '→', filename)
         if not opened_web:
@@ -148,11 +148,11 @@ def getAmbos(filename, link, overwrite=False):
 
 
 def get1x2(filename, link, overwrite=False):
-    global tmp_path
+    global path_tmp_html
     global opened_web, web, proxy_url
     nom = '1x2'
-    filename = re.sub(r'-|:', '', filename) + f'_{nom}.html'
-    html_path = os.path.join(tmp_path, filename)
+    filename = f'{filename}_{nom}.html'
+    html_path = os.path.join(path_tmp_html, filename)
     if not os.path.exists(html_path) or overwrite:
         print(f'Momios {nom}', link, '→', filename)
         if not opened_web:
@@ -211,105 +211,70 @@ def get_momios(filename, link_momios_1x2, link_momios_goles, link_momios_ambos, 
     }
 
 
+def get_all_matches(filename, matches_link, overwrite=False):
+    global path_html
+    global opened_web, web, proxy_url
+
+    html_path = os.path.join(path_html, filename)
+    if overwrite:
+        if os.path.exists(html_path):
+            os.remove(html_path)
+
+    if not os.path.exists(html_path):
+        if not opened_web:
+            web = Web(
+                proxy_url=proxy_url,
+                url=matches_link
+            )
+            opened_web = True
+        else:
+            web.open(matches_link)
+            opened_web = False
+
+        web.wait_ID('main', 5)
+        opened_web = True
+        web.save(html_path)
+
+    with open(html_path, 'r', encoding='utf-8') as html:
+        return parse_all_matches(html)
+
+
 def main(hoy=False, overwrite=False):
     global opened_web, web, proxy_url
-    global today, tomorrow, db_file
-    global mobile_today_url, mobile_tomorrow_url
-    global source_path, flashcore_page_filename
+    global matches_today_url, matches_tomorrow_url
+    global path_result, path_csv, path_json, path_html
 
+    today = datetime.datetime.today()
     if hoy:
-        fecha = today.strftime('%Y-%m-%d')
         tomorrow = today
-        db_file = today.strftime('%Y%m%d')
-        flashcore_page_filename = f'{source_path}/{today.strftime("%Y%m%d")}.html' # noqa
-        mobile_url = mobile_today_url
+        fecha = today.strftime('%Y-%m-%d')
+        date_filename = today.strftime('%Y%m%d')
+        url = matches_today_url
     else:
         fecha = tomorrow.strftime('%Y-%m-%d')
         tomorrow = (today + datetime.timedelta(days=1))
-        db_file = tomorrow.strftime('%Y%m%d')
-        flashcore_page_filename = f'{source_path}/{tomorrow.strftime("%Y%m%d")}.html' # noqa
-        mobile_url = mobile_tomorrow_url
+        date_filename = tomorrow.strftime('%Y%m%d')
+        url = matches_tomorrow_url
 
-    if not os.path.exists(flashcore_page_filename) and not overwrite:
-        web = Web(proxy_url=proxy_url, url=mobile_url)
-        web.wait_ID('main', 5)
-        opened_web = True
-        web.save(flashcore_page_filename)
-    else:
-        if overwrite:
-            web = Web(proxy_url=proxy_url, url=mobile_url)
-            web.wait_ID('main', 5)
-            opened_web = True
-            web.save(flashcore_page_filename)
-
-    resultados = []
-    with open(flashcore_page_filename, 'r', encoding='utf-8') as file:
-        soup = BeautifulSoup(file, 'html.parser')
-
-    filter_ligas = [
-        'amistoso',
-        'amistosos',
-        'cup',
-        'copa',
-        'femenino',
-        'femenina',
-        'mundial',
-        'playoffs',
-        'internacional',
-        'women',
-    ]
-
-    ligas = soup.find_all('h4')
-    for liga in ligas:
-        tmp_liga = ''.join([str(content) for content in liga.contents if not content.name]) # noqa
-        pais, nombre_liga = tmp_liga.split(': ')
-        nombre_liga = re.sub(r'\s+$', '', nombre_liga)
-        partido_actual = liga.find_next_sibling()
-
-        if any([x in nombre_liga.lower() for x in filter_ligas]):
-            # print(f'Liga no deseada: "{nombre_liga}"------------------')
-            continue
-
-        while partido_actual and partido_actual.name != 'h4':
-            if partido_actual.name == 'span':
-                hora = partido_actual.get_text(strip=True)
-                equipos = partido_actual.find_next_sibling(string=True).strip() # noqa
-                try:
-                    local, visitante = equipos.split(' - ')
-                    link = partido_actual.find_next_sibling('a')['href']
-                    url = f'{domain}{link}#/h2h/overall'
-                    url_momios_1x2 = f'{domain}{link}#/comparacion-de-momios/momios-1x2/partido' # noqa
-                    url_momios_goles = f'{domain}{link}#/comparacion-de-momios/mas-de-menos-de/partido' # noqa
-                    url_momios_ambos = f'{domain}{link}#/comparacion-de-momios/ambos-equipos-marcaran/partido' # noqa
-                    resultados.append((
-                        pais,
-                        nombre_liga,
-                        hora,
-                        local,
-                        visitante,
-                        url,
-                        url_momios_1x2,
-                        url_momios_goles,
-                        url_momios_ambos
-                    )) # noqa
-                except ValueError:
-                    pass
-            partido_actual = partido_actual.find_next_sibling()
+    matches_csv = os.path.join(path_csv, f'{date_filename}_matches.csv')
+    matches_html = os.path.join(path_html, f'{date_filename}_matches.html')
+    matches_result = os.path.join(path_result, f'{date_filename}.json')
+    matches_pais_result = os.path.join(path_result, f'{date_filename}_pais.json') # noqa
 
     n = 1
-    result = {}
-    result_pais = {}
-    fecha = tomorrow.strftime('%Y-%m-%d')
-    resultados_ordenados = sorted(resultados, key=lambda x: x[2])
+    result, result_pais = {}, {}
+    day_matches = get_all_matches(matches_html, url, overwrite)
+    if len(day_matches) == 0:
+        return
 
-    print(f'{source_path}/{db_file}.csv')
-    f = open(f'{source_path}/{db_file}.csv', 'w', encoding='utf-8')
+    f = open(matches_csv, 'w', encoding='utf-8')
     f.write("fecha,hora,pais,liga,local,visitante,link\n")
-    for pais, liga, hora, home, away, link, link_momios_1x2, link_momios_goles, link_momios_ambos in resultados_ordenados: # noqa
-        filename = f'{n}_{re.sub(r"-", "", fecha)}{re.sub(r":", "", hora)}'
-        matches = get_tean_matches(link, filename, home, away, liga, overwrite) # noqa
+    for pais, liga, hora, home, away, link, link_momios_1x2, link_momios_goles, link_momios_ambos in day_matches: # noqa
+        match_filename = f'{n}_{date_filename}{re.sub(r":", "", hora)}'
+        match_json = os.path.join(path_json, f'{match_filename}.json')
+        matches = get_tean_matches(match_filename, link, home, away, liga, overwrite) # noqa
         if matches['OK']:
-            momios = get_momios(filename, link_momios_1x2, link_momios_goles, link_momios_ambos, overwrite) # noqa
+            momios = get_momios(match_filename, link_momios_1x2, link_momios_goles, link_momios_ambos, overwrite) # noqa
             if momios['OK']:
                 f.write(','.join([
                     fecha,
@@ -344,48 +309,24 @@ def main(hoy=False, overwrite=False):
                     result_pais[pais] = []
                 result[reg['id']] = reg
                 result_pais[pais].append(reg)
-                match_filename = f'{filename}.json'
-                result_file = os.path.join(
-                    os.path.dirname(os.path.abspath(__file__)),
-                    'result',
-                    'match',
-                    match_filename
-                )
-                save_matches(result_file, reg)
-                print('OK', match_filename, liga, home, away)
+                save_matches(match_json, reg, overwrite)
+                logging.info(f'OK {match_filename} {liga} | {home} - {away}')
                 input('')
                 print('Continuar')
             else:
-                print(
-                    'DESCARTADO MOMIOS',
-                    liga,
-                    home,
-                    away,
-                    f'home: {matches["home_nmatches"]}',
-                    f'away: {matches["away_nmatches"]}',
-                    f'face: {matches["face_nmatches"]}'
-                )
+                logging.info(f'DESCARTADO MOMIOS {liga} | {home}:{matches["home_nmatches"]} - {away}:{matches["away_nmatches"]} VS:{matches["face_nmatches"]}') # noqa
                 pprint.pprint(momios)
         else:
-            print(
-                'DESCARTADO',
-                liga,
-                home,
-                away,
-                f'home: {matches["home_nmatches"]}',
-                f'away: {matches["away_nmatches"]}',
-                f'face: {matches["face_nmatches"]}'
-            )
+            logging.info(f'DESCARTADO {liga} | {home}:{matches["home_nmatches"]} - {away}:{matches["away_nmatches"]} VS:{matches["face_nmatches"]}') # noqa
         n += 1
     f.close()
 
+    logging.info(f'PARTIDOS {len(day_matches)} {fecha}')
     if len(result) > 0:
-        print(f'Partidos Procesados {len(resultados_ordenados)} {fecha}')
-        with open(f'{source_path}/{db_file}.json', 'w') as f:
-            f.write(json.dumps(result))
+        save_matches(matches_result, result, overwrite)
+
     if len(result_pais) > 0:
-        with open(f'{source_path}/{db_file}_pais.json', 'w') as f:
-            f.write(json.dumps(result_pais))
+        save_matches(matches_pais_result, result_pais, overwrite)
 
 
 if __name__ == "__main__":
