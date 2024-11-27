@@ -38,7 +38,7 @@ def process_matches(matches, date, overwrite=False):
     fecha = date.strftime('%Y-%m-%d')
     fecha_filename = date.strftime('%Y%m%d')
 
-    for pais, liga, hora, home, away, link, link_momios_1x2, link_momios_goles, link_momios_ambos in matches: # noqa
+    for pais, liga, hora, home, away, link, link_momios_1x2, link_momios_goles, link_momios_ambos, link_momios_handicap in matches: # noqa
         hora_filename = re.sub(r":", "", hora)
         match_filename = f'{n}_{fecha_filename}{hora_filename}'
         matches = get_team_matches(
@@ -57,6 +57,7 @@ def process_matches(matches, date, overwrite=False):
                 link_momios_1x2,
                 link_momios_goles,
                 link_momios_ambos,
+                link_momios_handicap,
                 web,
                 opened_web,
                 overwrite
