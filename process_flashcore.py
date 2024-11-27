@@ -54,12 +54,16 @@ def click_more(web, team, team_name, liga):
         print(f'{team} matches: {num_matches} DONE')
 
 
-def get_tean_matches(filename, link, home, away, liga, overwrite=False):
-    global tmp_path
+def get_team_matches(filename, link, home, away, liga, overwrite=False):
+    global path_html
     global opened_web, web, proxy_url
     filename = re.sub(r'-|:', '', filename) + '_h2h.html'
-    html_path = os.path.join(tmp_path, filename)
-    if not os.path.exists(html_path) or overwrite:
+    html_path = os.path.join(path_html, filename)
+    if overwrite:
+        if os.path.exists(html_path):
+            os.remove(html_path)
+
+    if not os.path.exists(html_path):
         print('Partido', link, '→', filename) # noqa
         if not opened_web:
             opened_web = True
@@ -92,12 +96,16 @@ def get_tean_matches(filename, link, home, away, liga, overwrite=False):
 
 
 def getmGoles(filename, link, overwrite=False):
-    global tmp_path
+    global path_html
     global opened_web, web, proxy_url
     nom = 'Goles'
     filename = re.sub(r'-|:', '', filename) + f'_{nom}.html'
-    html_path = os.path.join(tmp_path, filename)
-    if not os.path.exists(html_path) or overwrite:
+    html_path = os.path.join(path_html, filename)
+    if overwrite:
+        if os.path.exists(html_path):
+            os.remove(html_path)
+
+    if not os.path.exists(html_path):
         print(f'Momios {nom}', link, '→', filename)
         if not opened_web:
             opened_web = True
@@ -120,12 +128,16 @@ def getmGoles(filename, link, overwrite=False):
 
 
 def getAmbos(filename, link, overwrite=False):
-    global path_tmp_html
+    global path_html
     global opened_web, web, proxy_url
     nom = 'Ambos'
     filename = f'{filename}_{nom}.html'
-    html_path = os.path.join(path_tmp_html, filename)
-    if not os.path.exists(html_path) or overwrite:
+    html_path = os.path.join(path_html, filename)
+    if overwrite:
+        if os.path.exists(html_path):
+            os.remove(html_path)
+
+    if not os.path.exists(html_path):
         print(f'Momios {nom}', link, '→', filename)
         if not opened_web:
             opened_web = True
@@ -148,12 +160,16 @@ def getAmbos(filename, link, overwrite=False):
 
 
 def get1x2(filename, link, overwrite=False):
-    global path_tmp_html
+    global path_html
     global opened_web, web, proxy_url
     nom = '1x2'
     filename = f'{filename}_{nom}.html'
-    html_path = os.path.join(path_tmp_html, filename)
-    if not os.path.exists(html_path) or overwrite:
+    html_path = os.path.join(path_html, filename)
+    if overwrite:
+        if os.path.exists(html_path):
+            os.remove(html_path)
+
+    if not os.path.exists(html_path):
         print(f'Momios {nom}', link, '→', filename)
         if not opened_web:
             opened_web = True
@@ -272,7 +288,7 @@ def main(hoy=False, overwrite=False):
     for pais, liga, hora, home, away, link, link_momios_1x2, link_momios_goles, link_momios_ambos in day_matches: # noqa
         match_filename = f'{n}_{date_filename}{re.sub(r":", "", hora)}'
         match_json = os.path.join(path_json, f'{match_filename}.json')
-        matches = get_tean_matches(match_filename, link, home, away, liga, overwrite) # noqa
+        matches = get_team_matches(match_filename, link, home, away, liga, overwrite) # noqa
         if matches['OK']:
             momios = get_momios(match_filename, link_momios_1x2, link_momios_goles, link_momios_ambos, overwrite) # noqa
             if momios['OK']:
