@@ -73,9 +73,9 @@ def get_team_matches(filename, link, home, away, liga, overwrite=False):
         web.wait_Class('h2h__section', 20)
         result = parse_team_matches(web.source(), 'face')
         if result['face_nmatches'] > 3:
-            print('More Home matches...')
+            print('Home matches...')
             click_more_matches(web, 'home', home, liga)
-            print('More Away matches...')
+            print('Away matches...')
             click_more_matches(web, 'away', away, liga)
             with open(html_path, 'w', encoding='utf-8') as f:
                 f.write(web.source())
@@ -118,12 +118,9 @@ def getmGoles(filename, link, overwrite=False):
 
     if os.path.exists(html_path):
         with open(html_path, 'r', encoding='utf-8') as file:
-            odds = parse_odds_goles(file)
-            return odds
+            return parse_odds_goles(file)
     else:
-        return {
-            'OK': False
-        }
+        return {'OK': False}
 
 
 def getAmbos(filename, link, overwrite=False):
@@ -150,8 +147,7 @@ def getAmbos(filename, link, overwrite=False):
 
     if os.path.exists(html_path):
         with open(html_path, 'r', encoding='utf-8') as file:
-            odds = parse_odds_ambos(file)
-            return odds
+            return parse_odds_ambos(file)
     else:
         return {
             'OK': False
@@ -182,8 +178,7 @@ def get1x2(filename, link, overwrite=False):
 
     if os.path.exists(html_path):
         with open(html_path, 'r', encoding='utf-8') as file:
-            odds = parse_odds_1x2(file)
-            return odds
+            return parse_odds_1x2(file)
     else:
         return {
             'OK': False
@@ -268,7 +263,6 @@ def main(hoy=False, overwrite=False):
         date_filename = tomorrow.strftime('%Y%m%d')
         url = matches_tomorrow_url
 
-    matches_csv = os.path.join(path_csv, f'{date_filename}_matches.csv')
     matches_html = os.path.join(path_html, f'{date_filename}_matches.html')
     matches_result = os.path.join(path_result, f'{date_filename}.json')
     matches_pais_result = os.path.join(path_result, f'{date_filename}_pais.json') # noqa
@@ -279,10 +273,9 @@ def main(hoy=False, overwrite=False):
     if len(day_matches) == 0:
         return
 
-    f = open(matches_csv, 'w', encoding='utf-8')
-    f.write("fecha,hora,pais,liga,local,visitante,link\n")
     for pais, liga, hora, home, away, link, link_momios_1x2, link_momios_goles, link_momios_ambos in day_matches: # noqa
-        match_filename = f'{n}_{date_filename}{re.sub(r":", "", hora)}'
+        hora_filename = re.sub(r":", "", hora)
+        match_filename = f'{n}_{date_filename}{hora_filename}'
         match_json = os.path.join(path_json, f'{match_filename}.json')
         matches = get_team_matches(
             match_filename,
@@ -301,15 +294,6 @@ def main(hoy=False, overwrite=False):
                 overwrite
             )
             if momios['OK']:
-                f.write(','.join([
-                    fecha,
-                    hora,
-                    pais,
-                    liga,
-                    home,
-                    away,
-                    link
-                ]) + '\n')
                 reg = {
                     'id': str(n),
                     'time': hora,
@@ -344,7 +328,6 @@ def main(hoy=False, overwrite=False):
         else:
             logging.info(f'DESCARTADO {liga} | {home}:{matches["home_nmatches"]} - {away}:{matches["away_nmatches"]} VS:{matches["face_nmatches"]}') # noqa
         n += 1
-    f.close()
 
     logging.info(f'PARTIDOS {len(day_matches)} {fecha}')
     if len(result) > 0:
