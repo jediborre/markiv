@@ -53,12 +53,16 @@ def click_more_matches(web, team, team_name, liga):
         print(f'{team} matches: {num_matches} DONE')
 
 
-def get_tean_matches(filename, link, home, away, liga, overwrite=False):
-    global tmp_path
+def get_team_matches(filename, link, home, away, liga, overwrite=False):
+    global path_html
     global opened_web, web
     filename = re.sub(r'-|:', '', filename) + '_h2h.html'
-    html_path = os.path.join(tmp_path, filename)
-    if not os.path.exists(html_path) or overwrite:
+    html_path = os.path.join(path_html, filename)
+    if overwrite:
+        if os.path.exists(html_path):
+            os.remove(html_path)
+
+    if not os.path.exists(html_path):
         print('Partido', link, '→', filename) # noqa
         if not opened_web:
             opened_web = True
@@ -95,8 +99,12 @@ def getmGoles(filename, link, overwrite=False):
     global opened_web, web
     nom = 'Goles'
     filename = re.sub(r'-|:', '', filename) + f'_{nom}.html'
-    html_path = os.path.join(tmp_path, filename)
-    if not os.path.exists(html_path) or overwrite:
+    html_path = os.path.join(path_html, filename)
+    if overwrite:
+        if os.path.exists(html_path):
+            os.remove(html_path)
+
+    if not os.path.exists(html_path):
         print(f'Momios {nom}', link, '→', filename)
         if not opened_web:
             opened_web = True
@@ -119,12 +127,16 @@ def getmGoles(filename, link, overwrite=False):
 
 
 def getAmbos(filename, link, overwrite=False):
-    global path_tmp_html
+    global path_html
     global opened_web, web
     nom = 'Ambos'
     filename = f'{filename}_{nom}.html'
-    html_path = os.path.join(path_tmp_html, filename)
-    if not os.path.exists(html_path) or overwrite:
+    html_path = os.path.join(path_html, filename)
+    if overwrite:
+        if os.path.exists(html_path):
+            os.remove(html_path)
+
+    if not os.path.exists(html_path):
         print(f'Momios {nom}', link, '→', filename)
         if not opened_web:
             opened_web = True
@@ -147,12 +159,16 @@ def getAmbos(filename, link, overwrite=False):
 
 
 def get1x2(filename, link, overwrite=False):
-    global path_tmp_html
+    global path_html
     global opened_web, web
     nom = '1x2'
     filename = f'{filename}_{nom}.html'
-    html_path = os.path.join(path_tmp_html, filename)
-    if not os.path.exists(html_path) or overwrite:
+    html_path = os.path.join(path_html, filename)
+    if overwrite:
+        if os.path.exists(html_path):
+            os.remove(html_path)
+
+    if not os.path.exists(html_path):
         print(f'Momios {nom}', link, '→', filename)
         if not opened_web:
             opened_web = True
