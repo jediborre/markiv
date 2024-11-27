@@ -31,10 +31,9 @@ parser.add_argument('--over', action='store_true', help="Sobreescribir")
 args = parser.parse_args()
 matches_today_url = 'https://m.flashscore.com.mx/'
 matches_tomorrow_url = 'https://m.flashscore.com.mx/?d=1'
-proxy_url = 'https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&country=mx,us,ca&protocol=http&proxy_format=ipport&format=text&timeout=4000' # noqa
 
 
-def click_more(web, team, team_name, liga):
+def click_more_matches(web, team, team_name, liga):
     sections = web.CLASS('h2h__section', multiples=True)
     section = sections[0] if team == 'home' else sections[1]
     result = parse_team_matches(web.source(), team, team_name=team_name, liga=liga) # noqa
@@ -49,21 +48,21 @@ def click_more(web, team, team_name, liga):
             btn_showMore.click()
             print(f'{team} matches: {num_matches} CANT CLICK MORE')
         web.wait()
-        click_more(web, team, team_name, liga)
+        click_more_matches(web, team, team_name, liga)
     else:
         print(f'{team} matches: {num_matches} DONE')
 
 
 def get_tean_matches(filename, link, home, away, liga, overwrite=False):
     global tmp_path
-    global opened_web, web, proxy_url
+    global opened_web, web
     filename = re.sub(r'-|:', '', filename) + '_h2h.html'
     html_path = os.path.join(tmp_path, filename)
     if not os.path.exists(html_path) or overwrite:
         print('Partido', link, '→', filename) # noqa
         if not opened_web:
             opened_web = True
-            web = Web(proxy_url=proxy_url, url=link)
+            web = Web(url=link)
         else:
             web.open(link)
 
@@ -71,9 +70,9 @@ def get_tean_matches(filename, link, home, away, liga, overwrite=False):
         result = parse_team_matches(web.source(), 'face')
         if result['face_nmatches'] > 3:
             print('More Home matches...')
-            click_more(web, 'home', home, liga)
+            click_more_matches(web, 'home', home, liga)
             print('More Away matches...')
-            click_more(web, 'away', away, liga)
+            click_more_matches(web, 'away', away, liga)
             with open(html_path, 'w', encoding='utf-8') as f:
                 f.write(web.source())
         else:
@@ -93,7 +92,7 @@ def get_tean_matches(filename, link, home, away, liga, overwrite=False):
 
 def getmGoles(filename, link, overwrite=False):
     global tmp_path
-    global opened_web, web, proxy_url
+    global opened_web, web
     nom = 'Goles'
     filename = re.sub(r'-|:', '', filename) + f'_{nom}.html'
     html_path = os.path.join(tmp_path, filename)
@@ -101,7 +100,7 @@ def getmGoles(filename, link, overwrite=False):
         print(f'Momios {nom}', link, '→', filename)
         if not opened_web:
             opened_web = True
-            web = Web(proxy_url=proxy_url, url=link)
+            web = Web(url=link)
         else:
             web.open(link)
 
@@ -121,7 +120,7 @@ def getmGoles(filename, link, overwrite=False):
 
 def getAmbos(filename, link, overwrite=False):
     global path_tmp_html
-    global opened_web, web, proxy_url
+    global opened_web, web
     nom = 'Ambos'
     filename = f'{filename}_{nom}.html'
     html_path = os.path.join(path_tmp_html, filename)
@@ -129,7 +128,7 @@ def getAmbos(filename, link, overwrite=False):
         print(f'Momios {nom}', link, '→', filename)
         if not opened_web:
             opened_web = True
-            web = Web(proxy_url=proxy_url, url=link)
+            web = Web(url=link)
         else:
             web.open(link)
 
@@ -149,7 +148,7 @@ def getAmbos(filename, link, overwrite=False):
 
 def get1x2(filename, link, overwrite=False):
     global path_tmp_html
-    global opened_web, web, proxy_url
+    global opened_web, web
     nom = '1x2'
     filename = f'{filename}_{nom}.html'
     html_path = os.path.join(path_tmp_html, filename)
@@ -157,7 +156,7 @@ def get1x2(filename, link, overwrite=False):
         print(f'Momios {nom}', link, '→', filename)
         if not opened_web:
             opened_web = True
-            web = Web(proxy_url=proxy_url, url=link)
+            web = Web(url=link)
         else:
             web.open(link)
 
@@ -213,7 +212,7 @@ def get_momios(filename, link_momios_1x2, link_momios_goles, link_momios_ambos, 
 
 def get_all_matches(filename, matches_link, overwrite=False):
     global path_html
-    global opened_web, web, proxy_url
+    global opened_web, web
 
     html_path = os.path.join(path_html, filename)
     if overwrite:
@@ -222,10 +221,7 @@ def get_all_matches(filename, matches_link, overwrite=False):
 
     if not os.path.exists(html_path):
         if not opened_web:
-            web = Web(
-                proxy_url=proxy_url,
-                url=matches_link
-            )
+            web = Web(url=matches_link)
             opened_web = True
         else:
             web.open(matches_link)
@@ -240,7 +236,7 @@ def get_all_matches(filename, matches_link, overwrite=False):
 
 
 def main(hoy=False, overwrite=False):
-    global opened_web, web, proxy_url
+    global opened_web, web
     global matches_today_url, matches_tomorrow_url
     global path_result, path_csv, path_json, path_html
 
@@ -272,9 +268,22 @@ def main(hoy=False, overwrite=False):
     for pais, liga, hora, home, away, link, link_momios_1x2, link_momios_goles, link_momios_ambos in day_matches: # noqa
         match_filename = f'{n}_{date_filename}{re.sub(r":", "", hora)}'
         match_json = os.path.join(path_json, f'{match_filename}.json')
-        matches = get_tean_matches(match_filename, link, home, away, liga, overwrite) # noqa
+        matches = get_tean_matches(
+            match_filename,
+            link,
+            home,
+            away,
+            liga,
+            overwrite
+        )
         if matches['OK']:
-            momios = get_momios(match_filename, link_momios_1x2, link_momios_goles, link_momios_ambos, overwrite) # noqa
+            momios = get_momios(
+                match_filename,
+                link_momios_1x2,
+                link_momios_goles,
+                link_momios_ambos,
+                overwrite
+            )
             if momios['OK']:
                 f.write(','.join([
                     fecha,

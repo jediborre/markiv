@@ -96,7 +96,8 @@ class ChainedWeb:
 class Web:
     driver: webdriver.Chrome = None
 
-    def __init__(self, proxy_url=None, url=None) -> None:
+    def __init__(self, url=None) -> None:
+        proxy_url = 'https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&country=mx,us,ca&protocol=http&proxy_format=ipport&format=text&timeout=4000' # noqa
         self.user_agents = [
             # Desktop
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Safari/537.36", # noqa
