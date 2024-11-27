@@ -4,14 +4,11 @@ import pprint # noqa
 import logging
 import datetime
 import argparse
-from web import Web
 from utils import prepare
 from utils import save_matches
-from parse import parse_team_matches
-from parse import parse_odds_ambos
-from parse import parse_odds_1x2
-from parse import parse_odds_goles
-from parse import parse_all_matches
+from parse import get_momios
+from parse import get_all_matches
+from parse import get_team_matches
 
 
 # https://app.dataimpulse.com/plans/create-new
@@ -33,256 +30,25 @@ matches_today_url = 'https://m.flashscore.com.mx/'
 matches_tomorrow_url = 'https://m.flashscore.com.mx/?d=1'
 
 
-def click_more_matches(web, team, team_name, liga):
-    sections = web.CLASS('h2h__section', multiples=True)
-    section = sections[0] if team == 'home' else sections[1]
-    result = parse_team_matches(web.source(), team, team_name=team_name, liga=liga) # noqa
-    num_matches = result['home_nmatches'] if team == 'home' else result['away_nmatches'] # noqa
-    if not result['OK'] and section.EXIST_CLASS('showMore'):
-        btn_showMore = section.CLASS('showMore')
-        btn_showMore.scroll_to()
-        if btn_showMore.click():
-            print(f'{team} matches: {num_matches} MORE')
-        else:
-            web.scrollY(-150)
-            btn_showMore.click()
-            print(f'{team} matches: {num_matches} CANT CLICK MORE')
-        web.wait()
-        click_more_matches(web, team, team_name, liga)
-    else:
-        print(f'{team} matches: {num_matches} DONE')
-
-
-def get_team_matches(filename, link, home, away, liga, overwrite=False):
-    global path_html
-    global opened_web, web
-    filename = re.sub(r'-|:', '', filename) + '_h2h.html'
-    html_path = os.path.join(path_html, filename)
-    if overwrite:
-        if os.path.exists(html_path):
-            os.remove(html_path)
-
-    if not os.path.exists(html_path):
-        print('Partido', link, '→', filename) # noqa
-        if not opened_web:
-            opened_web = True
-            web = Web(url=link)
-        else:
-            web.open(link)
-
-        web.wait_Class('h2h__section', 20)
-        result = parse_team_matches(web.source(), 'face')
-        if result['face_nmatches'] > 3:
-            print('Home matches...')
-            click_more_matches(web, 'home', home, liga)
-            print('Away matches...')
-            click_more_matches(web, 'away', away, liga)
-            with open(html_path, 'w', encoding='utf-8') as f:
-                f.write(web.source())
-        else:
-            return {
-                'OK': False,
-                'home_nmatches': '-',
-                'away_nmatches': '-',
-                'face_nmatches': result['face_nmatches']
-            }
-    else:
-        print('Partido', '←', filename)
-
-    if os.path.exists(html_path):
-        with open(html_path, 'r', encoding='utf-8') as file:
-            return parse_team_matches(file, 'all', home=home, away=away, liga=liga) # noqa
-
-
-def getmGoles(filename, link, overwrite=False):
-    global tmp_path
-    global opened_web, web
-    nom = 'Goles'
-    filename = re.sub(r'-|:', '', filename) + f'_{nom}.html'
-    html_path = os.path.join(path_html, filename)
-    if overwrite:
-        if os.path.exists(html_path):
-            os.remove(html_path)
-
-    if not os.path.exists(html_path):
-        print(f'Momios {nom}', link, '→', filename)
-        if not opened_web:
-            opened_web = True
-            web = Web(url=link)
-        else:
-            web.open(link)
-
-        web.save(html_path)
-    else:
-        print(f'Momios {nom}', '←', filename)
-
-    if os.path.exists(html_path):
-        with open(html_path, 'r', encoding='utf-8') as file:
-            return parse_odds_goles(file)
-    else:
-        return {'OK': False}
-
-
-def getAmbos(filename, link, overwrite=False):
-    global path_html
-    global opened_web, web
-    nom = 'Ambos'
-    filename = f'{filename}_{nom}.html'
-    html_path = os.path.join(path_html, filename)
-    if overwrite:
-        if os.path.exists(html_path):
-            os.remove(html_path)
-
-    if not os.path.exists(html_path):
-        print(f'Momios {nom}', link, '→', filename)
-        if not opened_web:
-            opened_web = True
-            web = Web(url=link)
-        else:
-            web.open(link)
-
-        web.save(html_path)
-    else:
-        print(f'Momios {nom}', '←', filename)
-
-    if os.path.exists(html_path):
-        with open(html_path, 'r', encoding='utf-8') as file:
-            return parse_odds_ambos(file)
-    else:
-        return {
-            'OK': False
-        }
-
-
-def get1x2(filename, link, overwrite=False):
-    global path_html
-    global opened_web, web
-    nom = '1x2'
-    filename = f'{filename}_{nom}.html'
-    html_path = os.path.join(path_html, filename)
-    if overwrite:
-        if os.path.exists(html_path):
-            os.remove(html_path)
-
-    if not os.path.exists(html_path):
-        print(f'Momios {nom}', link, '→', filename)
-        if not opened_web:
-            opened_web = True
-            web = Web(url=link)
-        else:
-            web.open(link)
-
-        web.save(html_path)
-    else:
-        print(f'Momios {nom}', '←', filename)
-
-    if os.path.exists(html_path):
-        with open(html_path, 'r', encoding='utf-8') as file:
-            return parse_odds_1x2(file)
-    else:
-        return {
-            'OK': False
-        }
-
-
-def get_momios(filename, link_momios_1x2, link_momios_goles, link_momios_ambos, overwrite=False): # noqa
-    momios_1x2 = get1x2(filename, link_momios_1x2, overwrite)
-    if not momios_1x2['OK']:
-        return {
-            'OK': False,
-            'odds_1x2': momios_1x2,
-            'odds_goles': {},
-            'odds_ambos': {},
-        }
-
-    momios_goles = getmGoles(filename, link_momios_goles, overwrite)
-    if not momios_goles['OK']:
-        return {
-            'OK': False,
-            'odds_1x2': momios_1x2,
-            'odds_goles': momios_goles,
-            'odds_ambos': {},
-        }
-
-    momios_ambos = getAmbos(filename, link_momios_ambos, overwrite)
-    if not momios_ambos['OK']:
-        return {
-            'OK': False,
-            'odds_1x2': momios_1x2,
-            'odds_goles': momios_goles,
-            'odds_ambos': momios_ambos,
-        }
-
-    return {
-        'OK': momios_ambos['OK'] and momios_goles['OK'] and momios_1x2['OK'],
-        'odds_1x2': momios_1x2,
-        'odds_goles': momios_goles,
-        'odds_ambos': momios_ambos,
-    }
-
-
-def get_all_matches(filename, matches_link, overwrite=False):
-    global path_html
-    global opened_web, web
-
-    html_path = os.path.join(path_html, filename)
-    if overwrite:
-        if os.path.exists(html_path):
-            os.remove(html_path)
-
-    if not os.path.exists(html_path):
-        if not opened_web:
-            web = Web(url=matches_link)
-            opened_web = True
-        else:
-            web.open(matches_link)
-            opened_web = False
-
-        web.wait_ID('main', 5)
-        opened_web = True
-        web.save(html_path)
-
-    with open(html_path, 'r', encoding='utf-8') as html:
-        return parse_all_matches(html)
-
-
-def main(hoy=False, overwrite=False):
-    global opened_web, web
-    global matches_today_url, matches_tomorrow_url
+def process_matches(matches, date, overwrite=False):
     global path_result, path_csv, path_json, path_html
-
-    today = datetime.datetime.today()
-    if hoy:
-        tomorrow = today
-        fecha = today.strftime('%Y-%m-%d')
-        date_filename = today.strftime('%Y%m%d')
-        url = matches_today_url
-    else:
-        fecha = tomorrow.strftime('%Y-%m-%d')
-        tomorrow = (today + datetime.timedelta(days=1))
-        date_filename = tomorrow.strftime('%Y%m%d')
-        url = matches_tomorrow_url
-
-    matches_html = os.path.join(path_html, f'{date_filename}_matches.html')
-    matches_result = os.path.join(path_result, f'{date_filename}.json')
-    matches_pais_result = os.path.join(path_result, f'{date_filename}_pais.json') # noqa
 
     n = 1
     result, result_pais = {}, {}
-    day_matches = get_all_matches(matches_html, url, overwrite)
-    if len(day_matches) == 0:
-        return
+    fecha = date.strftime('%Y-%m-%d')
+    fecha_filename = date.strftime('%Y%m%d')
 
-    for pais, liga, hora, home, away, link, link_momios_1x2, link_momios_goles, link_momios_ambos in day_matches: # noqa
+    for pais, liga, hora, home, away, link, link_momios_1x2, link_momios_goles, link_momios_ambos in matches: # noqa
         hora_filename = re.sub(r":", "", hora)
-        match_filename = f'{n}_{date_filename}{hora_filename}'
-        match_json = os.path.join(path_json, f'{match_filename}.json')
+        match_filename = f'{n}_{fecha_filename}{hora_filename}'
         matches = get_team_matches(
             match_filename,
             link,
             home,
             away,
             liga,
+            web,
+            opened_web,
             overwrite
         )
         if matches['OK']:
@@ -291,6 +57,8 @@ def main(hoy=False, overwrite=False):
                 link_momios_1x2,
                 link_momios_goles,
                 link_momios_ambos,
+                web,
+                opened_web,
                 overwrite
             )
             if momios['OK']:
@@ -303,23 +71,27 @@ def main(hoy=False, overwrite=False):
                     'home': home,
                     'away': away,
                     'url': link,
+                    'promedio_gol': '',
                     '1x2': momios['odds_1x2'],
                     'goles': momios['odds_goles'],
                     'ambos': momios['odds_ambos'],
                     'link_1x2': link_momios_1x2,
                     'link_goles': link_momios_goles,
                     'link_ambos': link_momios_ambos,
-                    'promedio_gol': '',
                     'home_matches': matches['home_matches'],
                     'away_matches': matches['away_matches'],
                     'face_matches': matches['face_matches']
                 }
                 if pais not in result_pais:
                     result_pais[pais] = []
+
                 result[reg['id']] = reg
                 result_pais[pais].append(reg)
-                save_matches(match_json, reg, overwrite)
+
                 logging.info(f'OK {match_filename} {liga} | {home} - {away}')
+                match_json = os.path.join(path_json, f'{match_filename}.json')
+                save_matches(match_json, reg, overwrite)
+
                 input('')
                 print('Continuar')
             else:
@@ -329,7 +101,10 @@ def main(hoy=False, overwrite=False):
             logging.info(f'DESCARTADO {liga} | {home}:{matches["home_nmatches"]} - {away}:{matches["away_nmatches"]} VS:{matches["face_nmatches"]}') # noqa
         n += 1
 
-    logging.info(f'PARTIDOS {len(day_matches)} {fecha}')
+    logging.info(f'PARTIDOS {len(matches)} {fecha}')
+    matches_result = os.path.join(path_result, f'{fecha_filename}.json')
+    matches_pais_result = os.path.join(path_result, f'{fecha_filename}_pais.json') # noqa
+
     if len(result) > 0:
         save_matches(matches_result, result, overwrite)
 
@@ -337,9 +112,33 @@ def main(hoy=False, overwrite=False):
         save_matches(matches_pais_result, result_pais, overwrite)
 
 
+def main(hoy=False, overwrite=False):
+    global path_html
+    global web, opened_web
+    global matches_today_url, matches_tomorrow_url
+
+    today = datetime.datetime.today()
+    if hoy:
+        date = today
+        url = matches_today_url
+    else:
+        tomorrow = (today + datetime.timedelta(days=1))
+        date = tomorrow
+        url = matches_tomorrow_url
+
+    fecha_filename = date.strftime('%Y%m%d')
+    matches_filename = os.path.join(path_html, f'{fecha_filename}_matches.html') # noqa
+
+    matches = get_all_matches(path_html, matches_filename, url, web, opened_web, overwrite) # noqa
+    if len(matches) == 0:
+        return
+
+    process_matches(matches, date, overwrite)
+
+
 if __name__ == "__main__":
     overwrite = args.over
     if args.tomorrow:
-        main(hoy=False, overwrite=overwrite)
+        main(False, overwrite)
     else:
-        main(hoy=True, overwrite=overwrite)
+        main(True, overwrite)
