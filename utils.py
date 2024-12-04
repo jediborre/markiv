@@ -272,6 +272,17 @@ def send_text(telegram_bot, chat_id, text, markup=None):
             )
 
 
+def decimal_americano(momio_decimal):
+    momio_decimal = float(momio_decimal)
+    if momio_decimal == 1:
+        return "0"
+    elif momio_decimal >= 2:
+        momio_americano = (momio_decimal - 1) * 100
+    else:
+        momio_americano = -100 / (momio_decimal - 1)
+    return int(round(momio_americano, 0))
+
+
 def es_momio_americano(texto):
     try:
         if texto == '-':
