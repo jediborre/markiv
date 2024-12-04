@@ -127,7 +127,7 @@ class Web:
             raise Exception("No proxies available")
 
         if url:
-            # logging.info(f'Opening: {url}')
+            logging.info(f'Init: {url}')
             self.open(url)
 
     def get_proxies_from_url(self, url):
@@ -190,11 +190,6 @@ class Web:
         except Exception:
             pass
 
-    def open_chome():
-        print('Abriendo Chrome Port 9222')
-        cmd = r'chrome --remote-debugging-port=9222 --user-data-dir="C:\Log"' # noqa
-        subprocess.run(cmd, shell=True)
-
     def quit(self):
         self.driver.close()
         self.driver.quit()
@@ -222,6 +217,7 @@ class Web:
             self.driver.get(url)
         except WebDriverException as e:
             self.log(f"Error opening URL: {e.msg}")
+            print(e)
 
     def ID(self, id_name, multiples=False):
         if multiples:

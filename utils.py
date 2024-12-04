@@ -242,9 +242,10 @@ def get_gemini_response(image_filename):
 
 def save_matches(filename, matches, overwrite=False):
     if overwrite:
-        os.remove(filename)
+        if os.path.exists(filename):
+            os.remove(filename)
 
-    if not os.path.exists(filename) or overwrite:
+    if not os.path.exists(filename):
         with open(filename, 'w', encoding='utf-8') as f:
             json.dump(matches, f, indent=4)
 

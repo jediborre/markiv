@@ -18,14 +18,12 @@ def get_all_matches(path_html, filename, matches_link, web, opened_web, overwrit
             opened_web = True
         else:
             web.open(matches_link)
-            opened_web = False
 
         web.wait_ID('main', 5)
-        opened_web = True
         web.save(html_path)
 
     with open(html_path, 'r', encoding='utf-8') as html:
-        return parse_all_matches(html)
+        return [parse_all_matches(html), web, opened_web]
 
 
 def parse_all_matches(html):
@@ -98,6 +96,7 @@ def get_team_matches(path_html, filename, link, home, away, liga, web, opened_we
         print('Partido', link, '→', filename) # noqa
         if not opened_web:
             opened_web = True
+            print('opened_web', opened_web)
             web = Web(url=link)
         else:
             web.open(link)

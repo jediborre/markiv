@@ -5,8 +5,8 @@ import logging
 import datetime
 import argparse
 from utils import prepare
+# from parse import get_momios
 from utils import save_matches
-from parse import get_momios
 from parse import get_all_matches
 from parse import get_team_matches
 
@@ -30,19 +30,22 @@ matches_today_url = 'https://m.flashscore.com.mx/'
 matches_tomorrow_url = 'https://m.flashscore.com.mx/?d=1'
 
 
-def process_matches(matches, date, overwrite=False):
+def process_matches(matches_, date, web, opened_web, overwrite=False):
     global path_result, path_csv, path_json, path_html
 
     n = 1
-    result, result_pais = {}, {}
+    matches, matches_pais = {}, {}
     fecha = date.strftime('%Y-%m-%d')
     fecha_filename = date.strftime('%Y%m%d')
 
-    for pais, liga, hora, home, away, link, link_momios_1x2, link_momios_goles, link_momios_ambos, link_momios_handicap in matches: # noqa
+    print(web, opened_web)
+
+    for pais, liga, hora, home, away, link, link_momios_1x2, link_momios_goles, link_momios_ambos, link_momios_handicap in matches_: # noqa
         hora_filename = re.sub(r":", "", hora)
-        match_filename = f'{n}_{fecha_filename}{hora_filename}'
-        matches = get_team_matches(
-            match_filename,
+        filename_match = f'{n}_{fecha_filename}{hora_filename}'
+        team_matches = get_team_matches(
+            path_html,
+            filename_match,
             link,
             home,
             away,
@@ -51,66 +54,52 @@ def process_matches(matches, date, overwrite=False):
             opened_web,
             overwrite
         )
-        if matches['OK']:
-            momios = get_momios(
-                match_filename,
-                link_momios_1x2,
-                link_momios_goles,
-                link_momios_ambos,
-                link_momios_handicap,
-                web,
-                opened_web,
-                overwrite
-            )
-            if momios['OK']:
-                reg = {
-                    'id': str(n),
-                    'time': hora,
-                    'fecha': fecha,
-                    'pais': pais,
-                    'liga': liga,
-                    'home': home,
-                    'away': away,
-                    'url': link,
-                    'promedio_gol': '',
-                    '1x2': momios['odds_1x2'],
-                    'goles': momios['odds_goles'],
-                    'ambos': momios['odds_ambos'],
-                    'link_1x2': link_momios_1x2,
-                    'link_goles': link_momios_goles,
-                    'link_ambos': link_momios_ambos,
-                    'home_matches': matches['home_matches'],
-                    'away_matches': matches['away_matches'],
-                    'face_matches': matches['face_matches']
-                }
-                if pais not in result_pais:
-                    result_pais[pais] = []
+        if team_matches['OK']:
+            reg = {
+                'id': str(n),
+                'time': hora,
+                'fecha': fecha,
+                'pais': pais,
+                'liga': liga,
+                'home': home,
+                'away': away,
+                'url': link,
+                '1x2': None,
+                'goles': None,
+                'ambos': None,
+                'link_1x2': link_momios_1x2,
+                'link_goles': link_momios_goles,
+                'link_ambos': link_momios_ambos,
+                'link_handicap': link_momios_handicap,
+                'home_matches': team_matches['home_matches'],
+                'away_matches': team_matches['away_matches'],
+                'face_matches': team_matches['face_matches']
+            }
+            if pais not in matches_pais:
+                matches_pais[pais] = []
 
-                result[reg['id']] = reg
-                result_pais[pais].append(reg)
+            matches[reg['id']] = reg
+            matches_pais[pais].append(reg)
 
-                logging.info(f'OK {match_filename} {liga} | {home} - {away}')
-                match_json = os.path.join(path_json, f'{match_filename}.json')
-                save_matches(match_json, reg, overwrite)
+            logging.info(f'OK {filename_match} {liga} | {home} - {away}')
+            match_json = os.path.join(path_json, f'{filename_match}.json')
+            save_matches(match_json, reg, overwrite)
 
-                input('')
-                print('Continuar')
-            else:
-                logging.info(f'DESCARTADO MOMIOS {liga} | {home}:{matches["home_nmatches"]} - {away}:{matches["away_nmatches"]} VS:{matches["face_nmatches"]}') # noqa
-                pprint.pprint(momios)
+            input('')
+            print('Continuar')
         else:
-            logging.info(f'DESCARTADO {liga} | {home}:{matches["home_nmatches"]} - {away}:{matches["away_nmatches"]} VS:{matches["face_nmatches"]}') # noqa
+            logging.info(f'DESCARTADO {liga} | {home}:{team_matches["home_nmatches"]} - {away}:{team_matches["away_nmatches"]} VS:{team_matches["face_nmatches"]}') # noqa
         n += 1
 
     logging.info(f'PARTIDOS {len(matches)} {fecha}')
-    matches_result = os.path.join(path_result, f'{fecha_filename}.json')
-    matches_pais_result = os.path.join(path_result, f'{fecha_filename}_pais.json') # noqa
+    filename_matches = os.path.join(path_result, f'{fecha_filename}.json')
+    filename_matches_pais = os.path.join(path_result, f'{fecha_filename}_pais.json') # noqa
 
-    if len(result) > 0:
-        save_matches(matches_result, result, overwrite)
+    if len(matches) > 0:
+        save_matches(filename_matches, matches, overwrite)
 
-    if len(result_pais) > 0:
-        save_matches(matches_pais_result, result_pais, overwrite)
+    if len(matches_pais) > 0:
+        save_matches(filename_matches_pais, matches_pais, overwrite)
 
 
 def main(hoy=False, overwrite=False):
@@ -128,13 +117,13 @@ def main(hoy=False, overwrite=False):
         url = matches_tomorrow_url
 
     fecha_filename = date.strftime('%Y%m%d')
-    matches_filename = os.path.join(path_html, f'{fecha_filename}_matches.html') # noqa
+    filename_matches = os.path.join(path_html, f'{fecha_filename}_matches.html') # noqa
 
-    matches = get_all_matches(path_html, matches_filename, url, web, opened_web, overwrite) # noqa
+    matches, web, opened_web = get_all_matches(path_html, filename_matches, url, web, opened_web, overwrite) # noqa
     if len(matches) == 0:
         return
 
-    process_matches(matches, date, overwrite)
+    process_matches(matches, date, web, opened_web, overwrite)
 
 
 if __name__ == "__main__":
@@ -143,3 +132,19 @@ if __name__ == "__main__":
         main(False, overwrite)
     else:
         main(True, overwrite)
+
+# momios = get_momios(
+#     match_filename,
+#     link_momios_1x2,
+#     link_momios_goles,
+#     link_momios_ambos,
+#     link_momios_handicap,
+#     web,
+#     opened_web,
+#     overwrite
+# )
+# if momios['OK']:
+#     pass
+# else:
+#     logging.info(f'DESCARTADO MOMIOS {liga} | {home}:{matches["home_nmatches"]} - {away}:{matches["away_nmatches"]} VS:{matches["face_nmatches"]}') # noqa
+#     pprint.pprint(momios)
