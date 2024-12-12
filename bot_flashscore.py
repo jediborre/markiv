@@ -128,7 +128,6 @@ def handle(message):
                 )
         else:
             pass
-            # print(f'{msj} not in pattern')
     else:
         send_text(
             bot,
