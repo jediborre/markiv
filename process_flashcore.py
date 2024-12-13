@@ -41,7 +41,6 @@ def process_matches(matches_, date, web, overwrite=False):
     filename_matches_pais = os.path.join(path_result, f'{fecha_filename}_pais.json') # noqa
 
     for match in matches_:
-        print(len(match))
         [
             pais,
             liga,
