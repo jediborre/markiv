@@ -159,6 +159,9 @@ class Web:
         except SessionNotCreatedException as e:
             print(e.msg)
             sys.exit(0)
+        except WebDriverException as e:
+            print(e.msg)
+            sys.exit(0)
 
     def wait(self, secs=1):
         time.sleep(secs)

@@ -1,5 +1,6 @@
 import re
 import os
+import sys
 import json
 import base64
 import pprint
@@ -8,10 +9,23 @@ import vertexai
 if os.name == 'nt':
     import win32com.client
 from datetime import datetime
-from vertexai.generative_models import GenerativeModel, Part, SafetySetting
 from text_unidecode import unidecode
+from vertexai.generative_models import GenerativeModel, Part, SafetySetting
+
+sys.stdout.reconfigure(encoding='utf-8')
 
 matches_result = []
+
+
+class StreamHandlerNoNewLine(logging.StreamHandler):
+    def emit(self, record):
+        try:
+            msg = self.format(record)
+            stream = self.stream
+            stream.write(msg)
+            stream.flush()
+        except Exception:
+            self.handleError(record)
 
 
 def wakeup(match_id: int, date_ht: str):
@@ -87,14 +101,24 @@ def limpia_nombre(nombre, post=True):
     return nombre
 
 
-def prepare():
+def get_percent(n, total):
+    return f'{round(n/total*100, 2)}%'
+
+
+def path(*paths):
+    return os.path.join(*paths)
+
+
+def prepare_paths(log_filename='web_markiv.log'):
     script_path = os.path.dirname(os.path.abspath(__file__))
-    path_tmp = os.path.join(script_path, 'tmp')
-    log_filepath = os.path.join(script_path, 'web_markiv.log')
-    path_result = os.path.join(script_path, 'result', 'matches')
-    path_csv = os.path.join(path_tmp, 'csv')
-    path_html = os.path.join(path_tmp, 'html')
-    path_json = os.path.join(path_tmp, 'json')
+    path_tmp = path(script_path, 'tmp')
+    path_csv = path(path_tmp, 'csv')
+    path_html = path(path_tmp, 'html')
+    path_json = path(path_tmp, 'json')
+
+    log_filepath = path(script_path, log_filename)
+    path_result = path(script_path, 'result')
+
     if not os.path.exists(path_result):
         os.makedirs(path_result)
     if not os.path.exists(path_tmp):
@@ -108,10 +132,10 @@ def prepare():
 
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(levelname)s - %(message)s',
+        format='%(message)s',
         handlers=[
-            logging.FileHandler(log_filepath),
-            logging.StreamHandler()
+            logging.FileHandler(log_filepath, encoding='utf-8'),
+            StreamHandlerNoNewLine(sys.stdout)
         ]
     )
     return [

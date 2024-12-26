@@ -1,7 +1,9 @@
 import re
 import os
+import logging
 from fuzzywuzzy import fuzz
 from bs4 import BeautifulSoup
+from utils import path
 from utils import limpia_nombre
 
 
@@ -79,26 +81,26 @@ def parse_all_matches(html):
 
 
 def get_team_matches(path_html, filename, link, home, away, liga, web, overwrite=False): # noqa
-    filename = re.sub(r'-|:', '', filename) + '_h2h.html'
-    html_path = os.path.join(path_html, filename)
+    filename_page_h2h = re.sub(r'-|:', '', filename) + '_h2h.html'
+    html_path = path(path_html, filename_page_h2h)
     if overwrite:
         if os.path.exists(html_path):
             os.remove(html_path)
 
     if not os.path.exists(html_path):
-        print('Partido', link, '→', filename) # noqa
+        # print('Match', link, '→', filename_page_h2h) # noqa
         web.open(link)
 
         web.wait_Class('h2h__section', 20)
         result = parse_team_matches(web.source(), 'vs')
         if result['vs_nmatches'] > 3:
-            print('Home matches...')
+            print('\nHome Matches ', end="")
             click_more_matches(web, 'home', home, liga)
-            print('Away matches...')
+            print('Away Matches ', end="")
             click_more_matches(web, 'away', away, liga)
-            with open(html_path, 'w', encoding='utf-8') as f:
-                f.write(web.source())
+            web.save(html_path)
         else:
+            web.save(html_path)
             return {
                 'OK': False,
                 'home_nmatches': '-',
@@ -106,7 +108,7 @@ def get_team_matches(path_html, filename, link, home, away, liga, web, overwrite
                 'vs_nmatches': result['vs_nmatches']
             }
     else:
-        print('Partido', '←', filename)
+        logging.info(f'← {filename_page_h2h}')
 
     if os.path.exists(html_path):
         with open(html_path, 'r', encoding='utf-8') as file:
@@ -122,15 +124,15 @@ def click_more_matches(web, team, team_name, liga):
         btn_showMore = section.CLASS('showMore')
         btn_showMore.scroll_to()
         if btn_showMore.click():
-            print(f'{team} matches: {num_matches} MORE')
+            print('.', end="")
         else:
             web.scrollY(-150)
             btn_showMore.click()
-            print(f'{team} matches: {num_matches} CANT CLICK MORE')
+            print('.', end="|")
         web.wait()
         click_more_matches(web, team, team_name, liga)
     else:
-        print(f'{team} matches: {num_matches} DONE')
+        print(' DONE')
 
 
 def parse_team_matches(html, team, team_name='', home='', away='', liga='', debug=False): # noqa

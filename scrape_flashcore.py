@@ -1,46 +1,53 @@
 import re
-import os
+import sys
 import pprint # noqa
 import logging
-import datetime
 import argparse
 from web import Web
-from utils import prepare
+from datetime import datetime
 # from parse import get_momios
+from utils import path
+from utils import get_percent
 from utils import save_matches
+from utils import prepare_paths
 from parse import get_all_matches
 from parse import get_team_matches
 
+sys.stdout.reconfigure(encoding='utf-8')
 
 # https://app.dataimpulse.com/plans/create-new
 # https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json
-# 131.0.6778.85
-# .venv/Scripts/Activate.ps1
+
 # chrome --remote-debugging-port=9222 --user-data-dir="C:\Log"
-# python db/flashcore.py
+# .venv/Scripts/Activate.ps1
+# clear;python .\scrape_flashcore.py --over
+
 
 opened_web = False
-path_result, path_csv, path_json, path_html = prepare()
 parser = argparse.ArgumentParser(description="Solicita partidos de hoy o mañana de flashscore") # noqa
 parser.add_argument('--today', action='store_true', help="Partidos Hoy")
 parser.add_argument('--tomorrow', action='store_true', help="Partidos Mañana")
 parser.add_argument('--over', action='store_true', help="Sobreescribir")
 args = parser.parse_args()
-matches_today_url = 'https://m.flashscore.com.mx/'
-matches_tomorrow_url = 'https://m.flashscore.com.mx/?d=1'
+
+url_matches_today = 'https://m.flashscore.com.mx/'
+url_matches_tomorrow = 'https://m.flashscore.com.mx/?d=1'
+path_result, path_csv, path_json, path_html = prepare_paths('scrape_flashcore.log') # noqa
 
 
 def process_matches(matches_, date, web, overwrite=False):
-    global path_result, path_csv, path_json, path_html
+    global path_csv, path_json, path_html, path_result
 
-    n = 1
+    ok = 0
     matches, matches_pais = {}, {}
     fecha = date.strftime('%Y-%m-%d')
-    fecha_filename = date.strftime('%Y%m%d')
-    filename_matches = os.path.join(path_result, f'{fecha_filename}.json')
-    filename_matches_pais = os.path.join(path_result, f'{fecha_filename}_pais.json') # noqa
+    filename_fecha = date.strftime('%Y%m%d')
+    path_matches = path(path_result, f'{filename_fecha}.json')
+    path_matches_pais = path(path_result, f'{filename_fecha}_pais.json') # noqa
 
-    for match in matches_:
+    TS = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    logging.info(f'{TS} - Procesando {len(matches_)} partidos {fecha}\n\n')
+    for m, match in enumerate(matches_):
         [
             pais,
             liga,
@@ -53,8 +60,17 @@ def process_matches(matches_, date, web, overwrite=False):
             l_ambos,
             l_handicap
         ] = match
-        hora_filename = re.sub(r":", "", hora)
-        filename_match = f'{n}_{fecha_filename}{hora_filename}'
+
+        filename_hora = re.sub(r":", "", hora)
+        filename_match = f'{m}_{filename_fecha}{filename_hora}'
+        path_match = path(path_json, f'{filename_match}.json')
+
+        total_matches = len(matches_)
+        percent = get_percent(m + 1, total_matches)
+        str_percent = f'{m + 1}-{total_matches} → {percent}'
+        TS = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        logging.info(f'{TS}|{str_percent}|{ok}| {hora} {liga} : {home} - {away} ')
+
         team_matches = get_team_matches(
             path_html,
             filename_match,
@@ -65,13 +81,15 @@ def process_matches(matches_, date, web, overwrite=False):
             web,
             overwrite
         )
+
+        n_vs = team_matches['vs_nmatches']
         n_h = team_matches['home_nmatches']
         n_a = team_matches['away_nmatches']
-        n_vs = team_matches['vs_nmatches']
 
         if team_matches['OK']:
+            ok += 1
             reg = {
-                'id': str(n),
+                'id': str(m),
                 'time': hora,
                 'fecha': fecha,
                 'pais': pais,
@@ -96,42 +114,42 @@ def process_matches(matches_, date, web, overwrite=False):
             matches[reg['id']] = reg
             matches_pais[pais].append(reg)
 
-            match_json = os.path.join(path_json, f'{filename_match}.json')
-            save_matches(match_json, reg, overwrite)
+            save_matches(path_match, reg, overwrite)
+            save_matches(path_matches, matches, True)
+            save_matches(path_matches_pais, matches_pais, True)
 
-            if len(matches) > 0:
-                save_matches(filename_matches, matches, overwrite)
-
-            if len(matches_pais) > 0:
-                save_matches(filename_matches_pais, matches_pais, overwrite)
-
-            logging.info(f'{n}: {liga} | {home} - {away}')
+            logging.info('| OK\n')
         else:
-            logging.info(f'NO {n}: {liga} | {home}:{n_h} - {away}:{n_a} VS:{n_vs}') # noqa
-        n += 1
+            logging.info(f'| NO H:{n_h}, A→{n_a}, VS→{n_vs}\n')
 
-    logging.info(f'PARTIDOS {len(matches)} {fecha}')
+    logging.info(f'\n\nPARTIDOS {len(matches)} {fecha}')
+    if len(matches) > 0:
+        save_matches(path_matches, matches, True)
+
+    if len(matches_pais) > 0:
+        save_matches(path_matches_pais, matches_pais, True)
 
 
 def main(hoy=False, overwrite=False):
     global web, path_html
-    global matches_today_url, matches_tomorrow_url
+    global url_matches_today, url_matches_tomorrow
 
-    today = datetime.datetime.today()
+    today = datetime.today()
     if hoy:
         date = today
-        url = matches_today_url
+        url = url_matches_today
     else:
         tomorrow = (today + datetime.timedelta(days=1))
         date = tomorrow
-        url = matches_tomorrow_url
+        url = url_matches_tomorrow
 
-    fecha_filename = date.strftime('%Y%m%d')
-    filename_matches = os.path.join(path_html, f'{fecha_filename}_matches.html') # noqa
+    fecha = date.strftime('%Y%m%d')
+    path_page_matches = path(path_html, f'{fecha}_matches.html') # noqa
 
     web = Web()
-    matches = get_all_matches(path_html, filename_matches, url, web, overwrite) # noqa
+    matches = get_all_matches(path_html, path_page_matches, url, web, overwrite) # noqa
     if len(matches) == 0:
+        logging.info(f'No hay partidos {fecha}')
         return
 
     process_matches(matches, date, web, overwrite)
