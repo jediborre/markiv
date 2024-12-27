@@ -52,6 +52,7 @@ def parse_all_matches(html):
         while partido_actual and partido_actual.name != 'h4':
             if partido_actual.name == 'span':
                 hora = partido_actual.get_text(strip=True)
+                hora = hora[:5]
                 equipos = partido_actual.find_next_sibling(string=True).strip() # noqa
                 try:
                     local, visitante = equipos.split(' - ')

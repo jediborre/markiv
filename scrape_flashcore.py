@@ -4,7 +4,6 @@ import pprint # noqa
 import logging
 import argparse
 from web import Web
-from datetime import datetime
 # from parse import get_momios
 from utils import path
 from utils import get_percent
@@ -12,6 +11,7 @@ from utils import save_matches
 from utils import prepare_paths
 from parse import get_all_matches
 from parse import get_team_matches
+from datetime import datetime, timedelta
 
 sys.stdout.reconfigure(encoding='utf-8')
 
@@ -32,7 +32,7 @@ args = parser.parse_args()
 
 url_matches_today = 'https://m.flashscore.com.mx/'
 url_matches_tomorrow = 'https://m.flashscore.com.mx/?d=1'
-path_result, path_csv, path_json, path_html = prepare_paths('scrape_flashcore.log') # noqa
+path_result, path_cron, path_csv, path_json, path_html = prepare_paths('scrape_flashcore.log') # noqa
 
 
 def process_matches(matches_, date, web, overwrite=False):
@@ -69,7 +69,7 @@ def process_matches(matches_, date, web, overwrite=False):
         percent = get_percent(m + 1, total_matches)
         str_percent = f'{m + 1}-{total_matches} → {percent}'
         TS = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        logging.info(f'{TS}|{str_percent}|{ok}| {hora} {liga} : {home} - {away} ')
+        logging.info(f'{TS}|{str_percent}|{ok}| {hora} {liga} : {home} - {away}') # noqa
 
         team_matches = get_team_matches(
             path_html,
@@ -90,7 +90,7 @@ def process_matches(matches_, date, web, overwrite=False):
             ok += 1
             reg = {
                 'id': str(m),
-                'time': hora,
+                'hora': hora,
                 'fecha': fecha,
                 'pais': pais,
                 'liga': liga,
@@ -100,13 +100,16 @@ def process_matches(matches_, date, web, overwrite=False):
                 '1x2': None,
                 'goles': None,
                 'ambos': None,
+                'handicap': None,
                 'l_1x2': l_1x2,
                 'l_goles': l_goles,
                 'l_ambos': l_ambos,
                 'l_handicap': l_handicap,
                 'home_matches': team_matches['home_matches'],
                 'away_matches': team_matches['away_matches'],
-                'vs_matches': team_matches['vs_matches']
+                'vs_matches': team_matches['vs_matches'],
+                'filename_fecha': filename_fecha,
+                'filename_match': filename_match
             }
             if pais not in matches_pais:
                 matches_pais[pais] = []
@@ -139,7 +142,7 @@ def main(hoy=False, overwrite=False):
         date = today
         url = url_matches_today
     else:
-        tomorrow = (today + datetime.timedelta(days=1))
+        tomorrow = (today + timedelta(days=1))
         date = tomorrow
         url = url_matches_tomorrow
 

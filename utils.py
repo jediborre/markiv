@@ -118,9 +118,12 @@ def prepare_paths(log_filename='web_markiv.log'):
 
     log_filepath = path(script_path, log_filename)
     path_result = path(script_path, 'result')
+    path_cron = path(script_path, 'cron')
 
     if not os.path.exists(path_result):
         os.makedirs(path_result)
+    if not os.path.exists(path_cron):
+        os.makedirs(path_cron)
     if not os.path.exists(path_tmp):
         os.makedirs(path_tmp)
     if not os.path.exists(path_csv):
@@ -140,6 +143,7 @@ def prepare_paths(log_filename='web_markiv.log'):
     )
     return [
         path_result,
+        path_cron,
         path_csv,
         path_json,
         path_html
