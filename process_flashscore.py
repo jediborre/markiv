@@ -26,7 +26,7 @@ def get_json(path_file: str):
 def main(path_matches: str):
     result = {
         'fecha': '',
-        'matches': [],
+        'cron': [],
         'filename_matches': ''
     }
     matches = get_json(path_matches)
@@ -48,16 +48,23 @@ def main(path_matches: str):
         hora_actual = datetime.now(pytz.timezone('America/Mexico_City')) # noqa
         fechahora_partido = datetime.strptime(f"{fecha} {hora}", "%Y-%m-%d %H:%M").replace(tzinfo=pytz.timezone('America/Mexico_City')) # noqa
         fechahora_partido_m1h = fechahora_partido - una_hora
+        cron_m1h = fechahora_partido_m1h.strftime('%Y%m%d%H%M')
         match['programacion'] = fechahora_partido_m1h.strftime('%Y-%m-%d %H:%M:%S') # noqa
 
         if hora_actual <= fechahora_partido_m1h:
-            result['matches'].append(match)
+            if cron_m1h not in result['cron']:
+                result[cron_m1h] = []
+                result['cron'].append([match['programacion'], cron_m1h])
+            result[cron_m1h].append(match)
         else:
-            descartados += 1 
+            descartados += 1
 
-    print(f'Partidos {result["fecha"]}: {len(result["matches"])}')
-    for m in result['matches']:
-        print(f'{m["id"]}|{m["programacion"]}|{m["hora"]}|{m["pais"]} : {m["liga"]}|{m["home"]} - {m["away"]}') # noqa
+    print(f'Partidos {result["fecha"]}: {len(matches)}')
+    for fecha_programacion, ts in result['cron']:
+        cron_matches = result[ts]
+        print(fecha_programacion[11:])
+        for m in cron_matches:
+            print(f'{m["hora"]}|{m["id"]}|{m["pais"]} : {m["liga"]}|{m["home"]} - {m["away"]}') # noqa
     print(f'Descartados: {descartados}')
 
 
