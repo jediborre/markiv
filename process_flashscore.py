@@ -52,7 +52,7 @@ def main(path_matches: str):
         match['programacion'] = fechahora_partido_m1h.strftime('%Y-%m-%d %H:%M:%S') # noqa
 
         if hora_actual <= fechahora_partido_m1h:
-            if cron_m1h not in result['cron']:
+            if cron_m1h not in result:
                 result[cron_m1h] = []
                 result['cron'].append([match['programacion'], cron_m1h])
             result[cron_m1h].append(match)
