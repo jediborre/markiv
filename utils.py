@@ -28,6 +28,10 @@ class StreamHandlerNoNewLine(logging.StreamHandler):
             self.handleError(record)
 
 
+def get_json(path_file: str):
+    return json.loads(open(path_file, 'r').read())
+
+
 def wakeup(match_id: int, date_ht: str):
     try:
         if os.name == 'nt':
