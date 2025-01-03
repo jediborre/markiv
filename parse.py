@@ -201,6 +201,9 @@ def parse_team_section(matches, team=None, team_name=None, liga=None, debug=Fals
         result_span = match.find('span', class_='h2h__result')
         scores = result_span.find_all('span')
 
+        if scores[0].text == '-':
+            continue
+
         home_FT = int(scores[0].text)
         away_FT = int(scores[1].text)
 
