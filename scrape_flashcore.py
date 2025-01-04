@@ -4,7 +4,6 @@ import pprint # noqa
 import logging
 import argparse
 from web import Web
-# from parse import get_momios
 from utils import path
 from utils import get_percent
 from utils import save_matches
@@ -156,6 +155,7 @@ def main(hoy=False, overwrite=False):
         return
 
     process_matches(matches, date, web, overwrite)
+    web.close()
 
 
 if __name__ == "__main__":
@@ -164,19 +164,4 @@ if __name__ == "__main__":
         main(False, overwrite)
     else:
         main(True, overwrite)
-
-# momios = get_momios(
-#     path_html,
-#     match_filename,
-#     link_momios_1x2,
-#     link_momios_goles,
-#     link_momios_ambos,
-#     link_momios_handicap,
-#     web,
-#     overwrite
-# )
-# if momios['OK']:
-#     pass
-# else:
-#     logging.info(f'DESCARTADO MOMIOS {liga} | {home}:{matches["home_nmatches"]} - {away}:{matches["away_nmatches"]} VS:{matches["vs_nmatches"]}') # noqa
-#     pprint.pprint(momios)
+    

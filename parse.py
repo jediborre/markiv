@@ -58,10 +58,10 @@ def parse_all_matches(html):
                     local, visitante = equipos.split(' - ')
                     link = partido_actual.find_next_sibling('a')['href']
                     link = f'{domain}{link}#/h2h/overall'
-                    link_1x2 = f'{domain}{link}#/comparacion-de-momios/momios-1x2/partido' # noqa
-                    link_goles = f'{domain}{link}#/comparacion-de-momios/mas-de-menos-de/partido' # noqa
-                    link_ambos = f'{domain}{link}#/comparacion-de-momios/ambos-equipos-marcaran/partido' # noqa
-                    link_handicap = f'{domain}{link}#/comparacion-de-momios/handicap-asiatico/partido' # noqa
+                    link_1x2 = f'{link}#/comparacion-de-momios/momios-1x2/partido' # noqa
+                    link_goles = f'{link}#/comparacion-de-momios/mas-de-menos-de/partido' # noqa
+                    link_ambos = f'{link}#/comparacion-de-momios/ambos-equipos-marcaran/partido' # noqa
+                    link_handicap = f'{link}#/comparacion-de-momios/handicap-asiatico/partido' # noqa
                     resultados.append((
                         pais,
                         nombre_liga,
@@ -339,6 +339,7 @@ def getAmbos(path_html, filename, link, web, overwrite=False):
 
     if not os.path.exists(html_path):
         print(f'Momios {nom}', link, '→', filename)
+        link = re.sub(r'https://www.flashscore.com.mxhttps', 'https', link) # noqa
         web.open(link)
         web.save(html_path)
     else:
@@ -383,6 +384,7 @@ def get1x2(path_html, filename, link, web, overwrite=False):
 
     if not os.path.exists(html_path):
         print(f'Momios {nom}', link, '→', filename)
+        link = re.sub(r'https://www.flashscore.com.mxhttps', 'https', link) # noqa
         web.open(link)
         web.save(html_path)
     else:
@@ -427,6 +429,7 @@ def getmGoles(path_html, filename, link, web, overwrite=False):
 
     if not os.path.exists(html_path):
         print(f'Momios {nom}', link, '→', filename)
+        link = re.sub(r'https://www.flashscore.com.mxhttps', 'https', link) # noqa
         web.open(link)
         web.save(html_path)
     else:
@@ -473,8 +476,8 @@ def getHandicap(path_html, filename, link, web, overwrite=False):
 
     if not os.path.exists(html_path):
         print(f'Momios {nom}', link, '→', filename)
+        link = re.sub(r'https://www.flashscore.com.mxhttps', 'https', link) # noqa
         web.open(link)
-
         web.save(html_path)
     else:
         print(f'Momios {nom}', '←', filename)
