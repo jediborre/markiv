@@ -27,6 +27,7 @@ def main(path_matches: str):
         liga = match['liga']
         home = match['home']
         away = match['away']
+        link = match['url']
         link_1x2 = match['l_1x2']
         link_goles = match['l_goles']
         link_ambos = match['l_ambos']
@@ -42,6 +43,8 @@ def main(path_matches: str):
             web,
             True
         )
+        logging.info(f'#{id} {hora}|{liga} | {home} - {away}')
+        logging.info(link)
         if momios['OK']:
             logging.info(f'#{id} {hora}|{liga} | {home} - {away}')
         else:

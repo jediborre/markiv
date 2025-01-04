@@ -95,10 +95,13 @@ def get_team_matches(path_html, filename, link, home, away, liga, web, overwrite
         web.wait_Class('h2h__section', 20)
         result = parse_team_matches(web.source(), 'vs')
         if result['vs_nmatches'] > 3:
-            print('\nHome Matches ', end="")
-            click_more_matches(web, 'home', home, liga)
-            print('Away Matches ', end="")
-            click_more_matches(web, 'away', away, liga)
+            try:
+                print('\nHome Matches ', end="")
+                click_more_matches(web, 'home', home, liga)
+                print('Away Matches ', end="")
+                click_more_matches(web, 'away', away, liga)
+            except RecursionError:
+                print('RecursionError')
             web.save(html_path)
         else:
             web.save(html_path)
@@ -116,11 +119,11 @@ def get_team_matches(path_html, filename, link, home, away, liga, web, overwrite
             return parse_team_matches(file, 'all', home=home, away=away, liga=liga) # noqa
 
 
-def click_more_matches(web, team, team_name, liga):
+def click_more_matches(web, team, team_name, liga, retries=0):
+    MAX_RETRIES = 3
     sections = web.CLASS('h2h__section', multiples=True)
     section = sections[0] if team == 'home' else sections[1]
     result = parse_team_matches(web.source(), team, team_name=team_name, liga=liga) # noqa
-    num_matches = result['home_nmatches'] if team == 'home' else result['away_nmatches'] # noqa
     if not result['OK'] and section.EXIST_CLASS('showMore'):
         btn_showMore = section.CLASS('showMore')
         btn_showMore.scroll_to()
@@ -130,8 +133,11 @@ def click_more_matches(web, team, team_name, liga):
             web.scrollY(-150)
             btn_showMore.click()
             print('.', end="|")
-        web.wait()
-        click_more_matches(web, team, team_name, liga)
+        if retries < MAX_RETRIES:
+            web.wait()
+            click_more_matches(web, team, team_name, liga, retries + 1)
+        else:
+            print(' DONE MAX RETRIES')
     else:
         print(' DONE')
 
@@ -338,8 +344,8 @@ def getAmbos(path_html, filename, link, web, overwrite=False):
             os.remove(html_path)
 
     if not os.path.exists(html_path):
-        print(f'Momios {nom}', link, '→', filename)
         link = re.sub(r'https://www.flashscore.com.mxhttps', 'https', link) # noqa
+        print(f'Momios {nom}', link, '→', filename)
         web.open(link)
         web.save(html_path)
     else:
