@@ -120,7 +120,7 @@ def get_team_matches(path_html, filename, link, home, away, liga, web, overwrite
 
 
 def click_more_matches(web, team, team_name, liga, retries=0):
-    MAX_RETRIES = 3
+    MAX_RETRIES = 25
     sections = web.CLASS('h2h__section', multiples=True)
     section = sections[0] if team == 'home' else sections[1]
     result = parse_team_matches(web.source(), team, team_name=team_name, liga=liga) # noqa
