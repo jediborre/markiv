@@ -20,36 +20,35 @@ parser.add_argument('--over', action='store_true', help="Sobreescribir")
 def main(path_matches: str):
     web = Web()
     matches = get_json(path_matches)
-    for match in matches:
-        id = match['id']
-        pais = match['pais']
-        hora = match['hora']
-        liga = match['liga']
-        home = match['home']
-        away = match['away']
-        link = match['url']
-        link_1x2 = match['l_1x2']
-        link_goles = match['l_goles']
-        link_ambos = match['l_ambos']
-        link_handicap = match['l_handicap']
-        filename_match = match['filename_match']
-        momios = get_momios(
-            path_html,
-            filename_match,
-            link_1x2,
-            link_goles,
-            link_ambos,
-            link_handicap,
-            web,
-            True
-        )
-        logging.info(f'#{id} {hora}|{liga} | {home} - {away}')
-        logging.info(link)
-        if momios['OK']:
-            logging.info(f'#{id} {hora}|{liga} | {home} - {away}')
-        else:
-            logging.info(f'#{id} {hora}|{liga} | {home} - {away} MOMIOS')
-            pprint.pprint(momios)
+    try:
+        for match in matches:
+            id = match['id']
+            pais = match['pais']
+            hora = match['hora']
+            liga = match['liga']
+            home = match['home']
+            away = match['away']
+            link = match['url']
+            filename_match = match['filename_match']
+            logging.info(f'#{id} ')
+            momios = get_momios(
+                path_html,
+                filename_match,
+                link,
+                web,
+                True
+            )
+            if momios['OK']:
+                logging.info(f'#{id} {hora}|{pais} {liga}| {home} - {away}\n')
+            else:
+                odds_1x2 = 'OK' if momios['odds_1x2']['OK'] else 'NO' # noqa
+                odds_ambos = 'OK' if momios['odds_ambos']['OK'] else 'NO' # noqa
+                odds_goles = 'OK' if momios['odds_goles']['OK'] else 'NO' # noqa
+                odds_handicap = 'OK' if momios['odds_handicap']['OK'] else 'NO' # noqa
+                logging.info(f'#{id} {hora}|{liga} | {home} - {away} MOMIOS 1x2: {odds_1x2}, GOLES: {odds_goles}, AMBOS: {odds_ambos}, HANDICAP: {odds_handicap}\n') # noqa
+                input('Presiona Enter para continuar')
+    except KeyboardInterrupt:
+        print('\nFin...')
     # web.close()
 
 

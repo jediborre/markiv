@@ -89,7 +89,7 @@ def get_team_matches(path_html, filename, link, home, away, liga, web, overwrite
             os.remove(html_path)
 
     if not os.path.exists(html_path):
-        # print('Match', link, '→', filename_page_h2h) # noqa
+        # print('Match', '→', filename_page_h2h) # noqa
         web.open(link)
 
         web.wait_Class('h2h__section', 20)
@@ -285,45 +285,57 @@ def parse_team_section(matches, team=None, team_name=None, liga=None, debug=Fals
         return result
 
 
-def get_momios(path_html, filename, link_momios_1x2, link_momios_goles, link_momios_ambos, link_momios_handicap, web, overwrite=False): # noqa
-    momios_ambos = getAmbos(path_html, filename, link_momios_ambos, web, overwrite) # noqa
+def get_momios(path_html, filename, link_match, web, overwrite=False): # noqa
+    web.open(link_match)
+    # encuentra boton MOMIOS
+    btns_momios = web.CLASS('wcl-tab_y-fEC', True)
+    if len(btns_momios) > 0:
+        for btn in btns_momios:
+            texto = btn.text().lower()
+            if texto == 'momios':
+                btn.scroll_top()
+                btn.click()
+                web.wait(2)
+                break
+    
+    momios_ambos = getAmbos(path_html, filename, web, overwrite) # noqa
     if not momios_ambos['OK']:
         return {
             'OK': False,
-            'odds_1x2': {},
-            'odds_goles': {},
+            'odds_1x2': {'OK': False},
+            'odds_goles': {'OK': False},
             'odds_ambos': momios_ambos,
-            'odds_hadicap': {},
+            'odds_handicap': {'OK': False},
         }
 
-    momios_1x2 = get1x2(path_html, filename, link_momios_1x2, web, overwrite) # noqa
+    momios_1x2 = get1x2(path_html, filename, web, overwrite) # noqa
     if not momios_1x2['OK']:
         return {
             'OK': False,
             'odds_1x2': momios_1x2,
-            'odds_goles': {},
+            'odds_goles': {'OK': False},
             'odds_ambos': momios_ambos,
-            'odds_hadicap': {},
+            'odds_handicap': {'OK': False},
         }
 
-    momios_goles = getmGoles(path_html, filename, link_momios_goles, web, overwrite) # noqa
+    momios_goles = getmGoles(path_html, filename, web, overwrite) # noqa
     if not momios_goles['OK']:
         return {
             'OK': False,
             'odds_1x2': momios_1x2,
             'odds_goles': momios_goles,
             'odds_ambos': momios_ambos,
-            'odds_hadicap': {},
+            'odds_handicap': {'OK': False},
         }
 
-    momios_handicap = getHandicap(path_html, filename, link_momios_handicap, web, overwrite) # noqa
+    momios_handicap = getHandicap(path_html, filename, web, overwrite) # noqa
     if not momios_handicap['OK']:
         return {
             'OK': False,
             'odds_1x2': momios_1x2,
             'odds_goles': momios_goles,
             'odds_ambos': momios_ambos,
-            'odds_hadicap': momios_handicap,
+            'odds_handicap': momios_handicap,
         }
 
     return {
@@ -331,11 +343,11 @@ def get_momios(path_html, filename, link_momios_1x2, link_momios_goles, link_mom
         'odds_1x2': momios_1x2,
         'odds_goles': momios_goles,
         'odds_ambos': momios_ambos,
-        'odds_hadicap': momios_handicap,
+        'odds_handicap': momios_handicap,
     }
 
 
-def getAmbos(path_html, filename, link, web, overwrite=False):
+def getAmbos(path_html, filename, web, overwrite=False):
     nom = 'Ambos'
     filename = f'{filename}_{nom}.html'
     html_path = os.path.join(path_html, filename)
@@ -344,9 +356,17 @@ def getAmbos(path_html, filename, link, web, overwrite=False):
             os.remove(html_path)
 
     if not os.path.exists(html_path):
-        link = re.sub(r'https://www.flashscore.com.mxhttps', 'https', link) # noqa
-        print(f'Momios {nom}', link, '→', filename)
-        web.open(link)
+        print(f'Momios {nom}', '→', filename)
+        btn_momios = web.CLASS('wcl-tab_y-fEC', True)
+        if len(btn_momios) > 0:
+            for btn in btn_momios:
+                texto = btn.text().lower()
+                print(texto)
+                if texto == 'ambos equipos marcarán':
+                    btn.scroll_top()
+                    btn.click()
+                    web.wait(2)
+                    break
         web.save(html_path)
     else:
         print(f'Momios {nom}', '←', filename)
@@ -380,7 +400,7 @@ def parse_odds_ambos(html):
     }
 
 
-def get1x2(path_html, filename, link, web, overwrite=False):
+def get1x2(path_html, filename, web, overwrite=False):
     nom = '1x2'
     filename = f'{filename}_{nom}.html'
     html_path = os.path.join(path_html, filename)
@@ -389,9 +409,7 @@ def get1x2(path_html, filename, link, web, overwrite=False):
             os.remove(html_path)
 
     if not os.path.exists(html_path):
-        print(f'Momios {nom}', link, '→', filename)
-        link = re.sub(r'https://www.flashscore.com.mxhttps', 'https', link) # noqa
-        web.open(link)
+        print(f'Momios {nom}', '→', filename)
         web.save(html_path)
     else:
         print(f'Momios {nom}', '←', filename)
@@ -425,7 +443,7 @@ def parse_odds_1x2(html):
     }
 
 
-def getmGoles(path_html, filename, link, web, overwrite=False):
+def getmGoles(path_html, filename, web, overwrite=False):
     nom = 'Goles'
     filename = re.sub(r'-|:', '', filename) + f'_{nom}.html'
     html_path = os.path.join(path_html, filename)
@@ -434,9 +452,7 @@ def getmGoles(path_html, filename, link, web, overwrite=False):
             os.remove(html_path)
 
     if not os.path.exists(html_path):
-        print(f'Momios {nom}', link, '→', filename)
-        link = re.sub(r'https://www.flashscore.com.mxhttps', 'https', link) # noqa
-        web.open(link)
+        print(f'Momios {nom}', '→', filename)
         web.save(html_path)
     else:
         print(f'Momios {nom}', '←', filename)
@@ -472,7 +488,7 @@ def parse_odds_goles(html):
         return {'OK': False}
 
 
-def getHandicap(path_html, filename, link, web, overwrite=False):
+def getHandicap(path_html, filename, web, overwrite=False):
     nom = 'Handicap'
     filename = re.sub(r'-|:', '', filename) + f'_{nom}.html'
     html_path = os.path.join(path_html, filename)
@@ -481,9 +497,7 @@ def getHandicap(path_html, filename, link, web, overwrite=False):
             os.remove(html_path)
 
     if not os.path.exists(html_path):
-        print(f'Momios {nom}', link, '→', filename)
-        link = re.sub(r'https://www.flashscore.com.mxhttps', 'https', link) # noqa
-        web.open(link)
+        print(f'Momios {nom}', '→', filename)
         web.save(html_path)
     else:
         print(f'Momios {nom}', '←', filename)
