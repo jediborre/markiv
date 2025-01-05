@@ -58,9 +58,13 @@ def main(path_matches: str):
 
     print(f'Partidos {result["fecha"]}: {len(matches)}')
     for fecha_programacion, ts in result['cron']:
+        date = ts[:8]
         cron_matches = result[ts]
         print(fecha_programacion[11:])
-        path_cron_matches = path(path_cron, f'{ts}.json')
+        path_cron_date = path(path_cron, date)
+        if not os.path.exists(path_cron_date):
+            os.makedirs(path_cron_date)
+        path_cron_matches = path(path_cron, date, f'{ts}.json')
         with open(path_cron_matches, 'w') as f:
             f.write(json.dumps(cron_matches, indent=4))
         for m in cron_matches:
