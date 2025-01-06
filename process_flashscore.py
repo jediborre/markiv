@@ -19,6 +19,7 @@ parser.add_argument('--over', action='store_true', help="Sobreescribir")
 
 
 def main(path_matches: str, filename_result: str, overwrite: bool = False):
+    logging.info(f'Procesa Hora Matches MarkIV {path_matches} overwrite: {'SI' if overwrite else 'NO'}') # noqa
     web = Web()
     result = []
     matches = get_json(path_matches)
@@ -82,7 +83,7 @@ if __name__ == '__main__':
     overwrite = True
 
     if not os.path.exists(path_file):
-        print(f'Archivo {path_file} no existe')
+        logging.info(f'Archivo {path_file} no existe')
         exit(1)
 
     main(path_file, filename_noext, overwrite)
