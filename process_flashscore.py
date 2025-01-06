@@ -66,7 +66,7 @@ def main(path_matches: str, filename_result: str, overwrite: bool = False):
             path_result_file = path(path_result_ok, f'{filename_result}.json')
             with open(path_result_file, 'w') as file:
                 file.write(json.dumps(result, indent=4))
-                logging.info(f'Archivo {path_result_file} creado')            
+                logging.info(f'Archivo {path_result_file} creado')
     except KeyboardInterrupt:
         print('\nFin...')
     # web.close()
@@ -79,6 +79,7 @@ if __name__ == '__main__':
     filename_date = filename_noext[:8]
     path_file = path(path_cron, filename_date, filename)
     overwrite = args.over
+    overwrite = True
 
     if not os.path.exists(path_file):
         print(f'Archivo {path_file} no existe')
