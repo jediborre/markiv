@@ -94,8 +94,9 @@ class ChainedWeb:
 class Web:
     driver: webdriver.Chrome = None
 
-    def __init__(self, url=None) -> None:
+    def __init__(self, url=None, debug=False) -> None:
         proxy_url = 'https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&country=mx,us,ca&protocol=http&proxy_format=ipport&format=text&timeout=4000' # noqa
+        self.debug = debug
         self.user_agents = [
             # Desktop
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Safari/537.36", # noqa
@@ -125,7 +126,8 @@ class Web:
             raise Exception("No proxies available")
 
         if url:
-            logging.info(f'Init: {url}')
+            if self.debug:
+                logging.info(f'Init: {url}')
             self.open(url)
 
     def get_proxies_from_url(self, url):
@@ -135,7 +137,8 @@ class Web:
             proxies = response.text.splitlines()
             return [proxy.strip() for proxy in proxies if proxy.strip()]
         except requests.RequestException as e:
-            print(f"Error fetching proxies from {url}: {e}")
+            if self.debug:
+                print(f"Error fetching proxies from {url}: {e}")
             return []
 
     def open_chrome(self):
@@ -157,10 +160,10 @@ class Web:
             self.driver = webdriver.Chrome(options=chrome_options)
             self.driver.maximize_window()
         except SessionNotCreatedException as e:
-            print(e.msg)
+            logging.info(e.msg)
             sys.exit(0)
         except WebDriverException as e:
-            print(e.msg)
+            logging.info(e.msg)
             sys.exit(0)
 
     def wait(self, secs=1):
@@ -205,20 +208,18 @@ class Web:
             self.driver.add_cookie(cookie)
         self.driver.refresh()
 
-    def open(self, url, debug=False):
+    def open(self, url):
         if self.driver:
             self.quit()
 
         self.start_browser()
 
-        if debug:
-            self.log('open: ' + url)
-
         try:
+            if self.debug:
+                self.log('opening: ' + url)
             self.driver.get(url)
         except WebDriverException as e:
-            self.log(f"Error opening URL: {e.msg}")
-            print(e)
+            self.log(f"WEB open URL: {url} Error: {e.msg}")
 
     def ID(self, id_name, multiples=False):
         if multiples:

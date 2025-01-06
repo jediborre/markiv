@@ -23,7 +23,7 @@ def main(path_matches: str, filename_result: str, overwrite: bool = False):
     web = Web()
     result = []
     matches = get_json(path_matches)
-    logging.info(f'\nMatches {len(matches)}\n')
+    logging.info(f'Matches {len(matches)}')
     try:
         for match in matches:
             id = match['id']
