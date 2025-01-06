@@ -4,6 +4,7 @@ import pytz
 import logging # noqa
 import argparse
 from utils import path
+from utils import wakeup
 from utils import get_json
 from utils import prepare_paths
 from datetime import datetime, timedelta
@@ -20,7 +21,7 @@ parser.add_argument(
 )
 
 
-def main(path_matches: str):
+def main(path_matches: str, debug_hora=None):
     result = {
         'fecha': '',
         'cron': [],
@@ -60,15 +61,24 @@ def main(path_matches: str):
     for fecha_programacion, ts in result['cron']:
         date = ts[:8]
         cron_matches = result[ts]
-        print(fecha_programacion[11:])
-        path_cron_date = path(path_cron, date)
-        if not os.path.exists(path_cron_date):
-            os.makedirs(path_cron_date)
-        path_cron_matches = path(path_cron, date, f'{ts}.json')
-        with open(path_cron_matches, 'w') as f:
-            f.write(json.dumps(cron_matches, indent=4))
-        for m in cron_matches:
-            print(f'{m["hora"]}|{m["id"]}|{m["pais"]} : {m["liga"]}|{m["home"]} - {m["away"]}') # noqa
+        hora = fecha_programacion[11:]
+        fecha_hora_programacion = result["fecha"] + ' ' + fecha_programacion[11:] # noqa
+        work = True
+        if debug_hora:
+            if hora != debug_hora:
+                work = False
+        if work:
+            print(f'{hora} {len(cron_matches)}')
+            for m in cron_matches:
+                print(f'{m["hora"]}|{m["id"]}|{m["pais"]} : {m["liga"]}|{m["home"]} - {m["away"]}') # noqa
+            path_cron_date = path(path_cron, date)
+            if not os.path.exists(path_cron_date):
+                os.makedirs(path_cron_date)
+            path_cron_matches = path(path_cron_date, f'{ts}.json')
+            with open(path_cron_matches, 'w') as f:
+                f.write(json.dumps(cron_matches, indent=4))
+                wakeup('process_flashscore.py', fecha_hora_programacion, ts)
+
     print(f'Descartados: {descartados}')
 
 
@@ -80,4 +90,4 @@ if __name__ == '__main__':
         print(f'Archivo {path_file} no existe')
         exit(1)
 
-    main(path_file)
+    main(path_file, '15:00:00')

@@ -32,13 +32,12 @@ def get_json(path_file: str):
     return json.loads(open(path_file, 'r').read())
 
 
-def wakeup(match_id: int, date_ht: str):
+def wakeup(script: str, fecha_programacion: str, matches_ts: str):
     try:
         if os.name == 'nt':
             WD = os.getcwd()
-            trigger_time = datetime.strptime(date_ht, '%Y-%m-%d %H:%M:%S')
-            match_id = str(match_id)
-            script_path = os.path.join(WD, 'match_performance.py')
+            trigger_time = datetime.strptime(fecha_programacion, '%Y-%m-%d %H:%M:%S') # noqa
+            script_path = os.path.join(WD, script)
             python_path = os.path.join(WD, '.venv', 'Scripts', 'python.exe')
             if not os.path.exists(python_path):
                 logging.error(f"Python executable not found at {python_path}")
@@ -49,17 +48,17 @@ def wakeup(match_id: int, date_ht: str):
             logging.info(f"Scheduling task to run script at {script_path} with Python at {python_path}") # noqa
 
             create_task(
-                f'MATCH_{match_id}',
+                f'MarkIV Mathces {matches_ts}',
+                trigger_time,
                 python_path,
                 script_path,
-                match_id,
-                trigger_time
+                f'{matches_ts}.json'
             )
     except Exception as e:
         logging.exception(f"Exception occurred in wakeup function: {e}")
 
 
-def create_task(task_name, python_path, script_path, args, trigger_time):
+def create_task(task_name, trigger_time, python_path, script_path, args):
     try:
         if os.name == 'nt':
             scheduler = win32com.client.Dispatch('Schedule.Service')
