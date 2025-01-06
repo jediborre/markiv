@@ -163,6 +163,14 @@ def keys_uppercase(json_data):
         return json_data
 
 
+def decimal_american(odds_decimal):
+    odds_float = float(odds_decimal)
+    if odds_float >= 2.0:
+        return f"+{int((odds_float - 1) * 100)}"
+    else:
+        return f"{int(-100 / (odds_float - 1))}"
+
+
 def get_momios_image(img_filename):
     img_filepath = os.path.join('img', img_filename)
     if os.path.exists(img_filepath):

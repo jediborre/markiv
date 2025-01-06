@@ -1,10 +1,12 @@
 import re
 import os
+import random
 import logging
 from fuzzywuzzy import fuzz
 from bs4 import BeautifulSoup
 from utils import path
 from utils import limpia_nombre
+from utils import decimal_american
 
 
 def get_all_matches(path_html, filename, matches_link, web, overwrite=False): # noqa
@@ -58,21 +60,17 @@ def parse_all_matches(html):
                     local, visitante = equipos.split(' - ')
                     link = partido_actual.find_next_sibling('a')['href']
                     link = f'{domain}{link}#/h2h/overall'
-                    link_1x2 = f'{link}#/comparacion-de-momios/momios-1x2/partido' # noqa
-                    link_goles = f'{link}#/comparacion-de-momios/mas-de-menos-de/partido' # noqa
-                    link_ambos = f'{link}#/comparacion-de-momios/ambos-equipos-marcaran/partido' # noqa
-                    link_handicap = f'{link}#/comparacion-de-momios/handicap-asiatico/partido' # noqa
+                    # link_1x2 = f'{link}#/comparacion-de-momios/momios-1x2/partido' # noqa
+                    # link_goles = f'{link}#/comparacion-de-momios/mas-de-menos-de/partido' # noqa
+                    # link_ambos = f'{link}#/comparacion-de-momios/ambos-equipos-marcaran/partido' # noqa
+                    # link_handicap = f'{link}#/comparacion-de-momios/handicap-asiatico/partido' # noqa
                     resultados.append((
                         pais,
                         nombre_liga,
                         hora,
                         local,
                         visitante,
-                        link,
-                        link_1x2,
-                        link_goles,
-                        link_ambos,
-                        link_handicap
+                        link
                     ))
                 except ValueError:
                     pass
@@ -142,19 +140,36 @@ def click_more_matches(web, team, team_name, liga, retries=0):
         print(' DONE')
 
 
-def click_momios_btn(name, web):
+def click_momios_btn(name, web, debug=False):
     found = False
     btn_momios = web.CLASS('wcl-tab_y-fEC', True)
     if len(btn_momios) > 0:
         for btn in btn_momios:
             texto = btn.text().lower()
-            if texto == name:
-                btn.scroll_top()
-                btn.click()
-                # print(texto, 'click')
-                web.wait(2)
-                found = True
-                break
+            if type(name) is list:
+                if debug:
+                    print(f'BOTON: {texto} in "{name}" -> {any([x in texto for x in name])}') # noqa
+                if any([x in texto for x in name]):
+                    btn.scroll_top()
+                    if debug:
+                        print(texto, 'click')
+                        btn.click()
+                        web.wait(1)
+                    btn.click()
+                    web.wait(random.randint(1, 3))
+                    found = True
+                    break
+            elif type(name) is str:
+                if debug:
+                    print(f'BOTON: {texto} == "{name}" -> {texto == name}')
+                if texto == name:
+                    btn.scroll_top()
+                    btn.click()
+                    if debug:
+                        print(texto, 'click')
+                    web.wait(random.randint(1, 3))
+                    found = True
+                    break
         if not found:
             print('Boton no encontrado:', name)
     return found
@@ -305,7 +320,8 @@ def parse_team_section(matches, team=None, team_name=None, liga=None, debug=Fals
 
 def get_momios(path_html, filename, link_match, web, overwrite=False): # noqa
     web.open(link_match)
-    btn_momios = click_momios_btn('momios', web)
+    web.wait(1)
+    btn_momios = click_momios_btn('momios', web, True)
     if not btn_momios:
         return {
             'OK': False,
@@ -315,18 +331,17 @@ def get_momios(path_html, filename, link_match, web, overwrite=False): # noqa
             'odds_handicap': {'OK': False},
         }
 
-    momios_ambos = getAmbos(path_html, filename, web, overwrite) # noqa
-    if not momios_ambos['OK']:
-        return {
-            'OK': False,
-            'odds_1x2': {'OK': False},
-            'odds_goles': {'OK': False},
-            'odds_ambos': momios_ambos,
-            'odds_handicap': {'OK': False},
-        }
-
     momios_1x2 = get1x2(path_html, filename, web, overwrite) # noqa
     if not momios_1x2['OK']:
+        return {
+            'OK': False,
+            'odds_1x2': momios_1x2,
+            'odds_goles': {'OK': False},
+            'odds_ambos': {'OK': False},
+            'odds_handicap': {'OK': False},
+        }
+    momios_ambos = getAmbos(path_html, filename, web, overwrite) # noqa
+    if not momios_ambos['OK']:
         return {
             'OK': False,
             'odds_1x2': momios_1x2,
@@ -373,11 +388,11 @@ def getAmbos(path_html, filename, web, overwrite=False):
             os.remove(html_path)
 
     if not os.path.exists(html_path):
-        print(f'Momios {nom}', '→', filename, end=" ")
+        print(f'{nom}', '→', filename, end=" ")
         click_momios_btn('ambos equipos marcarán', web)
         web.save(html_path)
     else:
-        print(f'Momios {nom}', '←', filename, end=" ")
+        print(f'{nom}', '←', filename, end=" ")
 
     if os.path.exists(html_path):
         with open(html_path, 'r', encoding='utf-8') as file:
@@ -394,17 +409,19 @@ def parse_odds_ambos(html):
     if odds_row:
         for row in odds_row:
             prematchLogo = row.find('img', class_='prematchLogo')
-            casa_apuesta = prematchLogo['title'] if prematchLogo and 'title' in prematchLogo.attrs else '' # noqa
+            casa_apuesta = prematchLogo['title'].lower() if prematchLogo and 'title' in prematchLogo.attrs else '' # noqa
             odds = [span.text for span in row.find_all('span') if span.text]
-            if casa_apuesta == 'Calientemx':
+            if casa_apuesta == '1xbet':
+                odds_american = [decimal_american(odd) for odd in odds]
                 return {
                     'OK': True,
                     'casa': casa_apuesta,
-                    'odds': odds
+                    'decimal': odds,
+                    'american': odds_american
                 }
-        print('ODDS Ambos Marcan No hay Caliente')
     return {
-        'OK': False
+        'OK': False,
+        'ERROR': 'No hay 1xBet'
     }
 
 
@@ -417,11 +434,11 @@ def get1x2(path_html, filename, web, overwrite=False):
             os.remove(html_path)
 
     if not os.path.exists(html_path):
-        print(f'Momios {nom}', '→', filename, end=" ")
+        print(f'{nom}', '→', filename, end=" ")
         click_momios_btn('1x2', web)
         web.save(html_path)
     else:
-        print(f'Momios {nom}', '←', filename)
+        print(f'{nom}', '←', filename)
 
     if os.path.exists(html_path):
         with open(html_path, 'r', encoding='utf-8') as file:
@@ -438,17 +455,19 @@ def parse_odds_1x2(html):
     if odds_row:
         for row in odds_row:
             prematchLogo = row.find('img', class_='prematchLogo')
-            casa_apuesta = prematchLogo['title'] if prematchLogo and 'title' in prematchLogo.attrs else '' # noqa
+            casa_apuesta = prematchLogo['title'].lower() if prematchLogo and 'title' in prematchLogo.attrs else '' # noqa
             odds = [span.text for span in row.find_all('span') if span.text]
-            if casa_apuesta == 'Calientemx':
+            if casa_apuesta == 'calientemx':
+                odds_american = [decimal_american(odd) for odd in odds]
                 return {
                     'OK': True,
                     'casa': casa_apuesta,
-                    'odds': odds
+                    'decimal': odds,
+                    'american': odds_american
                 }
-        print('ODDS 1x2 No hay Caliente')
     return {
-        'OK': False
+        'OK': False,
+        'ERROR': 'No hay Caliente'
     }
 
 
@@ -461,11 +480,11 @@ def getmGoles(path_html, filename, web, overwrite=False):
             os.remove(html_path)
 
     if not os.path.exists(html_path):
-        print(f'Momios {nom}', '→', filename, end=" ")
-        click_momios_btn('más/menos de', web)
+        print(f'{nom}', '→', filename, end=" ")
+        click_momios_btn(['más/menos de', 'más de/menos de'], web)
         web.save(html_path)
     else:
-        print(f'Momios {nom}', '←', filename)
+        print(f'{nom}', '←', filename)
 
     if os.path.exists(html_path):
         with open(html_path, 'r', encoding='utf-8') as file:
@@ -475,27 +494,52 @@ def getmGoles(path_html, filename, web, overwrite=False):
 
 
 def parse_odds_goles(html):
-    result = []
+    result = {}
     soup = BeautifulSoup(html, 'html.parser')
     odds_row = soup.find_all('div', class_='ui-table__row')
     if odds_row:
+        casas = []
         for row in odds_row:
             prematchLogo = row.find('img', class_='prematchLogo')
-            casa_apuesta = prematchLogo['title'] if prematchLogo and 'title' in prematchLogo.attrs else '' # noqa
+            casa_apuesta = prematchLogo['title'].lower() if prematchLogo and 'title' in prematchLogo.attrs else '' # noqa
+            casas.append(casa_apuesta)
             odds = [span.text for span in row.find_all('span') if span.text]
-            if casa_apuesta == 'Calientemx':
-                result.append({
+            if casa_apuesta == 'calientemx':
+                goals = odds[0]
+                odds_decimal = odds[1:]
+                odds_american = [decimal_american(odd) for odd in odds_decimal] # noqa
+                result[goals] = {
                     'casa': casa_apuesta,
-                    'odds': odds
-                })
-        print('ODDS Goles No hay Caliente')
+                    'decimal': odds_decimal,
+                    'american': odds_american
+                }
     if len(result) > 0:
-        return {
-            'OK': True,
-            'odds': result
-        }
+        if '3.5' not in result:
+            return {
+                'OK': False,
+                'ERROR': 'No hay 3.5',
+                'odds': result
+            }
+        else:
+            # -3.5 rango entre -450 a -700
+            menos = int(result['3.5']['american'][1])
+            if menos <= -450 and menos >= -700:
+                return {
+                    'OK': True,
+                    'odds': result
+                }
+            else:
+                return {
+                    'OK': False,
+                    'ERROR': 'MOMIO -3.5 no está en rango',
+                    'odds': result
+                }
     else:
-        return {'OK': False}
+        print(f'ODDS Goles No hay Caliente {casas}')
+        return {
+            'OK': False,
+            'ERROR': 'No hay Caliente'
+        }
 
 
 def getHandicap(path_html, filename, web, overwrite=False):
@@ -507,11 +551,11 @@ def getHandicap(path_html, filename, web, overwrite=False):
             os.remove(html_path)
 
     if not os.path.exists(html_path):
-        print(f'Momios {nom}', '→', filename, end=" ")
+        print(f'{nom}', '→', filename, end=" ")
         click_momios_btn('handicap asiático', web)
         web.save(html_path)
     else:
-        print(f'Momios {nom}', '←', filename, end=" ")
+        print(f'{nom}', '←', filename, end=" ")
 
     if os.path.exists(html_path):
         with open(html_path, 'r', encoding='utf-8') as file:
@@ -521,24 +565,40 @@ def getHandicap(path_html, filename, web, overwrite=False):
 
 
 def parse_handicap(html):
-    result = []
+    result = {}
     soup = BeautifulSoup(html, 'html.parser')
     odds_row = soup.find_all('div', class_='ui-table__row')
     if odds_row:
         for row in odds_row:
             prematchLogo = row.find('img', class_='prematchLogo')
-            casa_apuesta = prematchLogo['title'] if prematchLogo and 'title' in prematchLogo.attrs else '' # noqa
+            casa_apuesta = prematchLogo['title'].lower() if prematchLogo and 'title' in prematchLogo.attrs else '' # noqa
             odds = [span.text for span in row.find_all('span') if span.text]
             if casa_apuesta == 'bet365':
-                result.append({
+                handicap = odds[0]
+                odds_decimal = odds[1:]
+                odds_american = [decimal_american(odd) for odd in odds_decimal] # noqa
+                result[handicap] = {
                     'casa': casa_apuesta,
-                    'odds': odds
-                })
-        print('ODDS Handicap No hay Bet365')
+                    'decimal': odds_decimal,
+                    'american': odds_american
+                }
+    # HandiCap Asiatico -0/-0.5 (OBLIGATORIO)
+    # HandiCap Asiatico -1 (OBLIGATORIO)
+    # HandiCap Asiatico -2 (OPCIONAL)
     if len(result) > 0:
-        return {
-            'OK': True,
-            'odds': result
-        }
+        if '0, -0.5' in result and '-1' in result:
+            return {
+                'OK': True,
+                'odds': result
+            }
+        else:
+            return {
+                'OK': False,
+                'ERROR': 'No hay Handicap Asiatico -0/-0.5 y -1',
+                'odds': result
+            }
     else:
-        return {'OK': False}
+        return {
+            'OK': False,
+            'ERROR': 'No hay Bet365'
+        }

@@ -53,11 +53,7 @@ def process_matches(matches_, date, web, overwrite=False):
             hora,
             home,
             away,
-            link,
-            l_1x2,
-            l_goles,
-            l_ambos,
-            l_handicap
+            link,            
         ] = match
 
         filename_hora = re.sub(r":", "", hora)
@@ -100,10 +96,6 @@ def process_matches(matches_, date, web, overwrite=False):
                 'goles': None,
                 'ambos': None,
                 'handicap': None,
-                'l_1x2': l_1x2,
-                'l_goles': l_goles,
-                'l_ambos': l_ambos,
-                'l_handicap': l_handicap,
                 'home_matches': team_matches['home_matches'],
                 'away_matches': team_matches['away_matches'],
                 'vs_matches': team_matches['vs_matches'],
