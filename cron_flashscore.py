@@ -6,6 +6,7 @@ import argparse
 from utils import path
 from utils import wakeup
 from utils import get_json
+from utils import is_admin
 from utils import prepare_paths
 from datetime import datetime, timedelta
 
@@ -18,6 +19,11 @@ parser.add_argument(
     'file',
     type=str,
     help='Archivo de Partidos Flashscore'
+)
+parser.add_argument(
+    '--admin',
+    action='store_true',
+    help='Is Admin'
 )
 
 
@@ -77,7 +83,9 @@ def main(path_matches: str, debug_hora=None):
             path_cron_matches = path(path_cron_date, f'{ts}.json')
             with open(path_cron_matches, 'w') as f:
                 f.write(json.dumps(cron_matches, indent=4))
-                wakeup('process_flashscore.py', fecha_hora_programacion, ts)
+                admin = is_admin()
+                if admin:
+                    wakeup('process_flashscore.py', fecha_hora_programacion, ts) # noqa
 
     print(f'Descartados: {descartados}')
 

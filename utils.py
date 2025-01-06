@@ -7,6 +7,7 @@ import pprint
 import logging
 import vertexai
 if os.name == 'nt':
+    import ctypes
     import win32com.client
 from datetime import datetime
 from text_unidecode import unidecode
@@ -15,6 +16,13 @@ from vertexai.generative_models import GenerativeModel, Part, SafetySetting
 sys.stdout.reconfigure(encoding='utf-8')
 
 matches_result = []
+
+
+def is_admin():
+    try:
+        return ctypes.windll.shell32.IsUserAnAdmin()
+    except Exception:
+        return False
 
 
 class StreamHandlerNoNewLine(logging.StreamHandler):
