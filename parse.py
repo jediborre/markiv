@@ -573,7 +573,7 @@ def parse_handicap(html):
             prematchLogo = row.find('img', class_='prematchLogo')
             casa_apuesta = prematchLogo['title'].lower() if prematchLogo and 'title' in prematchLogo.attrs else '' # noqa
             odds = [span.text for span in row.find_all('span') if span.text]
-            if casa_apuesta == 'bet365':
+            if casa_apuesta == '1xbet':
                 handicap = odds[0]
                 odds_decimal = odds[1:]
                 odds_american = [decimal_american(odd) for odd in odds_decimal] # noqa
