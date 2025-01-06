@@ -150,10 +150,10 @@ class Web:
         chrome_options.add_argument('--disable-extensions')
         chrome_options.add_argument(f'user-agent={self.random_user_agent()}')
         chrome_options.add_argument(f'--proxy-server={self.random_proxy()}')
-        chrome_options.debugger_address = 'localhost:9222'
+        # chrome_options.debugger_address = 'localhost:9222'
 
         try:
-            self.open_chrome()
+            # self.open_chrome()
             self.driver = webdriver.Chrome(options=chrome_options)
             self.driver.maximize_window()
         except SessionNotCreatedException as e:
