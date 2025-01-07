@@ -156,7 +156,7 @@ class Web:
 
     def open_chrome(self):
         CHROME_PATH = os.getenv('CHROME_PATH', 'C:\Program Files\Google\Chrome\Application\chrome.exe') # noqa
-        cmd = CHROME_PATH + r' --remote-debugging-port=9222 --user-data-dir="C:\Log"'
+        cmd = CHROME_PATH + r' --remote-debugging-port=9222 --user-data-dir="C:\Log"' # noqa
         subprocess.Popen(cmd, shell=True)
 
     def start_browser(self):

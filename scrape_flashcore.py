@@ -53,7 +53,7 @@ def process_matches(matches_, date, web, overwrite=False):
             hora,
             home,
             away,
-            link,            
+            link,
         ] = match
 
         filename_hora = re.sub(r":", "", hora)
