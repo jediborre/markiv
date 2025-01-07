@@ -87,7 +87,7 @@ def get_team_matches(path_html, filename, link, home, away, liga, web, overwrite
             os.remove(html_path)
 
     if not os.path.exists(html_path):
-        # print('Match', '→', filename_page_h2h) # noqa
+        # logging.info('Match', '→', filename_page_h2h) # noqa
         web.open(link)
 
         web.wait_Class('h2h__section', 20)
@@ -388,11 +388,11 @@ def getAmbos(path_html, filename, web, overwrite=False):
             os.remove(html_path)
 
     if not os.path.exists(html_path):
-        print(f'{nom}', '→', filename, end=" ")
+        logging.info(f'{nom}', '→', filename, end=" ")
         click_momios_btn('ambos equipos marcarán', web)
         web.save(html_path)
     else:
-        print(f'{nom}', '←', filename, end=" ")
+        logging.info(f'{nom}', '←', filename, end=" ")
 
     if os.path.exists(html_path):
         with open(html_path, 'r', encoding='utf-8') as file:
@@ -434,11 +434,11 @@ def get1x2(path_html, filename, web, overwrite=False):
             os.remove(html_path)
 
     if not os.path.exists(html_path):
-        print(f'{nom}', '→', filename, end=" ")
+        logging.info(f'{nom}', '→', filename, end=" ")
         click_momios_btn('1x2', web)
         web.save(html_path)
     else:
-        print(f'{nom}', '←', filename)
+        logging.info(f'{nom}', '←', filename)
 
     if os.path.exists(html_path):
         with open(html_path, 'r', encoding='utf-8') as file:
@@ -480,11 +480,11 @@ def getmGoles(path_html, filename, web, overwrite=False):
             os.remove(html_path)
 
     if not os.path.exists(html_path):
-        print(f'{nom}', '→', filename, end=" ")
+        logging.info(f'{nom}', '→', filename, end=" ")
         click_momios_btn(['más/menos de', 'más de/menos de'], web)
         web.save(html_path)
     else:
-        print(f'{nom}', '←', filename)
+        logging.info(f'{nom}', '←', filename)
 
     if os.path.exists(html_path):
         with open(html_path, 'r', encoding='utf-8') as file:
@@ -535,7 +535,7 @@ def parse_odds_goles(html):
                     'odds': result
                 }
     else:
-        print(f'ODDS Goles No hay Caliente {casas}')
+        logging.info(f'ODDS Goles No hay Caliente {casas}')
         return {
             'OK': False,
             'ERROR': 'No hay Caliente'
@@ -551,11 +551,11 @@ def getHandicap(path_html, filename, web, overwrite=False):
             os.remove(html_path)
 
     if not os.path.exists(html_path):
-        print(f'{nom}', '→', filename, end=" ")
+        logging.info(f'{nom}', '→', filename, end=" ")
         click_momios_btn('handicap asiático', web)
         web.save(html_path)
     else:
-        print(f'{nom}', '←', filename, end=" ")
+        logging.info(f'{nom}', '←', filename, end=" ")
 
     if os.path.exists(html_path):
         with open(html_path, 'r', encoding='utf-8') as file:

@@ -22,7 +22,7 @@ matches_result = []
 
 
 def is_prod():
-    SERVER = os.getenv('SERVER').lower()
+    SERVER = os.getenv('SERVER', 'dev').lower()
     return SERVER == 'prod'
 
 

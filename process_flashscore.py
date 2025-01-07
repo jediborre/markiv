@@ -23,7 +23,7 @@ def main(path_matches: str, filename_result: str, overwrite: bool = False):
     web = Web()
     result = []
     matches = get_json(path_matches)
-    logging.info(f'Matches {len(matches)}')
+    # logging.info(f'Matches {len(matches)}')
     try:
         for match in matches:
             id = match['id']
@@ -34,7 +34,7 @@ def main(path_matches: str, filename_result: str, overwrite: bool = False):
             away = match['away']
             link = match['url']
             filename_match = match['filename_match']
-            logging.info(f'#{id} ')
+            # logging.info(f'#{id} ')
             momios = get_momios(
                 path_html,
                 filename_match,
@@ -68,7 +68,7 @@ def main(path_matches: str, filename_result: str, overwrite: bool = False):
             path_result_file = path(path_result_ok, f'{filename_result}.json')
             with open(path_result_file, 'w') as file:
                 file.write(json.dumps(result, indent=4))
-                logging.info(f'Archivo {path_result_file} creado')
+                logging.info(f'Resultado {path_result_file}')
     except KeyboardInterrupt:
         print('\nFin...')
     # web.close()
