@@ -27,7 +27,7 @@ parser.add_argument(
 )
 
 
-def main(path_matches: str, debug_hora=None):
+def cron_matches(path_matches: str, debug_hora=None):
     result = {
         'fecha': '',
         'cron': [],
@@ -98,4 +98,4 @@ if __name__ == '__main__':
         print(f'Archivo {path_file} no existe')
         exit(1)
 
-    main(path_file, '15:00:00')
+    cron_matches(path_file)
