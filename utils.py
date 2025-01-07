@@ -9,13 +9,21 @@ import vertexai
 if os.name == 'nt':
     import ctypes
     import win32com.client
+from dotenv import load_dotenv
 from datetime import datetime
 from text_unidecode import unidecode
 from vertexai.generative_models import GenerativeModel, Part, SafetySetting
 
 sys.stdout.reconfigure(encoding='utf-8')
 
+load_dotenv()
+
 matches_result = []
+
+
+def is_prod():
+    SERVER = os.getenv('SERVER').lower()
+    return SERVER == 'prod'
 
 
 def is_admin():

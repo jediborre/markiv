@@ -1,3 +1,4 @@
+import os
 import sys
 import time
 import random
@@ -5,7 +6,7 @@ import psutil
 import logging
 import requests
 import subprocess
-from dotenv import load_dotenv
+from utils import is_prod
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -15,8 +16,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import SessionNotCreatedException
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import ElementClickInterceptedException
-
-load_dotenv()
 
 
 class ChainedWeb:
@@ -95,6 +94,7 @@ class Web:
     driver: webdriver.Chrome = None
 
     def __init__(self, url=None, debug=False) -> None:
+        self.prod = is_prod()
         proxy_url = 'https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&country=mx,us,ca&protocol=http&proxy_format=ipport&format=text&timeout=4000' # noqa
         self.debug = debug
         self.user_agents = [
@@ -141,8 +141,22 @@ class Web:
                 print(f"Error fetching proxies from {url}: {e}")
             return []
 
+    def open(self, url):
+        if self.driver:
+            self.quit()
+
+        self.start_browser()
+
+        try:
+            if self.debug:
+                self.log('opening: ' + url)
+            self.driver.get(url)
+        except WebDriverException as e:
+            self.log(f"WEB open URL: {url} Error: {e.msg}")
+
     def open_chrome(self):
-        cmd = r'chrome --remote-debugging-port=9222 --user-data-dir="C:\Log"'
+        CHROME_PATH = os.getenv('CHROME_PATH', 'C:\Program Files\Google\Chrome\Application\chrome.exe') # noqa
+        cmd = CHROME_PATH + r' --remote-debugging-port=9222 --user-data-dir="C:\Log"'
         subprocess.Popen(cmd, shell=True)
 
     def start_browser(self):
@@ -153,10 +167,12 @@ class Web:
         chrome_options.add_argument('--disable-extensions')
         chrome_options.add_argument(f'user-agent={self.random_user_agent()}')
         chrome_options.add_argument(f'--proxy-server={self.random_proxy()}')
-        # chrome_options.debugger_address = 'localhost:9222'
+        if self.prod:
+            chrome_options.debugger_address = 'localhost:9222'
 
         try:
-            # self.open_chrome()
+            if self.prod:
+                self.open_chrome()
             self.driver = webdriver.Chrome(options=chrome_options)
             self.driver.maximize_window()
         except SessionNotCreatedException as e:
@@ -207,19 +223,6 @@ class Web:
         for cookie in cookies:
             self.driver.add_cookie(cookie)
         self.driver.refresh()
-
-    def open(self, url):
-        if self.driver:
-            self.quit()
-
-        self.start_browser()
-
-        try:
-            if self.debug:
-                self.log('opening: ' + url)
-            self.driver.get(url)
-        except WebDriverException as e:
-            self.log(f"WEB open URL: {url} Error: {e.msg}")
 
     def ID(self, id_name, multiples=False):
         if multiples:
