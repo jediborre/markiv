@@ -20,7 +20,7 @@ load_dotenv()
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID').split(',')
 
-gc = pygsheets.authorize(service_file='feroslebosgc .json')
+gc = pygsheets.authorize(service_file='feroslebosgc.json')
 spreadsheet = gc.open('Mark 4')
 wks = spreadsheet.worksheet_by_title('Bot')
 
