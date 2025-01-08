@@ -154,7 +154,7 @@ def click_momios_btn(name, web, debug=False):
                     if debug:
                         btn.click()
                         web.wait(1)
-                    logging.info(f'{texto} → Click')
+                        logging.info(f'{texto} → Click')
                     btn.click()
                     web.wait(random.randint(1, 3))
                     found = True
@@ -429,6 +429,8 @@ def get1x2(path_html, filename, web, overwrite=False):
     nom = '1x2'
     filename = f'{filename}_{nom}.html'
     html_path = os.path.join(path_html, filename)
+    # filename_img = f'{filename}_img.png'
+    # image_path = os.path.join(path_html, filename_img)
     if overwrite:
         if os.path.exists(html_path):
             os.remove(html_path)
@@ -436,6 +438,7 @@ def get1x2(path_html, filename, web, overwrite=False):
     if not os.path.exists(html_path):
         logging.info(f'{nom} → {filename} ')
         click_momios_btn('1x2', web)
+        # web.save_screenshot(image_path)
         web.save(html_path)
     else:
         logging.info(f'{nom} ← {filename} ')

@@ -144,15 +144,17 @@ class Web:
     def open(self, url):
         if self.driver:
             self.quit()
-
         self.start_browser()
-
         try:
             if self.debug:
                 self.log('opening: ' + url)
             self.driver.get(url)
+            if self.driver.current_url == url:
+                self.log(' → OK ')
+            else:
+                self.log(' → ERROR ')
         except WebDriverException as e:
-            self.log(f"WEB open URL: {url} Error: {e.msg}")
+            self.log(f'WEB open URL: {url} Error: {e.msg}')
 
     def open_chrome(self):
         CHROME_PATH = os.getenv('CHROME_PATH')
@@ -172,8 +174,8 @@ class Web:
             chrome_options.debugger_address = 'localhost:9222'
 
         try:
-            if self.prod:
-                self.open_chrome()
+            # if self.prod:
+            #     self.open_chrome()
             self.driver = webdriver.Chrome(options=chrome_options)
             self.driver.maximize_window()
         except SessionNotCreatedException as e:

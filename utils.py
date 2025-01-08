@@ -92,16 +92,16 @@ def create_task(task_name, trigger_time, python_path, script_path, args):
             action.Path = python_path
             action.Arguments = f'"{script_path}" {args}'
 
-            taskDef.RegistrationInfo.Description = f"Wakeup Match {args}"
-            taskDef.Principal.UserId = "SYSTEM"
+            taskDef.RegistrationInfo.Description = f'MarkIV Match {args}'
+            taskDef.Principal.UserId = r'ROBOT\\Robot'
             taskDef.Principal.LogonType = 3
 
             rootFolder.RegisterTaskDefinition(
                 task_name,
                 taskDef,
                 6,  # TASK_CREATE_OR_UPDATE
-                None,  # No user
-                None,  # No password
+                '',  # No user
+                '',  # No password
                 3,  # TASK_LOGON_SERVICE_ACCOUNT
                 None
             )
