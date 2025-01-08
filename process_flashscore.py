@@ -20,7 +20,7 @@ parser.add_argument('--over', action='store_true', help="Sobreescribir")
 
 def main(path_matches: str, filename_result: str, overwrite: bool = False):
     logging.info(f'MarkIV {filename_result} {path_matches} overwrite: {'SI' if overwrite else 'NO'}') # noqa
-    web = Web()
+    web = Web(debug=True)
     result = []
     matches = get_json(path_matches)
     # logging.info(f'Matches {len(matches)}')
@@ -34,7 +34,6 @@ def main(path_matches: str, filename_result: str, overwrite: bool = False):
             away = match['away']
             link = match['url']
             filename_match = match['filename_match']
-            # logging.info(f'#{id} ')
             momios = get_momios(
                 path_html,
                 filename_match,
@@ -51,7 +50,7 @@ def main(path_matches: str, filename_result: str, overwrite: bool = False):
                 match['goles'] = goles
                 match['ambos'] = ambos
                 match['handicap'] = handicap
-                logging.info(f'#{id} {hora}|{pais} {liga}| {home} - {away} OK\n') # noqa
+                logging.info(f'#{id} {hora}|{pais} {liga}| {home} - {away} OK') # noqa
                 result.append(match)
             else:
                 odds_1x2 = 'OK' if momios['odds_1x2']['OK'] else 'NO' # noqa

@@ -168,7 +168,7 @@ class Web:
         chrome_options.add_argument('--disable-extensions')
         chrome_options.add_argument(f'user-agent={self.random_user_agent()}')
         if self.prod:
-            chrome_options.add_argument(f'--proxy-server={self.random_proxy()}')
+            chrome_options.add_argument(f'--proxy-server={self.random_proxy()}') # noqa
             chrome_options.debugger_address = 'localhost:9222'
 
         try:

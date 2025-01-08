@@ -152,9 +152,9 @@ def click_momios_btn(name, web, debug=False):
                 if any([x in texto for x in name]):
                     btn.scroll_top()
                     if debug:
-                        print(texto, 'click')
                         btn.click()
                         web.wait(1)
+                    logging.info(f'{texto} → Click')
                     btn.click()
                     web.wait(random.randint(1, 3))
                     found = True
@@ -166,7 +166,7 @@ def click_momios_btn(name, web, debug=False):
                     btn.scroll_top()
                     btn.click()
                     if debug:
-                        print(texto, 'click')
+                        logging.info(f'{texto} → Click')
                     web.wait(random.randint(1, 3))
                     found = True
                     break
@@ -388,11 +388,11 @@ def getAmbos(path_html, filename, web, overwrite=False):
             os.remove(html_path)
 
     if not os.path.exists(html_path):
-        logging.info(f'{nom}', '→', filename, end=" ")
+        logging.info(f'{nom} → {filename} ')
         click_momios_btn('ambos equipos marcarán', web)
         web.save(html_path)
     else:
-        logging.info(f'{nom}', '←', filename, end=" ")
+        logging.info(f'{nom} ← {filename} ')
 
     if os.path.exists(html_path):
         with open(html_path, 'r', encoding='utf-8') as file:
@@ -434,19 +434,17 @@ def get1x2(path_html, filename, web, overwrite=False):
             os.remove(html_path)
 
     if not os.path.exists(html_path):
-        logging.info(f'{nom}', '→', filename, end=" ")
+        logging.info(f'{nom} → {filename} ')
         click_momios_btn('1x2', web)
         web.save(html_path)
     else:
-        logging.info(f'{nom}', '←', filename)
+        logging.info(f'{nom} ← {filename} ')
 
     if os.path.exists(html_path):
         with open(html_path, 'r', encoding='utf-8') as file:
             return parse_odds_1x2(file)
     else:
-        return {
-            'OK': False
-        }
+        return {'OK': False}
 
 
 def parse_odds_1x2(html):
@@ -480,11 +478,11 @@ def getmGoles(path_html, filename, web, overwrite=False):
             os.remove(html_path)
 
     if not os.path.exists(html_path):
-        logging.info(f'{nom}', '→', filename, end=" ")
+        logging.info(f'{nom} → {filename} ')
         click_momios_btn(['más/menos de', 'más de/menos de'], web)
         web.save(html_path)
     else:
-        logging.info(f'{nom}', '←', filename)
+        logging.info(f'{nom} ← {filename} ')
 
     if os.path.exists(html_path):
         with open(html_path, 'r', encoding='utf-8') as file:
@@ -551,11 +549,11 @@ def getHandicap(path_html, filename, web, overwrite=False):
             os.remove(html_path)
 
     if not os.path.exists(html_path):
-        logging.info(f'{nom}', '→', filename, end=" ")
+        logging.info(f'{nom} → {filename}')
         click_momios_btn('handicap asiático', web)
         web.save(html_path)
     else:
-        logging.info(f'{nom}', '←', filename, end=" ")
+        logging.info(f'{nom} ← {filename} ')
 
     if os.path.exists(html_path):
         with open(html_path, 'r', encoding='utf-8') as file:
