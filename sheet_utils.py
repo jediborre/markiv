@@ -40,10 +40,6 @@ def update_formula(wks, cell, target_row, source_row=3):
     return wks.cell(target_cell).value
 
 
-def write_sheet_flashcore(wks, match):
-    pass
-
-
 def write_sheet_match(wks, match):
     url = match['url']
     fecha = get_hum_fecha(match['fecha'][:10]) if 'fecha' in match else ''

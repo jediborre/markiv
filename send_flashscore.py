@@ -1,14 +1,18 @@
 import os
 import logging # noqa
-import argparse
 import pprint # noqa
+import telebot
+import argparse
 import pygsheets
-from sheet_utils import get_last_row
-from sheet_utils import get_hum_fecha
 from utils import path
+from telebot import types
 from utils import get_json
+from utils import send_text
 from dotenv import load_dotenv
 from utils import prepare_paths
+from sheet_utils import get_last_row
+from sheet_utils import get_hum_fecha
+from sheet_utils import update_formula
 
 load_dotenv()
 
@@ -149,18 +153,85 @@ def write_sheet_row(wks, row, match):
     ]
     wks.update_row(row, reg)
 
+    update_formula(wks, 'AS', row)
+    update_formula(wks, 'AT', row)
+    update_formula(wks, 'AU', row)
+    update_formula(wks, 'AX', row)
+    update_formula(wks, 'AY', row)
+    update_formula(wks, 'BB', row)
+    update_formula(wks, 'BC', row)
+    update_formula(wks, 'BD', row)
+    update_formula(wks, 'BE', row)
+    update_formula(wks, 'BF', row)
+    update_formula(wks, 'BG', row)
+    update_formula(wks, 'BH', row)
+    update_formula(wks, 'BI', row)
+    update_formula(wks, 'BJ', row)
 
-def process_match(wks, match: dict):
+    mensaje = update_formula(wks, 'AR', row)  # Mensaje
+    resultado = update_formula(wks, 'G', row)  # RESULTADO
+
+    return {
+        'row': row,
+        'mensaje': mensaje,
+        'resultado': resultado
+    }
+
+
+def update_optional_columns(wks, row):
+    update_formula(wks, 'BK', row)
+    update_formula(wks, 'BL', row)
+    update_formula(wks, 'BM', row)
+    update_formula(wks, 'BN', row)
+    update_formula(wks, 'BO', row)
+    update_formula(wks, 'BP', row)
+    update_formula(wks, 'BQ', row)
+    update_formula(wks, 'BR', row)
+    update_formula(wks, 'BS', row)
+
+
+def get_match_details(match: dict, resultado: str, mensaje: str):
     id = match['id']
+    fecha = get_hum_fecha(match['fecha'])
     pais = match['pais']
     hora = match['hora']
     liga = match['liga']
     home = match['home']
     away = match['away']
+
+    logging.info(f'#{id} {hora}|{pais} {liga}| {home} - {away}|{mensaje}|{resultado}') # noqa
+
+    return f'''
+#{id} {fecha} {hora}
+{pais}{liga}
+{home} v {away}
+{mensaje}
+{resultado}'''
+
+
+def process_match(wks, bot, match: dict):
     link = match['url']
-    logging.info(f'#{id} {hora}|{pais} {liga}| {home} - {away}|{link}')
+
     row = get_last_row(wks)
-    write_sheet_row(wks, row, match)
+    result = write_sheet_row(wks, row, match)
+    resultado = result['resultado']
+    mensaje = result['mensaje']
+
+    markup = types.InlineKeyboardMarkup()
+    if link:
+        link_boton = types.InlineKeyboardButton('Partido', url=link) # noqa
+        markup.add(link_boton)
+    msj = get_match_details(match, resultado, mensaje)
+
+    for chat_id in TELEGRAM_CHAT_ID:
+        send_text(
+            bot,
+            chat_id,
+            msj,
+            markup
+        )
+
+    update_optional_columns(wks, row)
 
 
 def send_matches(path_matches: str):
@@ -171,9 +242,10 @@ def send_matches(path_matches: str):
         gc = pygsheets.authorize(service_file='feroslebosgc.json')
         spreadsheet = gc.open('Mark 4')
         wks = spreadsheet.worksheet_by_title('Bot')
+        bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 
         for match in matches:
-            process_match(wks, match)
+            process_match(wks, bot, match)
     except KeyboardInterrupt:
         print('\nFin...')
 

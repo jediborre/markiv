@@ -8,6 +8,7 @@ from utils import path
 from utils import get_json
 from parse import get_momios
 from utils import prepare_paths
+from send_flashscore import send_matches
 
 path_result, path_cron, path_csv, path_json, path_html = prepare_paths('procesa_flashcore.log') # noqa
 
@@ -68,6 +69,7 @@ def main(path_matches: str, filename_result: str, overwrite: bool = False):
             with open(path_result_file, 'w') as file:
                 file.write(json.dumps(result, indent=4))
                 logging.info(f'Resultado {path_result_file}')
+                send_matches(path_result_file)
     except KeyboardInterrupt:
         print('\nFin...')
     # web.close()
