@@ -325,10 +325,10 @@ def get_momios(path_html, filename, link_match, web, overwrite=False): # noqa
     if not btn_momios:
         return {
             'OK': False,
-            'odds_1x2': {'OK': False},
-            'odds_goles': {'OK': False},
-            'odds_ambos': {'OK': False},
-            'odds_handicap': {'OK': False},
+            'odds_1x2': {'OK': False, 'msj': 'No evaluado'},
+            'odds_goles': {'OK': False, 'msj': 'No evaluado'},
+            'odds_ambos': {'OK': False, 'msj': 'No evaluado'},
+            'odds_handicap': {'OK': False, 'msj': 'No evaluado'},
         }
 
     momios_1x2 = get1x2(path_html, filename, web, overwrite) # noqa
@@ -336,18 +336,18 @@ def get_momios(path_html, filename, link_match, web, overwrite=False): # noqa
         return {
             'OK': False,
             'odds_1x2': momios_1x2,
-            'odds_goles': {'OK': False},
-            'odds_ambos': {'OK': False},
-            'odds_handicap': {'OK': False},
+            'odds_goles': {'OK': False, 'msj': 'No evaluado'},
+            'odds_ambos': {'OK': False, 'msj': 'No evaluado'},
+            'odds_handicap': {'OK': False, 'msj': 'No evaluado'},
         }
     momios_ambos = getAmbos(path_html, filename, web, overwrite) # noqa
     if not momios_ambos['OK']:
         return {
             'OK': False,
             'odds_1x2': momios_1x2,
-            'odds_goles': {'OK': False},
             'odds_ambos': momios_ambos,
-            'odds_handicap': {'OK': False},
+            'odds_goles': {'OK': False, 'msj': 'No evaluado'},
+            'odds_handicap': {'OK': False, 'msj': 'No evaluado'},
         }
 
     momios_goles = getmGoles(path_html, filename, web, overwrite) # noqa
@@ -357,7 +357,7 @@ def get_momios(path_html, filename, link_match, web, overwrite=False): # noqa
             'odds_1x2': momios_1x2,
             'odds_goles': momios_goles,
             'odds_ambos': momios_ambos,
-            'odds_handicap': {'OK': False},
+            'odds_handicap': {'OK': False, 'msj': 'No evaluado'}
         }
 
     momios_handicap = getHandicap(path_html, filename, web, overwrite) # noqa
@@ -422,7 +422,7 @@ def parse_odds_ambos(html):
     logging.info('Fallo → Ambos 1xBet')
     return {
         'OK': False,
-        'ERROR': 'No hay 1xBet'
+        'msj': 'No hay 1xBet'
     }
 
 
@@ -458,8 +458,12 @@ def parse_odds_1x2(html):
         for row in odds_row:
             prematchLogo = row.find('img', class_='prematchLogo')
             casa_apuesta = prematchLogo['title'].lower() if prematchLogo and 'title' in prematchLogo.attrs else '' # noqa
-            odds = [span.text for span in row.find_all('span') if span.text]
-            if casa_apuesta == 'calientemx':
+            odds = [
+                span.text
+                for span in row.find_all('span')
+                if span.text.strip() and span.text.strip() != '-'
+            ]
+            if casa_apuesta == '1xbet' and len(odds) == 3:
                 odds_american = [decimal_american(odd) for odd in odds]
                 return {
                     'OK': True,
@@ -467,10 +471,10 @@ def parse_odds_1x2(html):
                     'decimal': odds,
                     'american': odds_american
                 }
-    logging.info('Fallo → 1x2 Caliente')
+    logging.info('Fallo → 1x2 1xbet')
     return {
         'OK': False,
-        'ERROR': 'No hay Caliente'
+        'msj': 'No hay 1xbet'
     }
 
 
@@ -505,9 +509,14 @@ def parse_odds_goles(html):
         for row in odds_row:
             prematchLogo = row.find('img', class_='prematchLogo')
             casa_apuesta = prematchLogo['title'].lower() if prematchLogo and 'title' in prematchLogo.attrs else '' # noqa
-            casas.append(casa_apuesta)
-            odds = [span.text for span in row.find_all('span') if span.text]
-            if casa_apuesta == 'calientemx':
+            if casa_apuesta not in casas:
+                casas.append(casa_apuesta)
+            odds = [
+                span.text
+                for span in row.find_all('span')
+                if span.text.strip() and span.text.strip() != '-'
+            ]
+            if casa_apuesta == '1xbet' and len(odds) == 3:
                 goals = odds[0]
                 odds_decimal = odds[1:]
                 odds_american = [decimal_american(odd) for odd in odds_decimal] # noqa
@@ -518,10 +527,11 @@ def parse_odds_goles(html):
                 }
     if len(result) > 0:
         if '3.5' not in result:
-            logging.info(f'Fallo → No hay -3.5 {casas}')
+            logging.info(f'Fallo → No hay -3.5 "{', '.join(casas)}"')
             return {
                 'OK': False,
-                'ERROR': 'No hay 3.5',
+                'msj': 'No hay 3.5',
+                'casas': casas,
                 'odds': result
             }
         else:
@@ -533,17 +543,17 @@ def parse_odds_goles(html):
                     'odds': result
                 }
             else:
-                logging.info(f'Fallo → Rango -3.5 {casas}')
+                logging.info(f'Fallo → Rango -3.5 "{', '.join(casas)}"')
                 return {
                     'OK': False,
-                    'ERROR': 'MOMIO -3.5 no está en rango',
+                    'msj': f'MOMIO -3.5 no está en rango "{menos}"',
                     'odds': result
                 }
     else:
-        logging.info(f'Fallo → No hay Goles {casas}')
+        logging.info(f'Fallo → No hay Goles "{', '.join(casas)}"')
         return {
             'OK': False,
-            'ERROR': 'No hay Caliente'
+            'msj': 'No hay Casas'
         }
 
 
@@ -577,8 +587,12 @@ def parse_handicap(html):
         for row in odds_row:
             prematchLogo = row.find('img', class_='prematchLogo')
             casa_apuesta = prematchLogo['title'].lower() if prematchLogo and 'title' in prematchLogo.attrs else '' # noqa
-            odds = [span.text for span in row.find_all('span') if span.text]
-            if casa_apuesta == '1xbet':
+            odds = [
+                span.text
+                for span in row.find_all('span')
+                if span.text.strip() and span.text.strip() != '-'
+            ]
+            if casa_apuesta == '1xbet' and len(odds) == 2:
                 handicap = odds[0]
                 odds_decimal = odds[1:]
                 odds_american = [decimal_american(odd) for odd in odds_decimal] # noqa
@@ -600,12 +614,12 @@ def parse_handicap(html):
             logging.info('Fallo → Handicap Asiatico -0/-0.5 y -1')
             return {
                 'OK': False,
-                'ERROR': 'No hay Handicap Asiatico -0/-0.5 y -1',
+                'msj': 'No hay Handicap Asiatico -0/-0.5 y -1',
                 'odds': result
             }
     else:
         logging.info('Fallo → Handicap 1xBet')
         return {
             'OK': False,
-            'ERROR': 'No hay 1xBet'
+            'msj': 'No hay 1xBet'
         }

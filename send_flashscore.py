@@ -190,6 +190,31 @@ def update_optional_columns(wks, row):
     update_formula(wks, 'BS', row)
 
 
+def get_match_error(match: dict):
+    id = match['id']
+    fecha = get_hum_fecha(match['fecha'])
+    pais = match['pais']
+    hora = match['hora']
+    liga = match['liga']
+    home = match['home']
+    away = match['away']
+    _1x2 = 'OK' if match['1x2']['OK'] else match['1x2']['msj'] if 'msj' in match['1x2'] else 'NO' # noqa
+    _ambos = 'OK' if match['ambos']['OK'] else match['ambos']['msj'] if 'msj' in match['ambos'] else 'NO' # noqa
+    _goles = 'OK' if match['goles']['OK'] else match['goles']['msj'] if 'msj' in match['goles'] else 'NO' # noqa
+    _handicap = 'OK' if match['handicap']['OK'] else match['handicap']['msj'] if 'msj' in match['handicap'] else 'NO' # noqa
+
+    return f'''
+#{id} {fecha} {hora}
+{pais} {liga}
+{home} v {away}
+MOMIOS
+1x2: {_1x2}
+AMBOS: {_ambos}
+GOLES: {_goles}
+HANDICAP: {_handicap}
+'''
+
+
 def get_match_details(match: dict, resultado: str, mensaje: str):
     id = match['id']
     fecha = get_hum_fecha(match['fecha'])

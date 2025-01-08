@@ -179,6 +179,8 @@ def keys_uppercase(json_data):
 
 
 def decimal_american(odds_decimal):
+    if odds_decimal == '-':
+        return '-'
     odds_float = float(odds_decimal)
     if odds_float >= 2.0:
         return f"+{int((odds_float - 1) * 100)}"

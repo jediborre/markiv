@@ -9,6 +9,7 @@ from utils import get_json
 from parse import get_momios
 from utils import prepare_paths
 from send_flashscore import send_matches
+from send_flashscore import get_match_error
 
 path_result, path_cron, path_csv, path_json, path_html = prepare_paths('procesa_flashcore.log') # noqa
 
@@ -42,23 +43,16 @@ def main(path_matches: str, filename_result: str, overwrite: bool = False):
                 web,
                 overwrite
             )
+            match['1x2'] = momios['odds_1x2']
+            match['ambos'] = momios['odds_ambos']
+            match['goles'] = momios['odds_goles']
+            match['handicap'] = momios['odds_handicap']
             if momios['OK']:
-                ganador = momios['odds_1x2']
-                goles = momios['odds_goles']
-                ambos = momios['odds_ambos']
-                handicap = momios['odds_handicap']
-                match['1x2'] = ganador
-                match['goles'] = goles
-                match['ambos'] = ambos
-                match['handicap'] = handicap
                 logging.info(f'#{id} {hora}|{pais} {liga}| {home} - {away} OK') # noqa
                 result.append(match)
             else:
-                odds_1x2 = 'OK' if momios['odds_1x2']['OK'] else 'NO' # noqa
-                odds_ambos = 'OK' if momios['odds_ambos']['OK'] else 'NO' # noqa
-                odds_goles = 'OK' if momios['odds_goles']['OK'] else 'NO' # noqa
-                odds_handicap = 'OK' if momios['odds_handicap']['OK'] else 'NO' # noqa
-                logging.info(f'#{id} {hora}|{liga} | {home} - {away} MOMIOS 1x2: {odds_1x2}, GOLES: {odds_goles}, AMBOS: {odds_ambos}, HANDICAP: {odds_handicap}\n') # noqa
+                msj = get_match_error(match)
+                logging.info(msj + '\n')
                 # input('Presiona Enter para continuar')
         if len(result) > 0:
             filename_date = filename_result[:8]
