@@ -321,7 +321,7 @@ def parse_team_section(matches, team=None, team_name=None, liga=None, debug=Fals
 def get_momios(path_html, filename, link_match, web, overwrite=False): # noqa
     web.open(link_match)
     web.wait(1)
-    btn_momios = click_momios_btn('momios', web, True)
+    btn_momios = click_momios_btn('momios', web)
     if not btn_momios:
         return {
             'OK': False,
@@ -419,6 +419,7 @@ def parse_odds_ambos(html):
                     'decimal': odds,
                     'american': odds_american
                 }
+    logging.info('Fallo → Ambos 1xBet')
     return {
         'OK': False,
         'ERROR': 'No hay 1xBet'
@@ -466,6 +467,7 @@ def parse_odds_1x2(html):
                     'decimal': odds,
                     'american': odds_american
                 }
+    logging.info('Fallo → 1x2 Caliente')
     return {
         'OK': False,
         'ERROR': 'No hay Caliente'
@@ -516,6 +518,7 @@ def parse_odds_goles(html):
                 }
     if len(result) > 0:
         if '3.5' not in result:
+            logging.info(f'Fallo → No hay -3.5 {casas}')
             return {
                 'OK': False,
                 'ERROR': 'No hay 3.5',
@@ -530,13 +533,14 @@ def parse_odds_goles(html):
                     'odds': result
                 }
             else:
+                logging.info(f'Fallo → Rango -3.5 {casas}')
                 return {
                     'OK': False,
                     'ERROR': 'MOMIO -3.5 no está en rango',
                     'odds': result
                 }
     else:
-        logging.info(f'ODDS Goles No hay Caliente {casas}')
+        logging.info(f'Fallo → No hay Goles {casas}')
         return {
             'OK': False,
             'ERROR': 'No hay Caliente'
@@ -593,13 +597,15 @@ def parse_handicap(html):
                 'odds': result
             }
         else:
+            logging.info('Fallo → Handicap Asiatico -0/-0.5 y -1')
             return {
                 'OK': False,
                 'ERROR': 'No hay Handicap Asiatico -0/-0.5 y -1',
                 'odds': result
             }
     else:
+        logging.info('Fallo → Handicap 1xBet')
         return {
             'OK': False,
-            'ERROR': 'No hay Bet365'
+            'ERROR': 'No hay 1xBet'
         }
