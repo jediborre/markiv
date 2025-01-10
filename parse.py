@@ -388,7 +388,7 @@ def getAmbos(path_html, filename, web, overwrite=False):
             os.remove(html_path)
 
     if not os.path.exists(html_path):
-        logging.info(f'{nom} → {filename} ')
+        # logging.info(f'{nom} → {filename} ')
         click_momios_btn('ambos equipos marcarán', web)
         web.save(html_path)
     else:
@@ -437,7 +437,7 @@ def get1x2(path_html, filename, web, overwrite=False):
             os.remove(html_path)
 
     if not os.path.exists(html_path):
-        logging.info(f'{nom} → {filename} ')
+        # logging.info(f'{nom} → {filename} ')
         click_momios_btn('1x2', web)
         # web.save_screenshot(image_path)
         web.save(html_path)
@@ -487,7 +487,7 @@ def getmGoles(path_html, filename, web, overwrite=False):
             os.remove(html_path)
 
     if not os.path.exists(html_path):
-        logging.info(f'{nom} → {filename} ')
+        # logging.info(f'{nom} → {filename} ')
         click_momios_btn(['más/menos de', 'más de/menos de'], web)
         web.save(html_path)
     else:
@@ -566,7 +566,7 @@ def getHandicap(path_html, filename, web, overwrite=False):
             os.remove(html_path)
 
     if not os.path.exists(html_path):
-        logging.info(f'{nom} → {filename}')
+        # logging.info(f'{nom} → {filename}')
         click_momios_btn('handicap asiático', web)
         web.save(html_path)
     else:
@@ -594,7 +594,7 @@ def parse_handicap(html):
                 if span.text.strip() and span.text.strip() != '-'
             ]
             handicap = odds[0]
-            if casa_apuesta in ['1xbet', 'bet365'] and len(odds) == 2:
+            if casa_apuesta in ['1xbet', 'bet365'] and len(odds) == 3:
                 odds_decimal = odds[1:]
                 odds_american = [decimal_american(odd) for odd in odds_decimal] # noqa
                 result[handicap] = {
@@ -603,10 +603,9 @@ def parse_handicap(html):
                     'american': odds_american
                 }
             else:
-                descartados.append([
-                    casa_apuesta,
-                    handicap
-                ])
+                descartados.append(
+                    f"{casa_apuesta} → '{handicap}'"
+                )
                 pass
     # HandiCap Asiatico -0/-0.5 (OBLIGATORIO)
     # HandiCap Asiatico -1 (OBLIGATORIO)
@@ -623,6 +622,7 @@ def parse_handicap(html):
             _2 = 'SI' if '-2' in result else 'NO'
             msj = f'Fallo → Handicap Asiatico 0/-0.5: {_0}, -1: {_1}, -2: {_2}'
             logging.info(msj) # noqa
+            logging.info(f'Fallo → Handicap "{', '.join(descartados)}"')
             return {
                 'OK': False,
                 'msj': msj,

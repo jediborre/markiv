@@ -150,7 +150,8 @@ class Web:
                 self.log('opening: ' + url)
             self.driver.get(url)
             if self.driver.current_url == url:
-                self.log(' → OK ')
+                pass
+                # self.log(' → OK ')
             else:
                 self.log(' → ERROR ')
         except WebDriverException as e:
