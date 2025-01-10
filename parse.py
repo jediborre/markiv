@@ -543,7 +543,7 @@ def parse_odds_goles(html):
                     'odds': result
                 }
             else:
-                logging.info(f'Fallo → Rango -3.5 "{', '.join(casas)}"')
+                logging.info(f'Fallo → Momio -3.5 no esta en rango Rango "{menos}"') # noqa
                 return {
                     'OK': False,
                     'msj': f'MOMIO -3.5 no está en rango "{menos}"',
@@ -584,6 +584,7 @@ def parse_handicap(html):
     soup = BeautifulSoup(html, 'html.parser')
     odds_row = soup.find_all('div', class_='ui-table__row')
     if odds_row:
+        descartados = []
         for row in odds_row:
             prematchLogo = row.find('img', class_='prematchLogo')
             casa_apuesta = prematchLogo['title'].lower() if prematchLogo and 'title' in prematchLogo.attrs else '' # noqa
@@ -592,8 +593,8 @@ def parse_handicap(html):
                 for span in row.find_all('span')
                 if span.text.strip() and span.text.strip() != '-'
             ]
-            if casa_apuesta == '1xbet' and len(odds) == 2:
-                handicap = odds[0]
+            handicap = odds[0]
+            if casa_apuesta in ['1xbet', 'bet365'] and len(odds) == 2:
                 odds_decimal = odds[1:]
                 odds_american = [decimal_american(odd) for odd in odds_decimal] # noqa
                 result[handicap] = {
@@ -601,6 +602,12 @@ def parse_handicap(html):
                     'decimal': odds_decimal,
                     'american': odds_american
                 }
+            else:
+                descartados.append([
+                    casa_apuesta,
+                    handicap
+                ])
+                pass
     # HandiCap Asiatico -0/-0.5 (OBLIGATORIO)
     # HandiCap Asiatico -1 (OBLIGATORIO)
     # HandiCap Asiatico -2 (OPCIONAL)
@@ -611,15 +618,20 @@ def parse_handicap(html):
                 'odds': result
             }
         else:
-            logging.info('Fallo → Handicap Asiatico -0/-0.5 y -1')
+            _0 = 'SI' if '0, -0.5' in result else 'NO'
+            _1 = 'SI' if '-1' in result else 'NO'
+            _2 = 'SI' if '-2' in result else 'NO'
+            msj = f'Fallo → Handicap Asiatico 0/-0.5: {_0}, -1: {_1}, -2: {_2}'
+            logging.info(msj) # noqa
             return {
                 'OK': False,
-                'msj': 'No hay Handicap Asiatico -0/-0.5 y -1',
+                'msj': msj,
                 'odds': result
             }
     else:
-        logging.info('Fallo → Handicap 1xBet')
+        msj = f'Fallo → Handicap "{', '.join(descartados)}"'
+        logging.info(msj)
         return {
             'OK': False,
-            'msj': 'No hay 1xBet'
+            'msj': msj
         }
