@@ -217,7 +217,7 @@ HANDICAP: {_handicap}
 '''
 
 
-def get_match_ok(match: dict, resultado: str, mensaje: str):
+def get_match_ok(match: dict, resultado: str = '', mensaje: str = ''):
     id = match['id']
     pais = match['pais']
     hora = match['hora']
@@ -227,12 +227,16 @@ def get_match_ok(match: dict, resultado: str, mensaje: str):
     fecha = get_hum_fecha(match['fecha'])
 
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    return f'''{timestamp}
+    msj = f'''{timestamp}
 #{id} {fecha} {hora}
 {pais} {liga}
-{home} v {away}
-{mensaje}
-{resultado}'''
+{home} v {away}'''
+    if resultado:
+        msj += f'\n{resultado}'
+    if mensaje:
+        msj += f'\n{mensaje}'
+
+    return msj
 
 
 def process_match(wks, bot, match: dict):
