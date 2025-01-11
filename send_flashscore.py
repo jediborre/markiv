@@ -4,6 +4,7 @@ import pprint # noqa
 import telebot
 import argparse
 import pygsheets
+from datetime import datetime
 from utils import path
 from telebot import types
 from utils import get_json
@@ -198,12 +199,13 @@ def get_match_error(match: dict):
     liga = match['liga']
     home = match['home']
     away = match['away']
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     _1x2 = 'OK' if match['1x2']['OK'] else match['1x2']['msj'] if 'msj' in match['1x2'] else 'NO' # noqa
     _ambos = 'OK' if match['ambos']['OK'] else match['ambos']['msj'] if 'msj' in match['ambos'] else 'NO' # noqa
     _goles = 'OK' if match['goles']['OK'] else match['goles']['msj'] if 'msj' in match['goles'] else 'NO' # noqa
     _handicap = 'OK' if match['handicap']['OK'] else match['handicap']['msj'] if 'msj' in match['handicap'] else 'NO' # noqa
 
-    return f'''
+    return f'''{timestamp}
 #{id} {fecha} {hora}
 {pais} {liga}
 {home} v {away}
@@ -215,20 +217,19 @@ HANDICAP: {_handicap}
 '''
 
 
-def get_match_details(match: dict, resultado: str, mensaje: str):
+def get_match_ok(match: dict, resultado: str, mensaje: str):
     id = match['id']
-    fecha = get_hum_fecha(match['fecha'])
     pais = match['pais']
     hora = match['hora']
     liga = match['liga']
     home = match['home']
     away = match['away']
+    fecha = get_hum_fecha(match['fecha'])
 
-    logging.info(f'#{id} {hora}|{pais} {liga}| {home} - {away}|{mensaje}|{resultado}') # noqa
-
-    return f'''
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    return f'''{timestamp}
 #{id} {fecha} {hora}
-{pais}{liga}
+{pais} {liga}
 {home} v {away}
 {mensaje}
 {resultado}'''
@@ -246,7 +247,7 @@ def process_match(wks, bot, match: dict):
     if link:
         link_boton = types.InlineKeyboardButton('Partido', url=link) # noqa
         markup.add(link_boton)
-    msj = get_match_details(match, resultado, mensaje)
+    msj = get_match_ok(match, resultado, mensaje)
 
     for chat_id in TELEGRAM_CHAT_ID:
         send_text(
@@ -264,7 +265,10 @@ def send_matches(path_matches: str):
     try:
         matches = get_json(path_matches)
 
-        gc = pygsheets.authorize(service_file='feroslebosgc.json')
+        path_script = os.path.dirname(os.path.realpath(__file__))
+        service_file = path(path_script, 'feroslebosgc.json')
+        gc = pygsheets.authorize(service_file=service_file)
+
         spreadsheet = gc.open('Mark 4')
         wks = spreadsheet.worksheet_by_title('Bot')
         bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)

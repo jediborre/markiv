@@ -9,6 +9,7 @@ from utils import get_json
 from parse import get_momios
 from utils import prepare_paths
 from send_flashscore import send_matches
+from send_flashscore import get_match_ok
 from send_flashscore import get_match_error
 
 path_result, path_cron, path_csv, path_json, path_html = prepare_paths('procesa_flashcore.log') # noqa
@@ -25,15 +26,8 @@ def main(path_matches: str, filename_result: str, overwrite: bool = False):
     web = Web(debug=True)
     result = []
     matches = get_json(path_matches)
-    # logging.info(f'Matches {len(matches)}')
     try:
         for match in matches:
-            id = match['id']
-            pais = match['pais']
-            hora = match['hora']
-            liga = match['liga']
-            home = match['home']
-            away = match['away']
             link = match['url']
             filename_match = match['filename_match']
             momios = get_momios(
@@ -48,12 +42,12 @@ def main(path_matches: str, filename_result: str, overwrite: bool = False):
             match['goles'] = momios['odds_goles']
             match['handicap'] = momios['odds_handicap']
             if momios['OK']:
-                logging.info(f'#{id} {hora}|{pais} {liga}| {home} - {away} OK') # noqa
+                msj = get_match_ok(match)
+                logging.info(msj + '\n')
                 result.append(match)
             else:
                 msj = get_match_error(match)
                 logging.info(msj + '\n')
-                # input('Presiona Enter para continuar')
         if len(result) > 0:
             filename_date = filename_result[:8]
             path_result_ok = path(path_result, filename_date)
