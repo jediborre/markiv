@@ -31,6 +31,7 @@ def write_sheet_row(wks, row, match):
     # ID   Fecha	Hora	Local	Visitante	AP	RESULTADO	Pais	Liga	1	2	3	4	5	1	2	3	4	5	1	2	3	4	5   Home	Away	     Si     No        HM	  AM	   HM	  AM	  HM	AM    -3.5	-4.5  1 	2	3	4  L	V	Final    Mensajes  Dif	uno	          dos	   G+	G-	PG+	PG-	    G+	G-	PG+	PG-	      tres	    cuatro	cinco	seis	siete	ocho	nueve      1	LV1	2	LV2	3	LV3	4	LV4	Total  Correcto	Estatus	L/V	Rango  # noqa
     fecha = get_hum_fecha(match['fecha'])
     home_matches = match['home_matches']['matches']
+    link = match['url']
     hmft_1 = home_matches[0]['ft']
     hmft_2 = home_matches[1]['ft']
     hmft_3 = home_matches[2]['ft']
@@ -151,6 +152,8 @@ def write_sheet_row(wks, row, match):
         '',  # Estatus
         '',  # L/V  *F  BV
         '',  # Rango  *F  BW
+        '',
+        link
     ]
     wks.update_row(row, reg)
 
@@ -247,21 +250,23 @@ def process_match(wks, bot, match: dict):
     resultado = result['resultado']
     mensaje = result['mensaje']
 
-    markup = types.InlineKeyboardMarkup()
-    if link:
-        link_boton = types.InlineKeyboardButton('Partido', url=link) # noqa
-        markup.add(link_boton)
     msj = get_match_ok(match, resultado, mensaje)
 
-    for chat_id in TELEGRAM_CHAT_ID:
-        send_text(
-            bot,
-            chat_id,
-            msj,
-            markup
-        )
-
-    update_optional_columns(wks, row)
+    if 'OK' in resultado:
+        markup = types.InlineKeyboardMarkup()
+        if link:
+            link_boton = types.InlineKeyboardButton('Partido', url=link) # noqa
+            markup.add(link_boton)
+        for chat_id in TELEGRAM_CHAT_ID:
+            send_text(
+                bot,
+                chat_id,
+                msj,
+                markup
+            )
+        return row
+    else:
+        return ''
 
 
 def send_matches(path_matches: str):
@@ -277,8 +282,15 @@ def send_matches(path_matches: str):
         wks = spreadsheet.worksheet_by_title('Bot')
         bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 
+        rows = []
         for match in matches:
-            process_match(wks, bot, match)
+            row = process_match(wks, bot, match)
+            if row:
+                rows.append(row)
+
+        if len(rows) > 0:
+            for row in rows:
+                update_optional_columns(wks, row)
     except KeyboardInterrupt:
         print('\nFin...')
 
