@@ -266,7 +266,7 @@ def process_match(wks, bot, match: dict):
             )
         return row
     else:
-        return ''
+        return None
 
 
 def send_matches(path_matches: str):
@@ -285,7 +285,7 @@ def send_matches(path_matches: str):
         rows = []
         for match in matches:
             row = process_match(wks, bot, match)
-            if row:
+            if row is not None:
                 rows.append(row)
 
         if len(rows) > 0:
