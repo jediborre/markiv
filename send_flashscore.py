@@ -264,9 +264,8 @@ def process_match(wks, bot, match: dict):
                 msj,
                 markup
             )
-        return row
-    else:
-        return None
+
+    return row
 
 
 def send_matches(path_matches: str):
@@ -291,6 +290,8 @@ def send_matches(path_matches: str):
         if len(rows) > 0:
             for row in rows:
                 update_optional_columns(wks, row)
+    except Exception as e:
+        logging.error(f'Error: {e}')
     except KeyboardInterrupt:
         print('\nFin...')
 
