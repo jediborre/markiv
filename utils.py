@@ -128,6 +128,30 @@ def path(*paths):
     return os.path.join(*paths)
 
 
+def pathexist(*paths):
+    return os.path.exists(path(*paths))
+
+
+def prepare_paths_ok(log_filename='seguimiento_markiv.log'):
+    script_path = os.path.dirname(os.path.abspath(__file__))
+    log_filepath = path(script_path, log_filename)
+    path_result = path(script_path, 'result')
+    path_ok = path(path_result, 'ok')
+
+    if not os.path.exists(path_result):
+        os.makedirs(path_result)
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(message)s',
+        handlers=[
+            logging.FileHandler(log_filepath, encoding='utf-8'),
+            StreamHandlerNoNewLine(sys.stdout)
+        ]
+    )
+    return [path_result, path_ok]
+
+
 def prepare_paths(log_filename='web_markiv.log'):
     script_path = os.path.dirname(os.path.abspath(__file__))
     path_tmp = path(script_path, 'tmp')
@@ -185,7 +209,7 @@ def decimal_american(odds_decimal):
     if odds_float >= 2.0:
         return f"+{int((odds_float - 1) * 100)}"
     else:
-        return f"{int(-100 / (odds_float - 1))}"
+        return f"{int(round(-100 / (odds_float - 1) / 50) * 50)}"
 
 
 def get_momios_image(img_filename):
@@ -463,6 +487,21 @@ Gol HT: {momio_ht_05} {momio_ht_15} {momio_ht_25}
 
 
 if __name__ == '__main__':
-    for n in range(6):
-        momios = get_momios_image(f'momios_{n}.jpg')
-        pprint.pprint(momios)
+    decimal = 1.615
+    print(decimal, decimal_american(decimal))
+    decimal = 1.222
+    print(decimal, decimal_american(decimal))
+    decimal = 1.25
+    print(decimal, decimal_american(decimal))
+    decimal = 1.083
+    print(decimal, decimal_american(decimal))
+    decimal = 3.85
+    print(decimal, decimal_american(decimal))
+    decimal = 3.65  # +265
+    print(decimal, decimal_american(decimal))
+    decimal = 4.5  # +350
+    print(decimal, decimal_american(decimal))
+    decimal = 6.25  # +525
+    print(decimal, decimal_american(decimal))
+    decimal = 6.5  # +550
+    print(decimal, decimal_american(decimal))
