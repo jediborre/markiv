@@ -527,7 +527,8 @@ def parse_odds_goles(html):
                 }
     if len(result) > 0:
         if '3.5' not in result:
-            logging.info(f'Fallo → No hay -3.5 "{', '.join(casas)}"')
+            str_casas = ', '.join(casas)
+            logging.info(f"Fallo → No hay -3.5 '{str_casas}'")
             return {
                 'OK': False,
                 'msj': 'No hay 3.5',
@@ -550,7 +551,8 @@ def parse_odds_goles(html):
                     'odds': result
                 }
     else:
-        logging.info(f'Fallo → No hay Goles "{', '.join(casas)}"')
+        str_casas == ', '.join(casas)
+        logging.info(f'Fallo → No hay Goles "{str_casas}"')
         return {
             'OK': False,
             'msj': 'No hay Casas'
@@ -610,6 +612,7 @@ def parse_handicap(html):
     # HandiCap Asiatico -0/-0.5 (OBLIGATORIO)
     # HandiCap Asiatico -1 (OBLIGATORIO)
     # HandiCap Asiatico -2 (OPCIONAL)
+    str_descartados = ', '.join(descartados)
     if len(result) > 0:
         if '0, -0.5' in result and '-1' in result:
             return {
@@ -622,14 +625,14 @@ def parse_handicap(html):
             _2 = 'SI' if '-2' in result else 'NO'
             msj = f'Fallo → Handicap Asiatico 0/-0.5: {_0}, -1: {_1}, -2: {_2}'
             logging.info(msj) # noqa
-            logging.info(f'Fallo → Handicap "{', '.join(descartados)}"')
+            logging.info(f'Fallo → Handicap "{str_descartados}"')
             return {
                 'OK': False,
                 'msj': msj,
                 'odds': result
             }
     else:
-        msj = f'Fallo → Handicap "{', '.join(descartados)}"'
+        msj = f'Fallo → Handicap "{str_descartados}"'
         logging.info(msj)
         return {
             'OK': False,
