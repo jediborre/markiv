@@ -3,7 +3,7 @@ import os
 import sys
 import json
 import base64
-import pprint
+import pprint # noqa
 import logging
 import vertexai
 if os.name == 'nt':

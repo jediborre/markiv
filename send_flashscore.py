@@ -10,6 +10,7 @@ from telebot import types
 from utils import get_json
 from utils import send_text
 from dotenv import load_dotenv
+from utils import save_matches
 from utils import prepare_paths
 from sheet_utils import get_last_row
 from sheet_utils import get_hum_fecha
@@ -192,6 +193,8 @@ def update_optional_columns(wks, row):
     update_formula(wks, 'BQ', row)
     update_formula(wks, 'BR', row)
     update_formula(wks, 'BS', row)
+    update_formula(wks, 'BV', row)
+    update_formula(wks, 'BW', row)
 
 
 def get_match_error(match: dict):
@@ -247,8 +250,11 @@ def process_match(wks, bot, match: dict):
 
     row = get_last_row(wks)
     result = write_sheet_row(wks, row, match)
-    resultado = result['resultado']
     mensaje = result['mensaje']
+    resultado = result['resultado']
+    match['mensaje'] = mensaje
+    match['resultado'] = resultado
+    match['row'] = row
 
     msj = get_match_ok(match, resultado, mensaje)
 
@@ -265,10 +271,14 @@ def process_match(wks, bot, match: dict):
                 markup
             )
 
-    return row
+    return match
 
 
-def send_matches(path_matches: str):
+def send_matches(path_matches: str, filename: str):
+    base_filename = filename.split('.')[0]
+    date = base_filename[:8]
+    filename_ok = f'{base_filename}_ok.json'
+    path_ok = path(path_result, date, filename_ok)
     logging.info(f'MarkIV Envio {path_matches}') # noqa
     try:
         matches = get_json(path_matches)
@@ -281,11 +291,15 @@ def send_matches(path_matches: str):
         wks = spreadsheet.worksheet_by_title('Bot')
         bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 
-        rows = []
+        matches_, rows = [], []
+
         for match in matches:
-            row = process_match(wks, bot, match)
-            if row is not None:
-                rows.append(row)
+            match = process_match(wks, bot, match)
+            matches_.append(match)
+            if match['row'] is not None:
+                rows.append(match['row'])
+
+        save_matches(path_ok, matches_, True)
 
         if len(rows) > 0:
             for row in rows:
@@ -299,10 +313,11 @@ def send_matches(path_matches: str):
 if __name__ == '__main__':
     args = parser.parse_args()
     filename = args.file
-    path_file = path(path_result, filename.split('.')[0][:8], filename)
+    date = filename.split('.')[0][:8]
+    path_file = path(path_result, date, filename)
 
     if not os.path.exists(path_file):
         logging.info(f'Archivo {path_file} no existe')
         exit(1)
 
-    send_matches(path_file)
+    send_matches(path_file, filename)
