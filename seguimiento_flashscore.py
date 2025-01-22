@@ -9,6 +9,8 @@ from bs4 import BeautifulSoup
 from utils import path, pathexist
 from utils import prepare_paths_ok
 
+# https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json
+
 url_matches_today = 'https://m.flashscore.com.mx/'
 
 sys.stdout.reconfigure(encoding='utf-8')
@@ -110,7 +112,6 @@ def seguimiento(path_file: str, filename: str):
 
     except KeyboardInterrupt:
         print('\nFin...')
-    input('Presione una tecla para continuar')
     # web.close()
 
 

@@ -16,6 +16,8 @@ from sheet_utils import get_last_row
 from sheet_utils import get_hum_fecha
 from sheet_utils import update_formula
 
+# https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json
+
 load_dotenv()
 
 path_result, path_cron, path_csv, path_json, path_html = prepare_paths('envio_flashcore.log') # noqa
