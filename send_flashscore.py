@@ -226,7 +226,6 @@ HANDICAP: {_handicap}
 
 
 def get_match_ok(match: dict, resultado: str = '', mensaje: str = ''):
-    id = match['id']
     pais = match['pais']
     hora = match['hora']
     liga = match['liga']
@@ -236,13 +235,11 @@ def get_match_ok(match: dict, resultado: str = '', mensaje: str = ''):
 
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     msj = f'''{timestamp}
-#{id} {fecha} {hora}
+{fecha} {hora}
 {pais} {liga}
 {home} v {away}'''
     if resultado:
         msj += f'\n{resultado}'
-    if mensaje:
-        msj += f'\n{mensaje}'
 
     return msj
 
@@ -263,7 +260,7 @@ def process_match(wks, bot, match: dict):
     if 'OK' in resultado:
         markup = types.InlineKeyboardMarkup()
         if link:
-            link_boton = types.InlineKeyboardButton('Partido', url=link) # noqa
+            link_boton = types.InlineKeyboardButton('Apostar', url=link) # noqa
             markup.add(link_boton)
         for chat_id in TELEGRAM_CHAT_ID:
             send_text(
