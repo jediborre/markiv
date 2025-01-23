@@ -232,10 +232,9 @@ def get_match_ok(match: dict, resultado: str = '', mensaje: str = ''):
     home = match['home']
     away = match['away']
     fecha = get_hum_fecha(match['fecha'])
+    # timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    msj = f'''{timestamp}
-{fecha} {hora}
+    msj = f'''{fecha} {hora}
 {pais} {liga}
 {home} v {away}'''
     if resultado:

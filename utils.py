@@ -48,7 +48,7 @@ def get_json(path_file: str):
     return json.loads(open(path_file, 'r').read())
 
 
-def wakeup(script: str, fecha_programacion: str, matches_ts: str):
+def wakeup(script: str, fecha_programacion: str, matches_ts: str, number_mamtches: int): # noqa
     try:
         if os.name == 'nt':
             WD = os.getcwd()
@@ -61,10 +61,10 @@ def wakeup(script: str, fecha_programacion: str, matches_ts: str):
             if not os.path.exists(script_path):
                 logging.error(f"Script not found at {script_path}")
                 return
-            logging.info(f"Scheduling task to run script at {script_path} with Python at {python_path}") # noqa
+            # logging.info(f"Scheduling task to run script at {script_path} with Python at {python_path}") # noqa
 
             create_task(
-                f'MarkIV Mathces {matches_ts}',
+                f'MarkIV {matches_ts[-4:]} {number_mamtches}',
                 trigger_time,
                 python_path,
                 script_path,

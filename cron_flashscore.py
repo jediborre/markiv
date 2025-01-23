@@ -85,7 +85,7 @@ def cron_matches(path_matches: str, debug_hora=None):
                 f.write(json.dumps(cron_matches, indent=4))
                 # admin = is_admin()
                 # if admin:
-                wakeup('process_flashscore.py', fecha_hora_programacion, ts) # noqa
+                wakeup('process_flashscore.py', fecha_hora_programacion, ts, len(cron_matches)) # noqa
 
     print(f'Descartados: {descartados}')
 

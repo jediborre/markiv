@@ -10,6 +10,7 @@ from utils import save_matches
 from utils import prepare_paths
 from parse import get_all_matches
 from parse import get_team_matches
+from cron_flashscore import cron_matches
 from datetime import datetime, timedelta
 
 sys.stdout.reconfigure(encoding='utf-8')
@@ -119,6 +120,7 @@ def process_matches(matches_, date, web, overwrite=False):
     logging.info(f'\n\nPARTIDOS {len(matches)} {fecha}')
     if len(matches) > 0:
         save_matches(path_matches, matches, True)
+        cron_matches(path_matches)
 
     if len(matches_pais) > 0:
         save_matches(path_matches_pais, matches_pais, True)

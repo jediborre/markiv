@@ -57,7 +57,7 @@ def main(path_matches: str, filename_result: str, overwrite: bool = False):
             with open(path_result_file, 'w') as file:
                 file.write(json.dumps(result, indent=4))
                 logging.info(f'Resultado {path_result_file}')
-                send_matches(path_result_file)
+                send_matches(path_result_file, filename_result)
     except KeyboardInterrupt:
         print('\nFin...')
     # web.close()
