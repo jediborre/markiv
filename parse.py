@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 from utils import path
 from utils import limpia_nombre
 from utils import decimal_american
+from text_unidecode import unidecode
 
 
 def get_all_matches(path_html, filename, matches_link, web, overwrite=False): # noqa
@@ -36,7 +37,30 @@ def parse_all_matches(html):
         'mundial',
         'playoffs',
         'internacional',
+        'sudamerica',
         'women',
+    ]
+    filter_paises = [
+        'escocia',
+        'Jordania',
+        'mauritania',
+        'albania',
+        'bahrein',
+        'bielorrusia',
+        'india',
+        'irak',
+        'irlanda',
+        'irlanda del norte',
+        'kuwait',
+        'serbia',
+        'tunez',
+        'alemania',
+        'andorra',
+        'arabia saudita',
+        'argelia',
+        'bolivia',
+        'europa',
+        'sudamerica',
     ]
 
     domain = 'https://www.flashscore.com.mx'
@@ -48,7 +72,10 @@ def parse_all_matches(html):
         nombre_liga = re.sub(r'\s+$', '', nombre_liga)
         partido_actual = liga.find_next_sibling()
 
-        if any([x in nombre_liga.lower() for x in filter_ligas]):
+        if any([x in unidecode(pais.lower()) for x in filter_paises]):
+            continue
+
+        if any([x in unidecode(nombre_liga.lower()) for x in filter_ligas]):
             continue
 
         while partido_actual and partido_actual.name != 'h4':
