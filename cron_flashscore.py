@@ -75,19 +75,21 @@ def cron_matches(path_matches: str, debug_hora=None):
                 work = False
         if work:
             print(f'{hora} {len(cron_matches)}')
-            for m in cron_matches:
-                print(f'{m["hora"]}|{m["id"]}|{m["pais"]} : {m["liga"]}|{m["home"]} - {m["away"]}') # noqa
             path_cron_date = path(path_cron, date)
             if not os.path.exists(path_cron_date):
                 os.makedirs(path_cron_date)
             path_cron_matches = path(path_cron_date, f'{ts}.json')
             with open(path_cron_matches, 'w') as f:
                 f.write(json.dumps(cron_matches, indent=4))
-                # admin = is_admin()
-                # if admin:
-                wakeup('process_flashscore.py', fecha_hora_programacion, ts, len(cron_matches)) # noqa
+                task_result = wakeup('process_flashscore.py', fecha_hora_programacion, ts, len(cron_matches)) # noqa
+                if len(cron_matches) > 1:    
+                    for m in cron_matches:
+                        print(f'{m["hora"]}|{m["id"]}|{m["pais"]} : {m["liga"]}|{m["home"]} - {m["away"]}') # noqa
+                    logging.info(task_result)
+                else:
+                    logging.info(f'{m["hora"]}|{m["id"]}|{m["pais"]} : {m["liga"]}|{m["home"]} - {m["away"]} {task_result}') # noqa
 
-    print(f'Descartados: {descartados}')
+    print(f"\nDescartados: {descartados}")
 
 
 if __name__ == '__main__':

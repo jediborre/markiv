@@ -63,7 +63,7 @@ def wakeup(script: str, fecha_programacion: str, matches_ts: str, number_mamtche
                 return
             # logging.info(f"Scheduling task to run script at {script_path} with Python at {python_path}") # noqa
 
-            create_task(
+            return create_task(
                 f'MarkIV {matches_ts[-4:]} {number_mamtches}',
                 trigger_time,
                 python_path,
@@ -105,8 +105,7 @@ def create_task(task_name, trigger_time, python_path, script_path, args):
                 3,  # TASK_LOGON_SERVICE_ACCOUNT
                 None
             )
-
-            logging.info(f"Task '{task_name}' has been created successfully and will run at {trigger_time}") # noqa
+            return f"New Task '{task_name}' @{trigger_time}"
         else:
             logging.error("Unsupported operating system")
 
