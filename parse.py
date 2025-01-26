@@ -87,10 +87,6 @@ def parse_all_matches(html):
                     local, visitante = equipos.split(' - ')
                     link = partido_actual.find_next_sibling('a')['href']
                     link = f'{domain}{link}#/h2h/overall'
-                    # link_1x2 = f'{link}#/comparacion-de-momios/momios-1x2/partido' # noqa
-                    # link_goles = f'{link}#/comparacion-de-momios/mas-de-menos-de/partido' # noqa
-                    # link_ambos = f'{link}#/comparacion-de-momios/ambos-equipos-marcaran/partido' # noqa
-                    # link_handicap = f'{link}#/comparacion-de-momios/handicap-asiatico/partido' # noqa
                     resultados.append((
                         pais,
                         nombre_liga,
@@ -114,7 +110,6 @@ def get_team_matches(path_html, filename, link, home, away, liga, web, overwrite
             os.remove(html_path)
 
     if not os.path.exists(html_path):
-        # logging.info('Match', '→', filename_page_h2h) # noqa
         web.open(link)
 
         web.wait_Class('h2h__section', 20)
@@ -367,15 +362,6 @@ def get_momios(path_html, filename, link_match, web, overwrite=False): # noqa
             'odds_ambos': {'OK': False, 'msj': 'No evaluado'},
             'odds_handicap': {'OK': False, 'msj': 'No evaluado'},
         }
-    momios_ambos = getAmbos(path_html, filename, web, overwrite) # noqa
-    if not momios_ambos['OK']:
-        return {
-            'OK': False,
-            'odds_1x2': momios_1x2,
-            'odds_ambos': momios_ambos,
-            'odds_goles': {'OK': False, 'msj': 'No evaluado'},
-            'odds_handicap': {'OK': False, 'msj': 'No evaluado'},
-        }
 
     momios_goles = getmGoles(path_html, filename, web, overwrite) # noqa
     if not momios_goles['OK']:
@@ -383,8 +369,18 @@ def get_momios(path_html, filename, link_match, web, overwrite=False): # noqa
             'OK': False,
             'odds_1x2': momios_1x2,
             'odds_goles': momios_goles,
-            'odds_ambos': momios_ambos,
+            'odds_ambos': {'OK': False, 'msj': 'No evaluado'},
             'odds_handicap': {'OK': False, 'msj': 'No evaluado'}
+        }
+
+    momios_ambos = getAmbos(path_html, filename, web, overwrite) # noqa
+    if not momios_ambos['OK']:
+        return {
+            'OK': False,
+            'odds_1x2': momios_1x2,
+            'odds_ambos': momios_ambos,
+            'odds_goles': momios_goles,
+            'odds_handicap': {'OK': False, 'msj': 'No evaluado'},
         }
 
     momios_handicap = getHandicap(path_html, filename, web, overwrite) # noqa
