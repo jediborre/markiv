@@ -69,11 +69,12 @@ def parse_all_matches(html):
     for liga in ligas:
         tmp_liga = ''.join([str(content) for content in liga.contents if not content.name]) # noqa
         pais, nombre_liga = tmp_liga.split(': ')
+        pais = unidecode(pais)
         nombre_liga = re.sub(r'\s+$', '', nombre_liga)
         partido_actual = liga.find_next_sibling()
 
-        if any([x in unidecode(pais.lower()) for x in filter_paises]):
-            continue
+        # if any([x in unidecode(pais.lower()) for x in filter_paises]):
+        #     continue
 
         if any([x in unidecode(nombre_liga.lower()) for x in filter_ligas]):
             continue
