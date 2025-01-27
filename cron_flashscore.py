@@ -82,7 +82,7 @@ def cron_matches(path_matches: str, debug_hora=None):
             with open(path_cron_matches, 'w') as f:
                 f.write(json.dumps(cron_matches, indent=4))
                 task_result = wakeup('process_flashscore.py', fecha_hora_programacion, ts, len(cron_matches)) # noqa
-                if len(cron_matches) > 1:    
+                if len(cron_matches) > 1:
                     for m in cron_matches:
                         print(f'{m["hora"]}|{m["id"]}|{m["pais"]} : {m["liga"]}|{m["home"]} - {m["away"]}') # noqa
                     logging.info(task_result)
