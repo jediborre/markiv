@@ -87,7 +87,8 @@ def cron_matches(path_matches: str, debug_hora=None):
                         print(f'{m["hora"]}|{m["id"]}|{m["pais"]} : {m["liga"]}|{m["home"]} - {m["away"]}') # noqa
                     logging.info(task_result)
                 else:
-                    logging.info(f'{m["hora"]}|{m["id"]}|{m["pais"]} : {m["liga"]}|{m["home"]} - {m["away"]} {task_result}') # noqa
+                    for m in cron_matches:
+                        logging.info(f'{m["hora"]}|{m["id"]}|{m["pais"]} : {m["liga"]}|{m["home"]} - {m["away"]} {task_result}') # noqa
 
     print(f"\nDescartados: {descartados}")
 
