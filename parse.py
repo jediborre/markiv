@@ -40,28 +40,28 @@ def parse_all_matches(html):
         'sudamerica',
         'women',
     ]
-    filter_paises = [
-        'escocia',
-        'Jordania',
-        'mauritania',
-        'albania',
-        'bahrein',
-        'bielorrusia',
-        'india',
-        'irak',
-        'irlanda',
-        'irlanda del norte',
-        'kuwait',
-        'serbia',
-        'tunez',
-        'alemania',
-        'andorra',
-        'arabia saudita',
-        'argelia',
-        'bolivia',
-        'europa',
-        'sudamerica',
-    ]
+    # filter_paises = [
+    #     'alemania',
+    #     'andorra',
+    #     'argelia',
+    #     'arabia saudita',
+    #     'bahrein',
+    #     'bolivia',
+    #     'bielorrusia',
+    #     'escocia',
+    #     'europa',
+    #     'albania',
+    #     'india',
+    #     'irak',
+    #     'irlanda',
+    #     'irlanda del norte',
+    #     'Jordania',
+    #     'kuwait',
+    #     'mauritania',
+    #     'serbia',
+    #     'sudamerica',
+    #     'tunez'
+    # ]
 
     domain = 'https://www.flashscore.com.mx'
     soup = BeautifulSoup(html, 'html.parser')
