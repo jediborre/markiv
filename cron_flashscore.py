@@ -74,7 +74,7 @@ def cron_matches(path_matches: str, debug_hora=None):
             if hora != debug_hora:
                 work = False
         if work:
-            print(f'{hora} {len(cron_matches)}')
+            print(f'{date} {hora} {len(cron_matches)}')
             path_cron_date = path(path_cron, date)
             if not os.path.exists(path_cron_date):
                 os.makedirs(path_cron_date)
