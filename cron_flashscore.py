@@ -39,7 +39,7 @@ def cron_matches(path_matches: str, debug_hora=None):
         return
 
     descartados = 0
-    print(f'Procesando {len(matches)} partidos\n\n')
+    print(f'\nProcesando {len(matches)} partidos\n\n')
     for m in matches:
         match = matches[m]
         match['hora'] = match['hora'][:5]
@@ -63,7 +63,7 @@ def cron_matches(path_matches: str, debug_hora=None):
         else:
             descartados += 1
 
-    print(f'Partidos {result["fecha"]}: {len(matches)}')
+    print(f'PARTIDOS {result["fecha"]}: {len(matches)}')
     for fecha_programacion, ts in result['cron']:
         date = ts[:8]
         cron_matches = result[ts]
@@ -74,7 +74,7 @@ def cron_matches(path_matches: str, debug_hora=None):
             if hora != debug_hora:
                 work = False
         if work:
-            print(f'{date} {hora} {len(cron_matches)}')
+            print(f'{hora} {len(cron_matches)}')
             path_cron_date = path(path_cron, date)
             if not os.path.exists(path_cron_date):
                 os.makedirs(path_cron_date)
