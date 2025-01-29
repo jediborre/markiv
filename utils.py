@@ -51,7 +51,7 @@ def get_json(path_file: str):
 def wakeup(script: str, fecha_programacion: str, matches_ts: str, number_mamtches: int): # noqa
     try:
         if os.name == 'nt':
-            WD = os.getcwd()
+            WD = os.path.dirname(os.path.abspath(__file__))
             trigger_time = datetime.strptime(fecha_programacion, '%Y-%m-%d %H:%M:%S') # noqa
             script_path = os.path.join(WD, script)
             python_path = os.path.join(WD, '.venv', 'Scripts', 'python.exe')
