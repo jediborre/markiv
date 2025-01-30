@@ -36,7 +36,7 @@ def resultados(path_file: str, filename: str):
             away = m["away"]
             hora = m["hora"]
             pais = m["pais"]
-            print(pais, liga, hora, home, away, link)
+            row = m["row"]
             web.open(link)
             web.wait(1)
             soup = BeautifulSoup(web.source(), 'html.parser')
@@ -47,7 +47,9 @@ def resultados(path_file: str, filename: str):
                 if 'Finalizado' in resultado:
                     finalizado = True
                     home_ft, away_ft = resultado.replace('Finalizado', '').strip().split('-') # noqa
-                    print(f"Resultado: {home_ft} - {away_ft}")
+                    print(pais, liga, hora, home, away, row, 'Finalizado', home_ft, away_ft) # noqa
+                else:
+                    print(pais, liga, hora, home, away, row, 'En Juego', '-', '-') # noqa
             except AttributeError:
                 print("No se pudo encontrar el resultado. Revisa la estructura del HTML.") # noqa
 
