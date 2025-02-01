@@ -142,7 +142,7 @@ def main(hoy=False, overwrite=False):
     fecha = date.strftime('%Y%m%d')
     path_page_matches = path(path_html, f'{fecha}_matches.html') # noqa
 
-    web = Web()
+    web = Web(multiples=True)
     matches = get_all_matches(path_html, path_page_matches, url, web, overwrite) # noqa
     if len(matches) == 0:
         logging.info(f'No hay partidos {fecha}')

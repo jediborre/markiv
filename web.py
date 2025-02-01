@@ -93,7 +93,7 @@ class ChainedWeb:
 class Web:
     driver: webdriver.Chrome = None
 
-    def __init__(self, url=None, debug=False) -> None:
+    def __init__(self, url=None, debug=False, multiples=False) -> None:
         self.prod = is_prod()
         proxy_url = 'https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&country=mx,us,ca&protocol=http&proxy_format=ipport&format=text&timeout=4000' # noqa
         self.debug = debug
@@ -121,9 +121,13 @@ class Web:
             "Mozilla/5.0 (compatible; Bingbot/2.0; +http://www.bing.com/bingbot.htm)", # noqa
         ]
         self.proxies = self.get_proxies_from_url(proxy_url) if proxy_url else [] # noqa
+        self.multiples = multiples
 
         if not self.proxies:
             raise Exception("No proxies available")
+
+        if self.multiples:
+            self.start_browser()
 
         if url:
             if self.debug:
@@ -142,9 +146,11 @@ class Web:
             return []
 
     def open(self, url):
-        if self.driver:
-            self.quit()
-        self.start_browser()
+        if not self.multiples:
+            if self.driver:
+                self.quit()
+            self.start_browser()
+
         try:
             if self.debug:
                 self.log('opening: ' + url)
@@ -152,8 +158,8 @@ class Web:
             if self.driver.current_url == url:
                 pass
                 # self.log(' → OK ')
-            else:
-                self.log(' → ERROR ')
+            # else:
+            #     self.log(f' → ERROR \n{self.driver.current_url}\n{url}')
         except WebDriverException as e:
             self.log(f'WEB open URL: {url} Error: {e.msg}')
 

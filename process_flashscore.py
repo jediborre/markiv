@@ -23,7 +23,7 @@ parser.add_argument('--over', action='store_true', help="Sobreescribir")
 
 def main(path_matches: str, filename_result: str, overwrite: bool = False):
     logging.info(f'MarkIV {filename_result} {path_matches}') # noqa
-    web = Web(debug=True)
+    web = Web(multiples=True)
     result = []
     matches = get_json(path_matches)
     try:
