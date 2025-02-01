@@ -155,33 +155,36 @@ def write_sheet_row(wks, row, match):
         '',  # Estatus
         '',  # L/V  *F  BV
         '',  # Rango  *F  BW
-        '',
+        '',  # X2    BX
+        '',  # Hoja  BY
+        '',  # CRango  BZ,
+        '',  # Arc 3    CA
         link
     ]
     wks.update_row(row, reg)
 
-    update_formula(wks, 'AS', row)
-    update_formula(wks, 'AT', row)
-    update_formula(wks, 'AU', row)
-    update_formula(wks, 'AX', row)
-    update_formula(wks, 'AY', row)
-    update_formula(wks, 'BB', row)
-    update_formula(wks, 'BC', row)
-    update_formula(wks, 'BD', row)
-    update_formula(wks, 'BE', row)
-    update_formula(wks, 'BF', row)
-    update_formula(wks, 'BG', row)
-    update_formula(wks, 'BH', row)
-    update_formula(wks, 'BI', row)
-    update_formula(wks, 'BJ', row)
+    # update_formula(wks, 'AS', row)
+    # update_formula(wks, 'AT', row)
+    # update_formula(wks, 'AU', row)
+    # update_formula(wks, 'AX', row)
+    # update_formula(wks, 'AY', row)
+    # update_formula(wks, 'BB', row)
+    # update_formula(wks, 'BC', row)
+    # update_formula(wks, 'BD', row)
+    # update_formula(wks, 'BE', row)
+    # update_formula(wks, 'BF', row)
+    # update_formula(wks, 'BG', row)
+    # update_formula(wks, 'BH', row)
+    # update_formula(wks, 'BI', row)
+    # update_formula(wks, 'BJ', row)
 
-    mensaje = update_formula(wks, 'AR', row)  # Mensaje
-    resultado = update_formula(wks, 'G', row)  # RESULTADO
+    # mensaje = update_formula(wks, 'AR', row)  # Mensaje
+    # resultado = update_formula(wks, 'G', row)  # RESULTADO
 
     return {
         'row': row,
-        'mensaje': mensaje,
-        'resultado': resultado
+        'mensaje': '',
+        'resultado': 'OK'
     }
 
 
@@ -246,6 +249,20 @@ def get_match_ok(match: dict, resultado: str = '', mensaje: str = ''):
 def process_match(wks, bot, match: dict):
     link = match['url']
 
+    msj = get_match_ok(match, '', '')
+    markup = types.InlineKeyboardMarkup()
+    if link:
+        link_boton = types.InlineKeyboardButton('Apostar', url=link) # noqa
+        markup.add(link_boton)
+    for chat_id in TELEGRAM_CHAT_ID:
+        send_text(
+            bot,
+            chat_id,
+            msj,
+            markup
+        )
+    logging.info(msj)
+
     row = get_last_row(wks)
     result = write_sheet_row(wks, row, match)
     mensaje = result['mensaje']
@@ -253,21 +270,6 @@ def process_match(wks, bot, match: dict):
     match['mensaje'] = mensaje
     match['resultado'] = resultado
     match['row'] = row
-
-    msj = get_match_ok(match, resultado, mensaje)
-
-    if 'OK' in resultado:
-        markup = types.InlineKeyboardMarkup()
-        if link:
-            link_boton = types.InlineKeyboardButton('Apostar', url=link) # noqa
-            markup.add(link_boton)
-        for chat_id in TELEGRAM_CHAT_ID:
-            send_text(
-                bot,
-                chat_id,
-                msj,
-                markup
-            )
 
     return match
 
@@ -291,7 +293,8 @@ def send_matches(path_matches: str, filename: str):
 
         matches_, rows = [], []
 
-        for match in matches:
+        for n, match in enumerate(matches):
+            logging.info(f'Procesando {match["home"]} v {match["away"]} {match["fecha"]} {match["hora"]} | {n}-{len(matches)}') # noqa
             match = process_match(wks, bot, match)
             matches_.append(match)
             if match['row'] is not None:
@@ -299,9 +302,9 @@ def send_matches(path_matches: str, filename: str):
 
         save_matches(path_ok, matches_, True)
 
-        if len(rows) > 0:
-            for row in rows:
-                update_optional_columns(wks, row)
+        # if len(rows) > 0:
+        #     for row in rows:
+        #         update_optional_columns(wks, row)
     except Exception as e:
         logging.error(f'Error: {e}')
     except KeyboardInterrupt:

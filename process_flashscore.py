@@ -48,6 +48,7 @@ def main(path_matches: str, filename_result: str, overwrite: bool = False):
             else:
                 msj = get_match_error(match)
                 logging.info(msj + '\n')
+        web.close()
         if len(result) > 0:
             filename_date = filename_result[:8]
             path_result_ok = path(path_result, filename_date)
@@ -60,7 +61,6 @@ def main(path_matches: str, filename_result: str, overwrite: bool = False):
                 send_matches(path_result_file, filename_result)
     except KeyboardInterrupt:
         print('\nFin...')
-    # web.close()
 
 
 if __name__ == '__main__':
