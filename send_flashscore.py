@@ -151,7 +151,7 @@ def write_sheet_row(wks, row, match):
         '',  # Linea del tiempo GOL LV4  *F  BR
         '',  # Linea del tiempo GOL TOTAL  *F  BS
 
-        '',  # Correcto
+        'SI',  # Correcto
         '',  # Estatus
         '',  # L/V  *F  BV
         '',  # Rango  *F  BW
