@@ -202,10 +202,12 @@ def get_match_error(match: dict):
     away = match['away']
     status = match['status'] if 'status' in match else ''
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    _1x2 = 'OK' if match['1x2']['OK'] else match['1x2']['msj'] if 'msj' in match['1x2'] else 'NO' # noqa
-    _ambos = 'OK' if match['ambos']['OK'] else match['ambos']['msj'] if 'msj' in match['ambos'] else 'NO' # noqa
-    _goles = 'OK' if match['goles']['OK'] else match['goles']['msj'] if 'msj' in match['goles'] else 'NO' # noqa
-    _handicap = 'OK' if match['handicap']['OK'] else match['handicap']['msj'] if 'msj' in match['handicap'] else 'NO' # noqa
+    _1x2, _ambos, _goles, _handicap = 'NO', 'NO', 'NO', 'NO'
+    if status != 'aplazado':
+        _1x2 = 'OK' if match['1x2']['OK'] else match['1x2']['msj'] if 'msj' in match['1x2'] else 'NO' # noqa
+        _ambos = 'OK' if match['ambos']['OK'] else match['ambos']['msj'] if 'msj' in match['ambos'] else 'NO' # noqa
+        _goles = 'OK' if match['goles']['OK'] else match['goles']['msj'] if 'msj' in match['goles'] else 'NO' # noqa
+        _handicap = 'OK' if match['handicap']['OK'] else match['handicap']['msj'] if 'msj' in match['handicap'] else 'NO' # noqa
     momios = f'''
 MOMIOS
 1x2: {_1x2}
@@ -302,7 +304,7 @@ def send_matches(path_matches: str):
 
         save_matches(path_filename, matches_, True, debug=False)
 
-        tres_hora = timedelta(hours=3)
+        tres_hora = timedelta(hours=4)
         fechahora_partidos = dt_filename.replace(tzinfo=pytz.timezone('America/Mexico_City')) # noqa
         dt_partidos_p3h = fechahora_partidos + tres_hora
 
