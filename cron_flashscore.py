@@ -1,11 +1,11 @@
 import os
-import json
 import pytz
 import logging # noqa
 import argparse
 from utils import path
 from utils import wakeup
 from utils import get_json
+from utils import save_matches
 # from utils import is_admin
 from utils import prepare_paths
 from datetime import datetime, timedelta
@@ -79,25 +79,28 @@ def cron_matches(path_matches: str, debug_hora=None):
                 work = False
         if work:
             print(f'{hora} {len(cron_matches)}')
+
             path_cron_date = path(path_cron, fecha)
             if not os.path.exists(path_cron_date):
                 os.makedirs(path_cron_date)
-            path_cron_matches = path(path_cron_date, f'{fechahora}.json') # noqa
-            with open(path_cron_matches, 'w') as f:
-                f.write(json.dumps(cron_matches, indent=4))
-                task_result = wakeup(
-                    'Momios'
-                    'process_flashscore.py',
-                    dt_partido,
-                    len(cron_matches)
-                )
-                if len(cron_matches) > 1:
-                    for m in cron_matches:
-                        print(f'{m["hora"]}|{m["id"]}|{m["pais"]} : {m["liga"]}|{m["home"]} - {m["away"]}') # noqa
-                    logging.info(task_result)
-                else:
-                    for m in cron_matches:
-                        logging.info(f'{m["hora"]}|{m["id"]}|{m["pais"]} : {m["liga"]}|{m["home"]} - {m["away"]} {task_result}') # noqa
+            filename_cron = f'{fechahora}.json'
+            path_cron_matches = path(path_cron_date, filename_cron) # noqa
+
+            save_matches(path_cron_matches, cron_matches, True)
+            task_result = wakeup(
+                'Momios'
+                'process_flashscore.py',
+                dt_partido,
+                filename_cron,
+                len(cron_matches)
+            )
+            if len(cron_matches) > 1:
+                for m in cron_matches:
+                    print(f'{m["hora"]}|{m["id"]}|{m["pais"]} : {m["liga"]}|{m["home"]} - {m["away"]}') # noqa
+                logging.info(task_result)
+            else:
+                for m in cron_matches:
+                    logging.info(f'{m["hora"]}|{m["id"]}|{m["pais"]} : {m["liga"]}|{m["home"]} - {m["away"]} {task_result}') # noqa
 
     print(f"\nDescartados: {descartados}")
 

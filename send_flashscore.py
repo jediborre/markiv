@@ -278,6 +278,7 @@ def send_matches(path_matches: str):
         os.makedirs(path_ok)
     path_filename = path(path_ok, filename)
     logging.info(f'MarkIV Envio {filename}') # noqa
+    print('')
     try:
         matches = get_json(path_matches)
 
@@ -299,16 +300,20 @@ def send_matches(path_matches: str):
             if match['row'] is not None:
                 rows.append(match['row'])
 
-        save_matches(path_filename, matches_, True)
+        save_matches(path_filename, matches_, True, debug=False)
 
         tres_hora = timedelta(hours=3)
         fechahora_partidos = dt_filename.replace(tzinfo=pytz.timezone('America/Mexico_City')) # noqa
         dt_partidos_p3h = fechahora_partidos + tres_hora
 
-        print(f'Resultados ({cron}): {len(matches_)}')
-        if not cron:
-            task_result = wakeup('Resultado', 'resultado_flashscore.py', dt_partidos_p3h, len(matches_)) # noqa
-            print(task_result)
+        task_result = wakeup(
+            'Resultado',
+            'resultado_flashscore.py',
+            dt_partidos_p3h,
+            filename,
+            len(matches_)
+        )
+        print(task_result)
 
         # if len(rows) > 0:
         #     for row in rows:
@@ -321,7 +326,6 @@ def send_matches(path_matches: str):
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    cron = not args.cron
     filename = args.file
     date = filename.split('.')[0][:8]
     path_file = path(path_result, date, filename)

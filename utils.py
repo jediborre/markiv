@@ -52,10 +52,10 @@ def wakeup(
         operation: str,
         script: str,
         dt_programacion: datetime,
+        filename: str,
         number_mamtches: int):
     try:
         hr = dt_programacion.strftime('%H%M')
-        ts = dt_programacion.strftime('%Y%m%d%H%M')
         if os.name == 'nt':
             WD = os.path.dirname(os.path.abspath(__file__))
             script_path = os.path.join(WD, script)
@@ -72,7 +72,7 @@ def wakeup(
                 dt_programacion,
                 python_path,
                 script_path,
-                f'{ts}.json'
+                filename
             )
     except Exception as e:
         logging.exception(f"Exception occurred in wakeup function: {e}")
@@ -131,7 +131,7 @@ def get_percent(n, total):
 def basename(filename, noext=False):
     if pathexist(filename):
         if noext:
-            return os.path.splitext(os.path.basename(filename))[0]
+            return os.path.basename(filename).split('.')[0]
         return os.path.basename(filename)
     else:
         return filename
@@ -334,7 +334,7 @@ def get_gemini_response(image_filename):
     return text_response
 
 
-def save_matches(filename, matches, overwrite=False):
+def save_matches(filename, matches, overwrite=False, debug=False):
     if overwrite:
         if pathexist(filename):
             os.remove(filename)
@@ -342,7 +342,8 @@ def save_matches(filename, matches, overwrite=False):
     if not pathexist(filename):
         with open(filename, 'w', encoding='utf-8') as f:
             json.dump(matches, f, indent=4)
-            print(f'Guardado → {filename}')
+            if debug:
+                print(f'Guardado → {filename}')
 
 
 def save_match(filename, match):

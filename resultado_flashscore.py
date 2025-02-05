@@ -5,7 +5,6 @@ import argparse
 import pygsheets
 from web import Web
 from utils import get_json
-from utils import basename
 from bs4 import BeautifulSoup
 from parse import status_partido
 from utils import path, pathexist
@@ -158,8 +157,11 @@ def resultados(path_file: str, filename: str):
 if __name__ == '__main__':
     args = parser.parse_args()
     filename = args.file
-    filename_date = basename(filename, True)
-    path_file = path(path_result, filename_date, filename)
+    filename_date = filename[:8]
+    path_file = path(path_result, filename_date, 'ok', filename)
 
-    if pathexist(path_file):
-        resultados(path_file, filename)
+    if not pathexist(path_file):
+        logging.error(f'No se encontró el archivo {path_file}')
+        sys.exit(1)
+
+    resultados(path_file, filename)
