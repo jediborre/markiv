@@ -151,7 +151,7 @@ def write_sheet_row(wks, row, match):
         '',  # Linea del tiempo GOL LV4  *F  BR
         '',  # Linea del tiempo GOL TOTAL  *F  BS
 
-        'SI',  # Correcto
+        '',  # Correcto BT
         '',  # Estatus
         '',  # L/V  *F  BV
         '',  # Rango  *F  BW
@@ -162,24 +162,7 @@ def write_sheet_row(wks, row, match):
         link
     ]
     wks.update_row(row, reg)
-
-    # update_formula(wks, 'AS', row)
-    # update_formula(wks, 'AT', row)
-    # update_formula(wks, 'AU', row)
-    # update_formula(wks, 'AX', row)
-    # update_formula(wks, 'AY', row)
-    # update_formula(wks, 'BB', row)
-    # update_formula(wks, 'BC', row)
-    # update_formula(wks, 'BD', row)
-    # update_formula(wks, 'BE', row)
-    # update_formula(wks, 'BF', row)
-    # update_formula(wks, 'BG', row)
-    # update_formula(wks, 'BH', row)
-    # update_formula(wks, 'BI', row)
-    # update_formula(wks, 'BJ', row)
-
-    # mensaje = update_formula(wks, 'AR', row)  # Mensaje
-    # resultado = update_formula(wks, 'G', row)  # RESULTADO
+    wks.update_value(f'BT{row}', 'SI')
 
     return {
         'row': row,
