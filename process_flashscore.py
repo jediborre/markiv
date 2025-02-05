@@ -1,13 +1,15 @@
 import os
-import json
 import logging # noqa
 import argparse
 import pprint # noqa
 from web import Web
 from utils import path
 from utils import get_json
+from utils import basename
 from parse import get_momios
+from utils import save_matches
 from utils import prepare_paths
+from parse import status_partido
 from send_flashscore import send_matches
 from send_flashscore import get_match_ok
 from send_flashscore import get_match_error
@@ -21,8 +23,9 @@ parser.add_argument('file', type=str, help='Archivo de Partidos Flashscore')
 parser.add_argument('--over', action='store_true', help="Sobreescribir")
 
 
-def main(path_matches: str, filename_result: str, overwrite: bool = False):
-    logging.info(f'MarkIV {filename_result} {path_matches}') # noqa
+def main(path_matches: str, overwrite: bool = False):
+    filename = basename(path_matches, True)
+    logging.info(f'MarkIV {filename} {path_matches}') # noqa
     web = Web(multiples=True)
     result = []
     matches = get_json(path_matches)
@@ -30,35 +33,40 @@ def main(path_matches: str, filename_result: str, overwrite: bool = False):
         for match in matches:
             link = match['url']
             filename_match = match['filename_match']
-            momios = get_momios(
-                path_html,
-                filename_match,
-                link,
-                web,
-                overwrite
-            )
-            match['1x2'] = momios['odds_1x2']
-            match['ambos'] = momios['odds_ambos']
-            match['goles'] = momios['odds_goles']
-            match['handicap'] = momios['odds_handicap']
-            if momios['OK']:
-                msj = get_match_ok(match)
-                logging.info(msj + '\n')
-                result.append(match)
-            else:
+            web.open(link)
+            web.wait(1)
+            status = status_partido(web)
+            match['status'] = status
+            if status in ['aplazado']:
                 msj = get_match_error(match)
-                logging.info(msj + '\n')
+                logging.info(msj + '\nAplazado\n')
+            else:
+                momios = get_momios(
+                    path_html,
+                    filename_match,
+                    web,
+                    overwrite
+                )
+                match['1x2'] = momios['odds_1x2']
+                match['ambos'] = momios['odds_ambos']
+                match['goles'] = momios['odds_goles']
+                match['handicap'] = momios['odds_handicap']
+                if momios['OK']:
+                    msj = get_match_ok(match)
+                    logging.info(msj + '\n')
+                    result.append(match)
+                else:
+                    msj = get_match_error(match)
+                    logging.info(msj + '\n')
         web.close()
         if len(result) > 0:
-            filename_date = filename_result[:8]
-            path_result_ok = path(path_result, filename_date)
-            if not os.path.exists(path_result_ok):
-                os.makedirs(path_result_ok)
-            path_result_file = path(path_result_ok, f'{filename_result}.json')
-            with open(path_result_file, 'w') as file:
-                file.write(json.dumps(result, indent=4))
-                logging.info(f'Resultado {path_result_file}')
-                send_matches(path_result_file, filename_result)
+            filename_date = filename[:8]
+            path_result_date = path(path_result, filename_date)
+            if not os.path.exists(path_result_date):
+                os.makedirs(path_result_date)
+            path_result_filename = path(path_result_date, f'{filename}.json') # noqa
+            save_matches(path_result_filename, result)
+            send_matches(path_result_filename)
     except KeyboardInterrupt:
         print('\nFin...')
 
@@ -76,4 +84,4 @@ if __name__ == '__main__':
         logging.info(f'Archivo {path_file} no existe')
         exit(1)
 
-    main(path_file, filename_noext, overwrite)
+    main(path_file, overwrite)

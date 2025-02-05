@@ -48,27 +48,31 @@ def get_json(path_file: str):
     return json.loads(open(path_file, 'r').read())
 
 
-def wakeup(script: str, fecha_programacion: str, matches_ts: str, number_mamtches: int): # noqa
+def wakeup(
+        operation: str,
+        script: str,
+        dt_programacion: datetime,
+        number_mamtches: int):
     try:
+        hr = dt_programacion.strftime('%H%M')
+        ts = dt_programacion.strftime('%Y%m%d%H%M')
         if os.name == 'nt':
             WD = os.path.dirname(os.path.abspath(__file__))
-            trigger_time = datetime.strptime(fecha_programacion, '%Y-%m-%d %H:%M:%S') # noqa
             script_path = os.path.join(WD, script)
             python_path = os.path.join(WD, '.venv', 'Scripts', 'python.exe')
-            if not os.path.exists(python_path):
+            if not pathexist(python_path):
                 logging.error(f"Python executable not found at {python_path}")
                 return
-            if not os.path.exists(script_path):
+            if not pathexist(script_path):
                 logging.error(f"Script not found at {script_path}")
                 return
-            # logging.info(f"Scheduling task to run script at {script_path} with Python at {python_path}") # noqa
 
             return create_task(
-                f'MarkIV {matches_ts[-4:]} {number_mamtches}',
-                trigger_time,
+                f'MarkIV {operation} {hr} {number_mamtches}',
+                dt_programacion,
                 python_path,
                 script_path,
-                f'{matches_ts}.json'
+                f'{ts}.json'
             )
     except Exception as e:
         logging.exception(f"Exception occurred in wakeup function: {e}")
@@ -76,38 +80,39 @@ def wakeup(script: str, fecha_programacion: str, matches_ts: str, number_mamtche
 
 def create_task(task_name, trigger_time, python_path, script_path, args):
     try:
-        if os.name == 'nt':
-            scheduler = win32com.client.Dispatch('Schedule.Service')
-            scheduler.Connect()
+        if not os.name == 'nt':
+            logging.exception("Unsupported operating system")
+            return
 
-            rootFolder = scheduler.GetFolder('\\')
+        scheduler = win32com.client.Dispatch('Schedule.Service')
+        scheduler.Connect()
 
-            taskDef = scheduler.NewTask(0)
+        rootFolder = scheduler.GetFolder('\\')
 
-            trigger = taskDef.Triggers.Create(1)
-            trigger.StartBoundary = trigger_time.isoformat()
-            trigger.Enabled = True
+        taskDef = scheduler.NewTask(0)
 
-            action = taskDef.Actions.Create(0)
-            action.Path = python_path
-            action.Arguments = f'"{script_path}" {args}'
+        trigger = taskDef.Triggers.Create(1)
+        trigger.StartBoundary = trigger_time.isoformat()
+        trigger.Enabled = True
 
-            taskDef.RegistrationInfo.Description = f'MarkIV Match {args}'
-            taskDef.Principal.UserId = r'ROBOT\\Robot'
-            taskDef.Principal.LogonType = 3
+        action = taskDef.Actions.Create(0)
+        action.Path = python_path
+        action.Arguments = f'"{script_path}" {args}'
 
-            rootFolder.RegisterTaskDefinition(
-                task_name,
-                taskDef,
-                6,  # TASK_CREATE_OR_UPDATE
-                '',  # No user
-                '',  # No password
-                3,  # TASK_LOGON_SERVICE_ACCOUNT
-                None
-            )
-            return f"New Task '{task_name}' @{trigger_time}"
-        else:
-            logging.error("Unsupported operating system")
+        taskDef.RegistrationInfo.Description = f'MarkIV Match {args}'
+        taskDef.Principal.UserId = r'ROBOT\\Robot'
+        taskDef.Principal.LogonType = 3
+
+        rootFolder.RegisterTaskDefinition(
+            task_name,
+            taskDef,
+            6,  # TASK_CREATE_OR_UPDATE
+            '',  # No user
+            '',  # No password
+            3,  # TASK_LOGON_SERVICE_ACCOUNT
+            None
+        )
+        return f"New Task '{task_name}' @{trigger_time}"
 
     except Exception as e:
         logging.exception(f"Exception occurred while creating the task: {e}")
@@ -121,6 +126,15 @@ def limpia_nombre(nombre, post=True):
 
 def get_percent(n, total):
     return f'{round(n/total*100, 2)}%'
+
+
+def basename(filename, noext=False):
+    if pathexist(filename):
+        if noext:
+            return os.path.splitext(os.path.basename(filename))[0]
+        return os.path.basename(filename)
+    else:
+        return filename
 
 
 def path(*paths):
@@ -137,7 +151,7 @@ def prepare_paths_ok(log_filename='seguimiento_markiv.log'):
     path_result = path(script_path, 'result')
     path_ok = path(path_result, 'ok')
 
-    if not os.path.exists(path_result):
+    if not pathexist(path_result):
         os.makedirs(path_result)
 
     logging.basicConfig(
@@ -162,17 +176,17 @@ def prepare_paths(log_filename='web_markiv.log'):
     path_result = path(script_path, 'result')
     path_cron = path(script_path, 'cron')
 
-    if not os.path.exists(path_result):
+    if not pathexist(path_result):
         os.makedirs(path_result)
-    if not os.path.exists(path_cron):
+    if not pathexist(path_cron):
         os.makedirs(path_cron)
-    if not os.path.exists(path_tmp):
+    if not pathexist(path_tmp):
         os.makedirs(path_tmp)
-    if not os.path.exists(path_csv):
+    if not pathexist(path_csv):
         os.makedirs(path_csv)
-    if not os.path.exists(path_html):
+    if not pathexist(path_html):
         os.makedirs(path_html)
-    if not os.path.exists(path_json):
+    if not pathexist(path_json):
         os.makedirs(path_json)
 
     logging.basicConfig(
@@ -213,7 +227,7 @@ def decimal_american(odds_decimal):
 
 def get_momios_image(img_filename):
     img_filepath = os.path.join('img', img_filename)
-    if os.path.exists(img_filepath):
+    if pathexist(img_filepath):
         response_dir = 'gemini'
         response_filename = os.path.splitext(os.path.basename(img_filepath))[0]
         response_filepath = os.path.join(response_dir, f'{response_filename}_gemini.json') # noqa
@@ -322,12 +336,13 @@ def get_gemini_response(image_filename):
 
 def save_matches(filename, matches, overwrite=False):
     if overwrite:
-        if os.path.exists(filename):
+        if pathexist(filename):
             os.remove(filename)
 
-    if not os.path.exists(filename):
+    if not pathexist(filename):
         with open(filename, 'w', encoding='utf-8') as f:
             json.dump(matches, f, indent=4)
+            print(f'Guardado → {filename}')
 
 
 def save_match(filename, match):

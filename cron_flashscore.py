@@ -40,48 +40,57 @@ def cron_matches(path_matches: str, debug_hora=None):
 
     descartados = 0
     print(f'\nProcesando {len(matches)} partidos\n\n')
-    for m in matches:
-        match = matches[m]
+    for match_id in matches:
+        match = matches[match_id]
         match['hora'] = match['hora'][:5]
         hora = match['hora']
         fecha = match['fecha']
         filename_fecha = match['filename_fecha']
         result['fecha'] = fecha
         result['filename_matches'] = path(path_result, f'{filename_fecha}.json') # noqa
-        una_hora = timedelta(hours=1)
-        hora_actual = datetime.now(pytz.timezone('America/Mexico_City')) # noqa
-        fechahora_partido = datetime.strptime(f"{fecha} {hora}", "%Y-%m-%d %H:%M").replace(tzinfo=pytz.timezone('America/Mexico_City')) # noqa
-        fechahora_partido_m1h = fechahora_partido - una_hora
-        cron_m1h = fechahora_partido_m1h.strftime('%Y%m%d%H%M')
-        match['programacion'] = fechahora_partido_m1h.strftime('%Y-%m-%d %H:%M:%S') # noqa
 
-        if hora_actual <= fechahora_partido_m1h:
-            if cron_m1h not in result:
-                result[cron_m1h] = []
-                result['cron'].append([match['programacion'], cron_m1h])
-            result[cron_m1h].append(match)
+        # Programacion Hora Partido - 1 hora
+        una_hora = timedelta(hours=1)
+        dt_horaactual = datetime.now(pytz.timezone('America/Mexico_City')) # noqa
+        dt_partido = datetime.strptime(f"{fecha} {hora}", "%Y-%m-%d %H:%M").replace(tzinfo=pytz.timezone('America/Mexico_City')) # noqa
+
+        dt_partido_m1h = dt_partido - una_hora
+        fechahora_partido_m1h = dt_partido_m1h.strftime('%Y%m%d%H%M')
+
+        if dt_horaactual <= dt_partido_m1h:
+            if fechahora_partido_m1h not in result:
+                result[fechahora_partido_m1h] = []
+                result['cron'].append(dt_partido_m1h) # noqa
+                match['programacion'] = dt_partido_m1h.strftime('%Y-%m-%d %H:%M:%S') # noqa
+                result[fechahora_partido_m1h].append(match)
         else:
             descartados += 1
 
     print(f'PARTIDOS {result["fecha"]}: {len(matches)}')
-    for fecha_programacion, ts in result['cron']:
-        date = ts[:8]
-        cron_matches = result[ts]
-        hora = fecha_programacion[11:]
-        fecha_hora_programacion = result["fecha"] + ' ' + fecha_programacion[11:] # noqa
+    for dt_partido in result['cron']:
         work = True
+        hora = dt_partido.strftime('%H:%M')
+        fecha = dt_partido.strftime('%Y-%m-%d')
+        fechahora = dt_partido.strftime('%Y%m%d%H%M')
+        cron_matches = result[fechahora]
+
         if debug_hora:
             if hora != debug_hora:
                 work = False
         if work:
             print(f'{hora} {len(cron_matches)}')
-            path_cron_date = path(path_cron, date)
+            path_cron_date = path(path_cron, fecha)
             if not os.path.exists(path_cron_date):
                 os.makedirs(path_cron_date)
-            path_cron_matches = path(path_cron_date, f'{ts}.json')
+            path_cron_matches = path(path_cron_date, f'{fechahora}.json') # noqa
             with open(path_cron_matches, 'w') as f:
                 f.write(json.dumps(cron_matches, indent=4))
-                task_result = wakeup('process_flashscore.py', fecha_hora_programacion, ts, len(cron_matches)) # noqa
+                task_result = wakeup(
+                    'Momios'
+                    'process_flashscore.py',
+                    dt_partido,
+                    len(cron_matches)
+                )
                 if len(cron_matches) > 1:
                     for m in cron_matches:
                         print(f'{m["hora"]}|{m["id"]}|{m["pais"]} : {m["liga"]}|{m["home"]} - {m["away"]}') # noqa

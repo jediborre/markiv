@@ -341,9 +341,22 @@ def parse_team_section(matches, team=None, team_name=None, liga=None, debug=Fals
         return result
 
 
-def get_momios(path_html, filename, link_match, web, overwrite=False): # noqa
-    web.open(link_match)
-    web.wait(1)
+def status_partido(web):
+    try:
+        soup = BeautifulSoup(web.source(), 'html.parser')
+        resultado = soup.find('div', class_='duelParticipant__score').text.strip() # noqa
+        if 'Finalizado' in resultado:
+            return 'finalizado'
+        elif 'Aplazado' in resultado:
+            return 'aplazado'
+        else:
+            return ''
+    except AttributeError:
+        print("No se pudo encontrar el resultado. Revisa la estructura del HTML.") # noqa
+        return ''
+
+
+def get_momios(path_html, filename, web, overwrite=False): # noqa
     btn_momios = click_momios_btn('momios', web)
     if not btn_momios:
         return {
@@ -569,6 +582,7 @@ def parse_odds_goles(html):
                 }
             else:
                 logging.info(f'Fallo → Momio -3.5 no esta en rango Rango "{menos}"') # noqa
+                print('')
                 return {
                     'OK': False,
                     'msj': f'MOMIO -3.5 no está en rango "{menos}"',

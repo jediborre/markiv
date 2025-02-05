@@ -1,12 +1,15 @@
 import os
+import pytz
 import logging # noqa
 import pprint # noqa
 import telebot
 import argparse
 import pygsheets
-from datetime import datetime
 from utils import path
+from utils import wakeup
+from utils import pathexist
 from telebot import types
+from utils import basename
 from utils import get_json
 from utils import send_text
 from dotenv import load_dotenv
@@ -15,6 +18,7 @@ from utils import prepare_paths
 from sheet_utils import get_last_row
 from sheet_utils import get_hum_fecha
 from sheet_utils import update_formula
+from datetime import datetime, timedelta
 
 # https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json
 
@@ -24,7 +28,9 @@ path_result, path_cron, path_csv, path_json, path_html = prepare_paths('envio_fl
 
 parser = argparse.ArgumentParser(description="Envia Partidos Telegram, Sheets")
 parser.add_argument('file', type=str, help='Archivo de Partidos Flashscore')
+parser.add_argument('--cron', action='store_true', help="Programar")
 
+cron = True
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID').split(',')
 
@@ -159,6 +165,7 @@ def write_sheet_row(wks, row, match):
         '',  # Hoja  BY
         '',  # CRango  BZ,
         '',  # Arc 3    CA
+        '',
         link
     ]
     wks.update_row(row, reg)
@@ -193,22 +200,26 @@ def get_match_error(match: dict):
     liga = match['liga']
     home = match['home']
     away = match['away']
+    status = match['status'] if 'status' in match else ''
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     _1x2 = 'OK' if match['1x2']['OK'] else match['1x2']['msj'] if 'msj' in match['1x2'] else 'NO' # noqa
     _ambos = 'OK' if match['ambos']['OK'] else match['ambos']['msj'] if 'msj' in match['ambos'] else 'NO' # noqa
     _goles = 'OK' if match['goles']['OK'] else match['goles']['msj'] if 'msj' in match['goles'] else 'NO' # noqa
     _handicap = 'OK' if match['handicap']['OK'] else match['handicap']['msj'] if 'msj' in match['handicap'] else 'NO' # noqa
-
-    return f'''{timestamp}
-#{id} {fecha} {hora}
-{pais} {liga}
-{home} v {away}
+    momios = f'''
 MOMIOS
 1x2: {_1x2}
 AMBOS: {_ambos}
 GOLES: {_goles}
 HANDICAP: {_handicap}
 '''
+    msj = f'''{timestamp}
+#{id} {fecha} {hora} {status}
+{pais} {liga}
+{home} v {away}'''
+    if status == '':
+        msj += momios
+    return msj
 
 
 def get_match_ok(match: dict, resultado: str = '', mensaje: str = ''):
@@ -244,7 +255,6 @@ def process_match(wks, bot, match: dict):
             msj,
             markup
         )
-    logging.info(msj)
 
     row = get_last_row(wks)
     result = write_sheet_row(wks, row, match)
@@ -257,12 +267,17 @@ def process_match(wks, bot, match: dict):
     return match
 
 
-def send_matches(path_matches: str, filename: str):
-    base_filename = filename.split('.')[0]
-    date = base_filename[:8]
-    filename_ok = f'{base_filename}_ok.json'
-    path_ok = path(path_result, date, filename_ok)
-    logging.info(f'MarkIV Envio {path_matches}') # noqa
+def send_matches(path_matches: str):
+    global cron
+    filename = basename(path_matches)
+    filename_fechahora = basename(path_matches, True)
+    dt_filename = datetime.strptime(filename_fechahora, "%Y%m%d%H%M")
+    fecha = dt_filename.strftime('%Y%m%d')
+    path_ok = path(path_result, fecha, 'ok')
+    if not pathexist(path_ok):
+        os.makedirs(path_ok)
+    path_filename = path(path_ok, filename)
+    logging.info(f'MarkIV Envio {filename}') # noqa
     try:
         matches = get_json(path_matches)
 
@@ -277,13 +292,23 @@ def send_matches(path_matches: str, filename: str):
         matches_, rows = [], []
 
         for n, match in enumerate(matches):
-            logging.info(f'Procesando {match["home"]} v {match["away"]} {match["fecha"]} {match["hora"]} | {n}-{len(matches)}') # noqa
+            logging.info(f'{match["home"]} v {match["away"]} {match["fecha"]} {match["hora"]} | {n}-{len(matches)}') # noqa
+            print('')
             match = process_match(wks, bot, match)
             matches_.append(match)
             if match['row'] is not None:
                 rows.append(match['row'])
 
-        save_matches(path_ok, matches_, True)
+        save_matches(path_filename, matches_, True)
+
+        tres_hora = timedelta(hours=3)
+        fechahora_partidos = dt_filename.replace(tzinfo=pytz.timezone('America/Mexico_City')) # noqa
+        dt_partidos_p3h = fechahora_partidos + tres_hora
+
+        print(f'Resultados ({cron}): {len(matches_)}')
+        if not cron:
+            task_result = wakeup('Resultado', 'resultado_flashscore.py', dt_partidos_p3h, len(matches_)) # noqa
+            print(task_result)
 
         # if len(rows) > 0:
         #     for row in rows:
@@ -296,6 +321,7 @@ def send_matches(path_matches: str, filename: str):
 
 if __name__ == '__main__':
     args = parser.parse_args()
+    cron = not args.cron
     filename = args.file
     date = filename.split('.')[0][:8]
     path_file = path(path_result, date, filename)
@@ -304,4 +330,4 @@ if __name__ == '__main__':
         logging.info(f'Archivo {path_file} no existe')
         exit(1)
 
-    send_matches(path_file, filename)
+    send_matches(path_file)

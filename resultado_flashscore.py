@@ -2,9 +2,12 @@ import os
 import sys
 import logging
 import argparse
+import pygsheets
 from web import Web
 from utils import get_json
+from utils import basename
 from bs4 import BeautifulSoup
+from parse import status_partido
 from utils import path, pathexist
 from utils import prepare_paths_ok
 
@@ -29,6 +32,12 @@ def resultados(path_file: str, filename: str):
     web = Web(multiples=True)
     matches = get_json(path_file)
     try:
+        path_script = os.path.dirname(os.path.realpath(__file__))
+        service_file = path(path_script, 'feroslebosgc.json')
+        gc = pygsheets.authorize(service_file=service_file)
+
+        spreadsheet = gc.open('Mark 4')
+        wks = spreadsheet.worksheet_by_title('Bot')
         for m in matches:
             link = m["url"].replace('h2h/overall', 'resumen-del-partido')
             liga = m["liga"]
@@ -40,19 +49,21 @@ def resultados(path_file: str, filename: str):
             print(link)
             web.open(link)
             web.wait(1)
+            status = status_partido(web)
             soup = BeautifulSoup(web.source(), 'html.parser')
-
             finalizado = False
-            try:
-                resultado = soup.find('div', class_='duelParticipant__score').text.strip() # noqa
-                if 'Finalizado' in resultado:
-                    finalizado = True
-                    home_ft, away_ft = resultado.replace('Finalizado', '').strip().split('-') # noqa
-                    print(pais, liga, hora, home, away, row, 'Finalizado', home_ft, away_ft) # noqa
-                else:
-                    print(pais, liga, hora, home, away, row, 'En Juego', '-', '-') # noqa
-            except AttributeError:
-                print("No se pudo encontrar el resultado. Revisa la estructura del HTML.") # noqa
+            if status == 'finalizado':
+                finalizado = True
+                print(pais, liga, hora, home, away, row, 'Finalizado') # noqa
+            elif status == 'aplazado':
+                print(pais, liga, hora, home, away, row, 'Aplazado', '-', '-') # noqa
+                wks.update_value(f'AK{row}', '-')
+                wks.update_value(f'AL{row}', '-')
+                wks.update_value(f'AM{row}', '-')
+                wks.update_value(f'AN{row}', '-')
+                wks.update_value(f'AQ{row}', '-')
+            else:
+                print(pais, liga, hora, home, away, row, 'En Juego', '-', '-') # noqa
 
             if finalizado:
                 try:
@@ -92,6 +103,7 @@ def resultados(path_file: str, filename: str):
                                     else:
                                         goles.append([minuto, 'Away']) # noqa
 
+                    total_goles = str(len(goles))
                     goles_ordenados = sorted(goles, key=lambda x: x[0])
                     rojas_home_ordenadas = sorted(rojas_home, key=lambda x: x[0]) # noqa
                     rojas_away_ordenadas = sorted(rojas_away, key=lambda x: x[0]) # noqa
@@ -124,6 +136,14 @@ def resultados(path_file: str, filename: str):
                         rojas_sheet.append('')
 
                     sheet = goles_sheet + rojas_sheet
+                    gol1, gol2, gol3, gol4, rojahome, rojas_away = sheet
+                    wks.update_value(f'AK{row}', gol1)
+                    wks.update_value(f'AL{row}', gol2)
+                    wks.update_value(f'AM{row}', gol3)
+                    wks.update_value(f'AN{row}', gol4)
+                    wks.update_value(f'AO{row}', rojahome)
+                    wks.update_value(f'AP{row}', rojas_away)
+                    wks.update_value(f'AQ{row}', total_goles)
                     print(sheet)
 
                 except AttributeError:
@@ -138,7 +158,8 @@ def resultados(path_file: str, filename: str):
 if __name__ == '__main__':
     args = parser.parse_args()
     filename = args.file
-    path_file = path(path_result, filename.split('.')[0][:8], filename)
+    filename_date = basename(filename, True)
+    path_file = path(path_result, filename_date, filename)
 
     if pathexist(path_file):
         resultados(path_file, filename)
