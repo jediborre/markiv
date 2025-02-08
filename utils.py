@@ -53,7 +53,7 @@ def wakeup(
         script: str,
         dt_programacion: datetime,
         filename: str,
-        number_mamtches: int):
+        num_matches: int):
     try:
         hr = dt_programacion.strftime('%H%M')
         if os.name == 'nt':
@@ -68,7 +68,7 @@ def wakeup(
                 return
 
             return create_task(
-                f'MarkIV {operation} {hr} {number_mamtches}',
+                f'MarkIV {operation} {hr} {num_matches}',
                 dt_programacion,
                 python_path,
                 script_path,

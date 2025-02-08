@@ -61,8 +61,8 @@ def cron_matches(path_matches: str, debug_hora=None):
             if fechahora_partido_m1h not in result:
                 result[fechahora_partido_m1h] = []
                 result['cron'].append(dt_partido_m1h) # noqa
-                match['programacion'] = dt_partido_m1h.strftime('%Y-%m-%d %H:%M:%S') # noqa
-                result[fechahora_partido_m1h].append(match)
+            match['programacion'] = dt_partido_m1h.strftime('%Y-%m-%d %H:%M:%S') # noqa
+            result[fechahora_partido_m1h].append(match)
         else:
             descartados += 1
 
@@ -71,6 +71,7 @@ def cron_matches(path_matches: str, debug_hora=None):
         work = True
         hora = dt_partido.strftime('%H:%M')
         fecha = dt_partido.strftime('%Y-%m-%d')
+        fecha_ = dt_partido.strftime('%Y%m%d')
         fechahora = dt_partido.strftime('%Y%m%d%H%M')
         cron_matches = result[fechahora]
 
@@ -80,7 +81,7 @@ def cron_matches(path_matches: str, debug_hora=None):
         if work:
             print(f'{hora} {len(cron_matches)}')
 
-            path_cron_date = path(path_cron, fecha)
+            path_cron_date = path(path_cron, fecha_)
             if not os.path.exists(path_cron_date):
                 os.makedirs(path_cron_date)
             filename_cron = f'{fechahora}.json'
@@ -88,7 +89,7 @@ def cron_matches(path_matches: str, debug_hora=None):
 
             save_matches(path_cron_matches, cron_matches, True)
             task_result = wakeup(
-                'Momios'
+                'Momios',
                 'process_flashscore.py',
                 dt_partido,
                 filename_cron,

@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 from utils import path
 from utils import limpia_nombre
 from utils import decimal_american
+from filtros import get_filtro_ligas
 from text_unidecode import unidecode
 
 
@@ -40,28 +41,7 @@ def parse_all_matches(html):
         'sudamerica',
         'women',
     ]
-    # filter_paises = [
-    #     'alemania',
-    #     'andorra',
-    #     'argelia',
-    #     'arabia saudita',
-    #     'bahrein',
-    #     'bolivia',
-    #     'bielorrusia',
-    #     'escocia',
-    #     'europa',
-    #     'albania',
-    #     'india',
-    #     'irak',
-    #     'irlanda',
-    #     'irlanda del norte',
-    #     'Jordania',
-    #     'kuwait',
-    #     'mauritania',
-    #     'serbia',
-    #     'sudamerica',
-    #     'tunez'
-    # ]
+    pais_ligas = get_filtro_ligas()
 
     domain = 'https://www.flashscore.com.mx'
     soup = BeautifulSoup(html, 'html.parser')
@@ -73,29 +53,43 @@ def parse_all_matches(html):
         nombre_liga = re.sub(r'\s+$', '', nombre_liga)
         partido_actual = liga.find_next_sibling()
 
-        # if any([x in unidecode(pais.lower()) for x in filter_paises]):
-        #     continue
-
         if any([x in unidecode(nombre_liga.lower()) for x in filter_ligas]):
             continue
 
+        if pais in pais_ligas:
+            if nombre_liga in pais_ligas[pais]:
+                quitar_liga = pais_ligas[pais][nombre_liga][0]
+                if quitar_liga:
+                    print(f'{pais} {nombre_liga} → Quitar')
+                    continue
+                if len(pais_ligas[pais][nombre_liga]) > 1:
+                    print(f'{pais} {nombre_liga} → {pais_ligas[pais][nombre_liga][1]}') # noqa
+                    nombre_liga = pais_ligas[pais][nombre_liga][1]
+
         while partido_actual and partido_actual.name != 'h4':
+            aplazado = False
             if partido_actual.name == 'span':
                 hora = partido_actual.get_text(strip=True)
+                if 'Aplazado' in hora:
+                    aplazado = True
                 hora = hora[:5]
                 equipos = partido_actual.find_next_sibling(string=True).strip() # noqa
                 try:
                     local, visitante = equipos.split(' - ')
                     link = partido_actual.find_next_sibling('a')['href']
                     link = f'{domain}{link}#/h2h/overall'
-                    resultados.append((
-                        pais,
-                        nombre_liga,
-                        hora,
-                        local,
-                        visitante,
-                        link
-                    ))
+                    if not aplazado:
+                        resultados.append((
+                            pais,
+                            nombre_liga,
+                            hora,
+                            local,
+                            visitante,
+                            link
+                        ))
+                    else:
+                        print(local, visitante, 'Aplazado')
+                        break
                 except ValueError:
                     pass
             partido_actual = partido_actual.find_next_sibling()
