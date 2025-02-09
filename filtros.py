@@ -1,7 +1,12 @@
+import os
+from utils import path
+
 
 def get_filtro_ligas():
     result = {}
-    ligas = open('ligas.tsv', 'r', encoding='utf-8').read()
+    script_dir = os.path.dirname(os.path.realpath(__file__))
+    filename = path(script_dir, 'ligas.tsv')
+    ligas = open(filename, 'r', encoding='utf-8').read()
     for n, liga in enumerate(ligas.split("\n")):
         if n > 0:
             if '\t\t\t\t' == liga or '' == liga:

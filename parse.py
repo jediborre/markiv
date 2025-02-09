@@ -42,6 +42,7 @@ def parse_all_matches(html):
         'women',
     ]
     pais_ligas = get_filtro_ligas()
+    # print(pais_ligas)
 
     domain = 'https://www.flashscore.com.mx'
     soup = BeautifulSoup(html, 'html.parser')
@@ -50,21 +51,26 @@ def parse_all_matches(html):
         tmp_liga = ''.join([str(content) for content in liga.contents if not content.name]) # noqa
         pais, nombre_liga = tmp_liga.split(': ')
         pais = unidecode(pais)
+        pais_ = pais.lower()
         nombre_liga = re.sub(r'\s+$', '', nombre_liga)
+        nombre_liga_ = nombre_liga.lower()
         partido_actual = liga.find_next_sibling()
 
         if any([x in unidecode(nombre_liga.lower()) for x in filter_ligas]):
             continue
 
-        if pais in pais_ligas:
-            if nombre_liga in pais_ligas[pais]:
-                quitar_liga = pais_ligas[pais][nombre_liga][0]
+        if pais_ in pais_ligas:
+            # print(f'{pais_} {nombre_liga_} {pais_ligas[pais_]}')
+            if nombre_liga_ in pais_ligas[pais_]:
+                quitar_liga = pais_ligas[pais_][nombre_liga_][0]
                 if quitar_liga:
-                    print(f'{pais} {nombre_liga} → Quitar')
+                    print(f'{pais_} {nombre_liga_} → Quitar')
                     continue
-                if len(pais_ligas[pais][nombre_liga]) > 1:
-                    print(f'{pais} {nombre_liga} → {pais_ligas[pais][nombre_liga][1]}') # noqa
-                    nombre_liga = pais_ligas[pais][nombre_liga][1]
+                if len(pais_ligas[pais_][nombre_liga_]) > 1:
+                    print(f'{pais_} {nombre_liga} → {pais_ligas[pais_][nombre_liga_][1]}') # noqa
+                    nombre_liga_ = pais_ligas[pais_][nombre_liga_][1]
+                else:
+                    nombre_liga_ = unidecode(nombre_liga_)
 
         while partido_actual and partido_actual.name != 'h4':
             aplazado = False
@@ -80,7 +86,7 @@ def parse_all_matches(html):
                     link = f'{domain}{link}#/h2h/overall'
                     if not aplazado:
                         resultados.append((
-                            pais,
+                            pais_,
                             nombre_liga,
                             hora,
                             local,
