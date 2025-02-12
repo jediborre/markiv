@@ -7,8 +7,8 @@ from bs4 import BeautifulSoup
 from utils import path
 from utils import limpia_nombre
 from utils import decimal_american
-from filtros import get_filtro_ligas
 from text_unidecode import unidecode
+from filtros import get_ligas_google_sheet
 
 
 def get_all_matches(path_html, filename, matches_link, web, overwrite=False): # noqa
@@ -41,7 +41,7 @@ def parse_all_matches(html):
         'sudamerica',
         'women',
     ]
-    pais_ligas = get_filtro_ligas()
+    pais_ligas = get_ligas_google_sheet()
     # print(pais_ligas)
 
     domain = 'https://www.flashscore.com.mx'
@@ -55,21 +55,22 @@ def parse_all_matches(html):
         nombre_liga_ = nombre_liga.lower()
         partido_actual = liga.find_next_sibling()
 
+        # Elimina ligas por default
         if any([x in unidecode(nombre_liga.lower()) for x in filter_ligas]):
             continue
 
         if pais in pais_ligas:
-            # print(f'{pais_} {nombre_liga_} {pais_ligas[pais_]}')
-            if nombre_liga_ in pais_ligas[pais]:
-                quitar_liga = pais_ligas[pais][nombre_liga_][0]
+            # print(f'{pais} {nombre_liga_} {pais_ligas[pais]}')
+            if nombre_liga in pais_ligas[pais]:
+                quitar_liga = pais_ligas[pais][nombre_liga][0]
                 if quitar_liga:
                     print(f'{pais} {nombre_liga_} → Quitar')
                     continue
-                if len(pais_ligas[pais][nombre_liga_]) > 1:
-                    print(f'{pais} {nombre_liga} → {pais_ligas[pais][nombre_liga_][1]}') # noqa
-                    nombre_liga_ = pais_ligas[pais][nombre_liga_][1]
+                if len(pais_ligas[pais][nombre_liga]) > 1:
+                    print(f'{pais} {nombre_liga} → {pais_ligas[pais][nombre_liga][1]}') # noqa
+                    nombre_liga_ = pais_ligas[pais][nombre_liga][1]
                 else:
-                    nombre_liga_ = unidecode(nombre_liga_)
+                    nombre_liga_ = unidecode(nombre_liga)
 
         while partido_actual and partido_actual.name != 'h4':
             aplazado = False
@@ -86,7 +87,7 @@ def parse_all_matches(html):
                     if not aplazado:
                         resultados.append((
                             pais,
-                            nombre_liga,
+                            nombre_liga_,
                             hora,
                             local,
                             visitante,
@@ -99,6 +100,7 @@ def parse_all_matches(html):
                     pass
             partido_actual = partido_actual.find_next_sibling()
     resultados_ordenados = sorted(resultados, key=lambda x: x[2])
+    print(f'Partidos encontrados: {len(resultados_ordenados)}')
     return resultados_ordenados
 
 

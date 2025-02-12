@@ -1,4 +1,5 @@
 import os
+import pygsheets
 from utils import path
 
 
@@ -28,6 +29,39 @@ def get_filtro_ligas():
     return result
 
 
+def get_ligas_google_sheet():
+    print('get_ligas GSheet', '')
+    path_script = os.path.dirname(os.path.realpath(__file__))
+    service_file = path(path_script, 'feroslebosgc.json')
+    gc = pygsheets.authorize(service_file=service_file)
+
+    spreadsheet = gc.open('Mark 4')
+    wks = spreadsheet.worksheet_by_title('Ligas')
+
+    result = {}
+    ligas = wks.get_all_values(returnas='matrix')
+    for n, liga in enumerate(ligas):
+        if n > 0:
+            if all([x == '' for x in liga]):
+                continue
+            pais, origen, destino, quitar = liga
+            pais = pais.strip().upper()
+            liga_origen = origen.strip()
+            liga_correccion = destino.strip()
+            quitar = quitar.strip().lower() == 'no'
+            if pais not in result:
+                result[pais] = {}
+            if liga_origen not in result[pais]:
+                result[pais][liga_origen] = [quitar]
+            if liga_correccion != '':
+                if liga_correccion != liga_origen:
+                    result[pais][liga_origen].append(liga_correccion)
+            if len(result[pais][liga_origen]) == 1 and not quitar:
+                del result[pais][liga_origen]
+    print(f'OK [{len(result)}]', '\n')
+    return result
+
+
 if __name__ == '__main__':
-    ligas = get_filtro_ligas()
+    ligas = get_ligas_google_sheet()
     print(ligas)
