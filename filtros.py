@@ -12,7 +12,7 @@ def get_filtro_ligas():
             if '\t\t\t\t' == liga or '' == liga:
                 continue
             pais, liga, liga_robot, aun_no, quitar = liga.split("\t")
-            pais = pais.strip().lower()
+            pais = pais.strip().upper()
             liga = liga.strip().lower()
             liga_robot = liga_robot.strip().lower()
             quitar = quitar.strip().lower() == 'quitar'
