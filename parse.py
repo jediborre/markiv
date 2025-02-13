@@ -11,7 +11,7 @@ from text_unidecode import unidecode
 from filtros import get_ligas_google_sheet
 
 
-def get_all_matches(path_html, filename, matches_link, web, overwrite=False): # noqa
+def get_all_matches(path_html, filename, matches_link, web, ligas=None, overwrite=False): # noqa
     html_path = os.path.join(path_html, filename)
     if overwrite:
         if os.path.exists(html_path):
@@ -23,10 +23,10 @@ def get_all_matches(path_html, filename, matches_link, web, overwrite=False): # 
         web.save(html_path)
 
     with open(html_path, 'r', encoding='utf-8') as html:
-        return parse_all_matches(html)
+        return parse_all_matches(html, ligas)
 
 
-def parse_all_matches(html):
+def parse_all_matches(html, pais_ligas=None):
     resultados = []
     filter_ligas = [
         'amistoso',
@@ -41,8 +41,8 @@ def parse_all_matches(html):
         'sudamerica',
         'women',
     ]
-    pais_ligas = get_ligas_google_sheet()
-    # print(pais_ligas)
+    if not pais_ligas:
+        pais_ligas = get_ligas_google_sheet()
 
     domain = 'https://www.flashscore.com.mx'
     soup = BeautifulSoup(html, 'html.parser')
@@ -83,7 +83,8 @@ def parse_all_matches(html):
                 try:
                     local, visitante = equipos.split(' - ')
                     link = partido_actual.find_next_sibling('a')['href']
-                    link = f'{domain}{link}#/h2h/overall'
+                    partido_id = link.rstrip('/').split('/')[-1]
+                    link = f'{domain}/partido/{partido_id}/#/h2h/overall'
                     if not aplazado:
                         resultados.append((
                             pais,

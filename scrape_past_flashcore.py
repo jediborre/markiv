@@ -1,10 +1,11 @@
 import re
 import sys
-import pprint # noqa
+import os
 import logging
-import argparse
+import pygsheets
 from web import Web
 from utils import path
+from datetime import datetime
 from utils import get_percent
 from utils import save_matches
 from utils import prepare_paths
@@ -12,7 +13,6 @@ from parse import get_team_matches
 from parse import get_all_matches
 from cron_flashscore import cron_matches
 from filtros import get_ligas_google_sheet
-from datetime import datetime, timedelta
 
 sys.stdout.reconfigure(encoding='utf-8')
 
@@ -23,17 +23,29 @@ sys.stdout.reconfigure(encoding='utf-8')
 # .venv/Scripts/Activate.ps1
 # clear;python .\scrape_flashcore.py --over
 
-
 opened_web = False
-parser = argparse.ArgumentParser(description="Solicita partidos de hoy o mañana de flashscore") # noqa
-parser.add_argument('--today', action='store_true', help="Partidos Hoy")
-parser.add_argument('--tomorrow', action='store_true', help="Partidos Mañana")
-parser.add_argument('--over', action='store_true', help="Sobreescribir")
-args = parser.parse_args()
+path_result, path_cron, path_csv, path_json, path_html = prepare_paths('scrape_past_flashcore.log') # noqa
 
-url_matches_today = 'https://m.flashscore.com.mx/'
-url_matches_tomorrow = 'https://m.flashscore.com.mx/?d=1'
-path_result, path_cron, path_csv, path_json, path_html = prepare_paths('scrape_flashcore.log') # noqa
+
+def parse_spanish_date(str_date):
+    month_translation = {
+        'ene': 'Jan', 'feb': 'Feb', 'mar': 'Mar', 'abr': 'Apr', 'may': 'May',
+        'jun': 'Jun', 'jul': 'Jul', 'ago': 'Aug', 'sep': 'Sep', 'oct': 'Oct',
+        'nov': 'Nov', 'dic': 'Dec'
+    }
+
+    parts = str_date.split()
+    if len(parts) != 3:
+        raise ValueError("Invalid date format. Expected format: 'mmm dd yyyy'")
+
+    spanish_month, day, year = parts
+    if spanish_month.lower() not in month_translation:
+        raise ValueError(f"Unknown month: {spanish_month}")
+
+    english_month = month_translation[spanish_month.lower()]
+    english_date = f"{english_month} {day} {year}"
+
+    return datetime.strptime(english_date, '%b %d %Y')
 
 
 def process_matches(matches_, date, web, overwrite=False):
@@ -127,43 +139,81 @@ def process_matches(matches_, date, web, overwrite=False):
         save_matches(path_matches_pais, matches_pais, True)
 
 
-def main(hoy=False, overwrite=False):
+def get_past_links():
+    print('get_past Matches wayBackMachine', '')
+    path_script = os.path.dirname(os.path.realpath(__file__))
+    service_file = path(path_script, 'feroslebosgc.json')
+    gc = pygsheets.authorize(service_file=service_file)
+
+    spreadsheet = gc.open('Mark 4')
+    wks = spreadsheet.worksheet_by_title('LinksBack')
+    rows = wks.get_all_values(returnas='matrix')
+
+    result = []
+    for n, row in enumerate(rows):
+        if n > 0:
+            fecha, link, hecho = row
+            result.append([
+                n + 1,
+                parse_spanish_date(fecha),
+                link,
+                hecho
+            ])
+
+    return result
+
+
+def main():
     global web, path_html
-    global url_matches_today, url_matches_tomorrow
 
-    today = datetime.today()
-    if hoy:
-        date = today
-        url = url_matches_today
-    else:
-        tomorrow = (today + timedelta(days=1))
-        date = tomorrow
-        url = url_matches_tomorrow
-
-    fecha = date.strftime('%Y%m%d')
-    path_page_matches = path(path_html, f'{fecha}_matches.html') # noqa
-
-    web = Web(multiples=True)
-    ligas = get_ligas_google_sheet()
-    matches = get_all_matches(
-        path_html,
-        path_page_matches,
-        url,
-        web,
-        ligas,
-        True
-    )
-    if len(matches) == 0:
-        logging.info(f'No hay partidos {fecha}')
+    links_fechas = get_past_links()
+    if len(links_fechas) == 0:
+        logging.info('No hay links')
         return
 
-    process_matches(matches, date, web, overwrite)
+    ligas = get_ligas_google_sheet()
+    web = Web(multiples=True)
+    for n, [n_, dt, link, hecho] in enumerate(links_fechas):
+        if hecho == 'si':
+            continue
+
+        str_fecha = dt.strftime('%Y%m%d')
+        str_fecha_human = dt.strftime('%d %b %Y')
+
+        print(f'{n_} - {str_fecha} - {link}')
+        path_page_matches = path(path_html, f'{str_fecha}_matches.html')
+        matches = get_all_matches(
+            path_html,
+            path_page_matches,
+            link,
+            web,
+            ligas,
+            True
+        )
+        for m, (pais, liga, hora, home, away, link) in enumerate(matches):
+            print(f'{m} {str_fecha_human} {hora} | {pais} - {liga} | {home} - {away} - {link}') # noqa
+
+        if len(matches) == 0:
+            logging.info(f'No hay partidos {str_fecha_human}')
+            continue
+
+        break
     web.close()
 
 
+        # process_matches(matches, date, web, True)
+    # url = url_matches_tomorrow
+
+    # path_page_matches = path(path_html, f'{fecha}_matches.html') # noqa
+
+    # web = Web(multiples=True)
+    # matches = get_all_matches(path_html, path_page_matches, url, web, True) # noqa
+    # if len(matches) == 0:
+    #     logging.info(f'No hay partidos {fecha}')
+    #     return
+
+    # process_matches(matches, date, web, overwrite)
+
+
 if __name__ == "__main__":
-    overwrite = args.over
-    if args.tomorrow:
-        main(False, overwrite)
-    else:
-        main(True, overwrite)
+    main()
