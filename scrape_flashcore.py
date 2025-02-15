@@ -55,6 +55,7 @@ def process_matches(matches_, date, web, overwrite=False):
             hora,
             home,
             away,
+            partido_id,
             link,
         ] = match
 
@@ -66,7 +67,7 @@ def process_matches(matches_, date, web, overwrite=False):
         percent = get_percent(m + 1, total_matches)
         str_percent = f'{m + 1}-{total_matches} → {percent}'
         TS = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        logging.info(f'{TS}|{str_percent}|{ok}| {hora} {liga} : {home} - {away}') # noqa
+        logging.info(f'{TS}|{str_percent}|{ok}|{partido_id}|{fecha} {hora} {liga} : {home} - {away}') # noqa
 
         team_matches = get_team_matches(
             path_html,
