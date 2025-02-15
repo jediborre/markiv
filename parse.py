@@ -92,6 +92,7 @@ def parse_all_matches(html, pais_ligas=None):
                             hora,
                             local,
                             visitante,
+                            partido_id,
                             link
                         ))
                     else:

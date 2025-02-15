@@ -48,13 +48,13 @@ def parse_spanish_date(str_date):
     return datetime.strptime(english_date, '%b %d %Y')
 
 
-def process_matches(matches_, date, web, overwrite=False):
+def process_matches(matches_, dt, web, overwrite=False):
     global path_csv, path_json, path_html, path_result
 
     ok = 0
     matches, matches_pais = {}, {}
-    fecha = date.strftime('%Y-%m-%d')
-    filename_fecha = date.strftime('%Y%m%d')
+    fecha = dt.strftime('%Y-%m-%d')
+    filename_fecha = dt.strftime('%Y%m%d')
     path_matches = path(path_result, f'{filename_fecha}.json')
     path_matches_pais = path(path_result, f'{filename_fecha}_pais.json') # noqa
 
@@ -190,8 +190,11 @@ def main():
             ligas,
             True
         )
-        for m, (pais, liga, hora, home, away, link) in enumerate(matches):
-            print(f'{m} {str_fecha_human} {hora} | {pais} - {liga} | {home} - {away} - {link}') # noqa
+        process_matches(matches, dt, web, True)
+        for m, (pais, liga, hora, home, away, partido_id, link) in enumerate(matches): # noqa
+            if m > 1:
+                break
+            print(f'{m} {str_fecha_human} {hora} | {pais} - {liga} | {home} - {away} - {partido_id}') # noqa
 
         if len(matches) == 0:
             logging.info(f'No hay partidos {str_fecha_human}')
@@ -199,18 +202,9 @@ def main():
 
         break
     web.close()
-
-
-        # process_matches(matches, date, web, True)
     # url = url_matches_tomorrow
 
     # path_page_matches = path(path_html, f'{fecha}_matches.html') # noqa
-
-    # web = Web(multiples=True)
-    # matches = get_all_matches(path_html, path_page_matches, url, web, True) # noqa
-    # if len(matches) == 0:
-    #     logging.info(f'No hay partidos {fecha}')
-    #     return
 
     # process_matches(matches, date, web, overwrite)
 
