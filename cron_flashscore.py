@@ -49,6 +49,9 @@ def cron_matches(path_matches: str, debug_hora=None):
         result['fecha'] = fecha
         result['filename_matches'] = path(path_result, f'{filename_fecha}.json') # noqa
 
+        if ':' not in hora:
+            continue
+
         # Programacion Hora Partido - 1 hora
         una_hora = timedelta(hours=1)
         dt_horaactual = datetime.now(pytz.timezone('America/Mexico_City')) # noqa
