@@ -164,10 +164,10 @@ def parse_all_matches(html, pais_ligas=None):
             if nombre_liga in pais_ligas[pais]:
                 quitar_liga = pais_ligas[pais][nombre_liga][0]
                 if quitar_liga:
-                    print(f'{pais} {nombre_liga_} → Quitar')
+                    # print(f'{pais} {nombre_liga_} → Quitar')
                     continue
                 if len(pais_ligas[pais][nombre_liga]) > 1:
-                    print(f'{pais} {nombre_liga} → {pais_ligas[pais][nombre_liga][1]}') # noqa
+                    # print(f'{pais} {nombre_liga} → {pais_ligas[pais][nombre_liga][1]}') # noqa
                     nombre_liga_ = pais_ligas[pais][nombre_liga][1]
                 else:
                     nombre_liga_ = unidecode(nombre_liga)
@@ -183,7 +183,8 @@ def parse_all_matches(html, pais_ligas=None):
                 try:
                     local, visitante = equipos.split(' - ')
                     link = partido_actual.find_next_sibling('a')['href']
-                    partido_id = link.rstrip('/').split('/')[-1]
+                    partido_id = link.rstrip('/').split('/')[-2]
+                    print(link, partido_id)
                     link = f'{domain}/partido/{partido_id}/#/h2h/overall'
                     if not aplazado:
                         resultados.append((
