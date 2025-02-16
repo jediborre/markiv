@@ -43,7 +43,7 @@ def process_matches(matches_, dt, web, path_json, path_html, path_result, overwr
         web.wait(1)
 
         if not web.EXIST_CLASS('duelParticipant__startTime'):
-            logging.info(f'{TS}|{str_percent}|{partido_id}|{hora} {liga} : {home} - {away} {link} NO DISPONIBLE') # noqa
+            logging.info(f'{TS}|{str_percent}|{partido_id}|{hora} {liga} : {home} - {away} NO DISPONIBLE\n') # noqa
             continue
 
         fecha_hora = web.CLASS('duelParticipant__startTime')
@@ -101,9 +101,9 @@ def process_matches(matches_, dt, web, path_json, path_html, path_result, overwr
             save_matches(path_match, reg, overwrite)
             save_matches(path_matches, matches, True)
 
-            logging.info('OK\n')
+            logging.info(' OK\n')
         else:
-            logging.info(f'DESCARTADO H:{n_h}, A→{n_a}, VS→{n_vs}\n')
+            logging.info(f' DESCARTADO H:{n_h}, A→{n_a}, VS→{n_vs}\n')
 
     logging.info(f'\n\nPARTIDOS {len(matches)} {fecha}')
     if len(matches) > 0:
