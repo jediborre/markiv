@@ -21,6 +21,16 @@ load_dotenv()
 matches_result = []
 
 
+def convert_dt(dt_str):
+    if len(dt_str) == 8: # noqa yy-mm-dd
+        return datetime.strptime(dt_str, '%y-%m-%d')
+    if len(dt_str) == 10:
+        return datetime.strptime(dt_str, '%Y-%m-%d')
+    elif len(dt_str) == 16:
+        return datetime.strptime(dt_str, '%Y-%m-%d %H:%M')
+    return datetime.strptime(dt_str, '%Y-%m-%d %H:%M:%S')
+
+
 def is_prod():
     SERVER = os.getenv('SERVER', 'dev').lower()
     return SERVER == 'prod'
@@ -48,12 +58,7 @@ def get_json(path_file: str):
     return json.loads(open(path_file, 'r').read())
 
 
-def wakeup(
-        operation: str,
-        script: str,
-        dt_programacion: datetime,
-        filename: str,
-        num_matches: int):
+def wakeup(operation: str, script: str, dt_programacion: datetime, filename: str, num_matches: int): # noqa
     try:
         hr = dt_programacion.strftime('%H%M')
         if os.name == 'nt':
@@ -68,7 +73,7 @@ def wakeup(
                 return
 
             return create_task(
-                f'MarkIV {operation} {hr} {num_matches}',
+                f'{operation} {hr} {num_matches}',
                 dt_programacion,
                 python_path,
                 script_path,

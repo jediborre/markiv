@@ -30,7 +30,7 @@ def get_filtro_ligas():
 
 
 def get_ligas_google_sheet():
-    print('get_ligas GSheet', '')
+    # print('get_ligas GSheet', '')
     path_script = os.path.dirname(os.path.realpath(__file__))
     service_file = path(path_script, 'feroslebosgc.json')
     gc = pygsheets.authorize(service_file=service_file)

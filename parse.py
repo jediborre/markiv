@@ -5,10 +5,110 @@ import logging
 from fuzzywuzzy import fuzz
 from bs4 import BeautifulSoup
 from utils import path
+from utils import convert_dt
 from utils import limpia_nombre
 from utils import decimal_american
 from text_unidecode import unidecode
 from filtros import get_ligas_google_sheet
+from datetime import datetime
+from utils import get_percent
+from utils import save_matches
+
+
+def process_matches(matches_, dt, web, path_json, path_html, path_result, overwrite=False): # noqa
+    ok = 0
+    matches = {}
+    fecha = dt.strftime('%Y-%m-%d')
+    filename_fecha = dt.strftime('%Y%m%d')
+    path_matches = path(path_result, f'{filename_fecha}.json')
+
+    TS = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    logging.info(f'{TS} - Procesando {len(matches_)} partidos {fecha}\n\n')
+    for m, match in enumerate(matches_):
+        total_matches = len(matches_)
+        percent = get_percent(m + 1, total_matches)
+        str_percent = f'{m + 1}-{total_matches} → {percent}'
+        TS = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        [
+            pais,
+            liga,
+            hora,
+            home,
+            away,
+            partido_id,
+            link
+        ] = match
+
+        web.open(link)
+        web.wait(1)
+
+        if not web.EXIST_CLASS('duelParticipant__startTime'):
+            logging.info(f'{TS}|{str_percent}|{partido_id}|{hora} {liga} : {home} - {away} {link} NO DISPONIBLE') # noqa
+            continue
+
+        fecha_hora = web.CLASS('duelParticipant__startTime')
+        fecha, hora = fecha_hora.text().split(' ')
+        day, month, year = fecha.split('.')
+        fecha = f'{year}-{month}-{day}'
+
+        dt = convert_dt(f'{fecha} {hora}')
+
+        filename_hora = re.sub(r":", "", hora)
+        filename_match = f'{m}_{filename_fecha}{filename_hora}_{partido_id}'
+        path_match = path(path_json, f'{filename_match}.json')
+
+        logging.info(f'{TS}|{str_percent}|{ok}|{partido_id}|{fecha} {hora} {liga} : {home} - {away}') # noqa
+
+        team_matches = get_team_matches(
+            path_html,
+            filename_match,
+            dt,
+            home,
+            away,
+            liga,
+            web,
+            overwrite
+        )
+
+        n_vs = team_matches['vs_nmatches']
+        n_h = team_matches['home_nmatches']
+        n_a = team_matches['away_nmatches']
+
+        if team_matches['OK']:
+            ok += 1
+            reg = {
+                'id': partido_id,
+                'hora': hora,
+                'fecha': fecha,
+                'pais': pais,
+                'liga': liga,
+                'home': home,
+                'away': away,
+                'url': link,
+                '1x2': None,
+                'goles': None,
+                'ambos': None,
+                'handicap': None,
+                'home_matches': team_matches['home_matches'],
+                'away_matches': team_matches['away_matches'],
+                'vs_matches': team_matches['vs_matches'],
+                'filename_fecha': filename_fecha,
+                'filename_match': filename_match
+            }
+
+            matches[partido_id] = reg
+
+            save_matches(path_match, reg, overwrite)
+            save_matches(path_matches, matches, True)
+
+            logging.info('OK\n')
+        else:
+            logging.info(f'DESCARTADO H:{n_h}, A→{n_a}, VS→{n_vs}\n')
+
+    logging.info(f'\n\nPARTIDOS {len(matches)} {fecha}')
+    if len(matches) > 0:
+        save_matches(path_matches, matches, True)
+        return path_matches
 
 
 def get_all_matches(path_html, filename, matches_link, web, ligas=None, overwrite=False): # noqa
@@ -106,7 +206,7 @@ def parse_all_matches(html, pais_ligas=None):
     return resultados_ordenados
 
 
-def get_team_matches(path_html, filename, link, home, away, liga, web, overwrite=False): # noqa
+def get_team_matches(path_html, filename, dt, home, away, liga, web, overwrite=False): # noqa
     filename_page_h2h = re.sub(r'-|:', '', filename) + '_h2h.html'
     html_path = path(path_html, filename_page_h2h)
     if overwrite:
@@ -114,16 +214,14 @@ def get_team_matches(path_html, filename, link, home, away, liga, web, overwrite
             os.remove(html_path)
 
     if not os.path.exists(html_path):
-        web.open(link)
-
         web.wait_Class('h2h__section', 20)
-        result = parse_team_matches(web.source(), 'vs')
+        result = parse_team_matches(web.source(), dt, 'vs')
         if result['vs_nmatches'] > 3:
             try:
                 print('\nHome Matches ', end="")
-                click_more_matches(web, 'home', home, liga)
+                click_more_matches(web, dt, 'home', home, liga)
                 print('Away Matches ', end="")
-                click_more_matches(web, 'away', away, liga)
+                click_more_matches(web, dt, 'away', away, liga)
             except RecursionError:
                 print('RecursionError')
             web.save(html_path)
@@ -140,14 +238,14 @@ def get_team_matches(path_html, filename, link, home, away, liga, web, overwrite
 
     if os.path.exists(html_path):
         with open(html_path, 'r', encoding='utf-8') as file:
-            return parse_team_matches(file, 'all', home=home, away=away, liga=liga) # noqa
+            return parse_team_matches(file, dt, 'all', home=home, away=away, liga=liga) # noqa
 
 
-def click_more_matches(web, team, team_name, liga, retries=0):
+def click_more_matches(web, dt, team, team_name, liga, retries=0):
     MAX_RETRIES = 25
     sections = web.CLASS('h2h__section', multiples=True)
     section = sections[0] if team == 'home' else sections[1]
-    result = parse_team_matches(web.source(), team, team_name=team_name, liga=liga) # noqa
+    result = parse_team_matches(web.source(), dt, team, team_name=team_name, liga=liga) # noqa
     if not result['OK'] and section.EXIST_CLASS('showMore'):
         btn_showMore = section.CLASS('showMore')
         btn_showMore.scroll_to()
@@ -156,10 +254,10 @@ def click_more_matches(web, team, team_name, liga, retries=0):
         else:
             web.scrollY(-150)
             btn_showMore.click()
-            print('.', end="|")
+            print('.', end="")
         if retries < MAX_RETRIES:
             web.wait()
-            click_more_matches(web, team, team_name, liga, retries + 1)
+            click_more_matches(web, dt, team, team_name, liga, retries + 1)
         else:
             print(' DONE MAX RETRIES')
     else:
@@ -201,7 +299,7 @@ def click_momios_btn(name, web, debug=False):
     return found
 
 
-def parse_team_matches(html, team, team_name='', home='', away='', liga='', debug=False): # noqa
+def parse_team_matches(html, dt, team, team_name='', home='', away='', liga='', debug=False): # noqa
     soup = BeautifulSoup(html, 'html.parser')
     sections = soup.find_all('div', class_='h2h__section')
 
@@ -214,9 +312,9 @@ def parse_team_matches(html, team, team_name='', home='', away='', liga='', debu
     tmp_matches_vs = tmp_matches_vs.find_all('div', class_='h2h__row')
 
     if team == 'all':
-        home_matches = parse_team_section(tmp_matches_home, team, home, liga, debug) # noqa
-        away_matches = parse_team_section(tmp_matches_away, team, away, liga, debug) # noqa
-        vs_matches = parse_team_section(tmp_matches_vs, debug=debug)
+        home_matches = parse_team_section(tmp_matches_home, dt, team, home, liga, debug) # noqa
+        away_matches = parse_team_section(tmp_matches_away, dt, team, away, liga, debug) # noqa
+        vs_matches = parse_team_section(tmp_matches_vs, dt, debug=debug)
 
         OK = len(home_matches['matches']) == 5 and len(away_matches['matches']) == 5 and len(vs_matches['matches']) > 3 # noqa
         return {
@@ -229,13 +327,13 @@ def parse_team_matches(html, team, team_name='', home='', away='', liga='', debu
             'vs_nmatches': len(vs_matches['matches'])
         }
     elif team == 'home':
-        team_matches = parse_team_section(tmp_matches_home, team, team_name, liga, debug) # noqa
+        team_matches = parse_team_section(tmp_matches_home, dt, team, team_name, liga, debug) # noqa
         ok = len(team_matches['matches']) == 5
     elif team == 'away':
-        team_matches = parse_team_section(tmp_matches_away, team, team_name, liga, debug) # noqa
+        team_matches = parse_team_section(tmp_matches_away, dt, team, team_name, liga, debug) # noqa
         ok = len(team_matches['matches']) == 5
     elif team == 'vs':
-        team_matches = parse_team_section(tmp_matches_vs, debug=debug)
+        team_matches = parse_team_section(tmp_matches_vs, dt, debug=debug)
         ok = len(team_matches['matches']) > 3
     return {
         'OK': ok,
@@ -244,13 +342,16 @@ def parse_team_matches(html, team, team_name='', home='', away='', liga='', debu
     }
 
 
-def parse_team_section(matches, team=None, team_name=None, liga=None, debug=False): # noqa
+def parse_team_section(matches, dt, team=None, team_name=None, liga=None, debug=False): # noqa
     hechos = 0
     concedidos = 0
     p35, p45 = 0, 0
     result_matches = []
+    fecha_partido_actual = dt.strftime('%d.%m.%Y')
     for match in matches:
-        date = match.find('span', class_='h2h__date').text
+        date = match.find('span', class_='h2h__date').text # noqa formato dd.mm.yyyy
+        dd, mm, yy = date.split('.')
+        dt_match = convert_dt(f'{yy}-{mm}-{dd}')
 
         event = match.find('span', class_='h2h__event')
         league_name = event['title']
@@ -265,6 +366,12 @@ def parse_team_section(matches, team=None, team_name=None, liga=None, debug=Fals
 
         result_span = match.find('span', class_='h2h__result')
         scores = result_span.find_all('span')
+
+        if dt_match > dt:
+            continue
+        else:
+            if debug:
+                print(team, fecha_partido_actual, date, home_team_name, away_team_name, 'ANTERIOR') # noqa  
 
         if scores[0].text == '-':
             continue
@@ -333,6 +440,7 @@ def parse_team_section(matches, team=None, team_name=None, liga=None, debug=Fals
         result['p35'] = p35 / juegos
         result['p45'] = p45 / juegos
     result['match_home'] = team_name
+    # print(juegos)
     if team_name:
         result['hechos'] = hechos
         result['concedidos'] = concedidos
