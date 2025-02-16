@@ -14,6 +14,8 @@ from datetime import datetime
 from utils import get_percent
 from utils import save_matches
 
+domain = 'https://www.flashscore.com.mx'
+
 
 def process_matches(matches_, dt, web, path_json, path_html, path_result, overwrite=False): # noqa
     ok = 0
@@ -127,6 +129,7 @@ def get_all_matches(path_html, filename, matches_link, web, ligas=None, overwrit
 
 
 def parse_all_matches(html, pais_ligas=None):
+    global domain
     resultados = []
     filter_ligas = [
         'amistoso',
@@ -144,7 +147,6 @@ def parse_all_matches(html, pais_ligas=None):
     if not pais_ligas:
         pais_ligas = get_ligas_google_sheet()
 
-    domain = 'https://www.flashscore.com.mx'
     soup = BeautifulSoup(html, 'html.parser')
     ligas = soup.find_all('h4')
     for liga in ligas:
