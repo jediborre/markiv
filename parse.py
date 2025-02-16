@@ -4,17 +4,217 @@ import random
 import logging
 from fuzzywuzzy import fuzz
 from bs4 import BeautifulSoup
+from datetime import datetime
+from utils import get_percent
+from utils import save_matches
 from utils import path
 from utils import convert_dt
 from utils import limpia_nombre
 from utils import decimal_american
 from text_unidecode import unidecode
 from filtros import get_ligas_google_sheet
-from datetime import datetime
-from utils import get_percent
-from utils import save_matches
+from send_flashscore import get_match_error_short
 
 domain = 'https://www.flashscore.com.mx'
+
+
+def get_marcador_ft(web):
+    try:
+        soup = BeautifulSoup(web.source(), 'html.parser')
+        goles, rojas_home, rojas_away = [], [], []
+        eventos_home = soup.find_all('div', class_='smv__participantRow smv__homeParticipant') # noqa
+        if len(eventos_home) > 0:
+            for evento in eventos_home:
+                minuto = evento.find('div', class_='smv__timeBox').text.strip().replace("'", '') # noqa
+                minuto = int(minuto) if '+' not in minuto else int(minuto[:2]) # noqa
+                icono = evento.find('div', class_='smv__incidentIcon') # noqa
+                if icono:
+                    svg = icono.find('svg')
+                    if svg:
+                        incident_icon = svg.get('class')
+                        # incident_icon_goal = svg.get('data-testid') # noqa
+                        if 'card-ico' in incident_icon:
+                            if 'yellowCard-ico' not in incident_icon: # noqa
+                                # incident_icon = 'redCard-ico'
+                                rojas_home.append([minuto, 'Home']) # noqa
+                        else:
+                            goles.append([minuto, 'Home']) # noqa
+
+        eventos_away = soup.find_all('div', class_='smv__participantRow smv__awayParticipant') # noqa
+        if len(eventos_away) > 0:
+            for evento in eventos_away:
+                minuto = evento.find('div', class_='smv__timeBox').text.strip().replace("'", '') # noqa
+                minuto = int(minuto) if '+' not in minuto else int(minuto[:2]) # noqa
+                icono = evento.find('div', class_='smv__incidentIcon') # noqa
+                if icono:
+                    svg = icono.find('svg')
+                    if svg:
+                        incident_icon = svg.get('class')
+                        # incident_icon_goal = svg.get('data-testid') # noqa
+                        if 'card-ico' in incident_icon:
+                            if 'yellowCard-ico' not in incident_icon: # noqa
+                                rojas_away.append([minuto, 'Away']) # noqa
+                        else:
+                            goles.append([minuto, 'Away']) # noqa
+
+        total_goles = str(len(goles))
+        goles_ordenados = sorted(goles, key=lambda x: x[0])
+        rojas_home_ordenadas = sorted(rojas_home, key=lambda x: x[0]) # noqa
+        rojas_away_ordenadas = sorted(rojas_away, key=lambda x: x[0]) # noqa
+
+        rojas_sheet = []
+        goles_sheet = ['-', '-', '-', '-']
+        if len(goles_ordenados) > 0:
+            for n, (min, equipo) in enumerate(goles_ordenados): # noqa
+                if n > 3:
+                    break
+                goles_sheet[n] = str(min) + 'L' if equipo == 'Home' else str(min) + '' # noqa
+
+        if len(rojas_home_ordenadas) > 0:
+            for n, (min, equipo) in enumerate(rojas_home_ordenadas): # noqa
+                if n > 0:
+                    break
+                rojas_sheet.append(min)
+        else:
+            rojas_sheet.append('')
+
+        if len(rojas_away_ordenadas) > 0:
+            for n, (min, equipo) in enumerate(rojas_away_ordenadas): # noqa
+                if n > 0:
+                    break
+                rojas_sheet.append(min)
+        else:
+            rojas_sheet.append('')
+
+        sheet = goles_sheet + rojas_sheet
+        gol1, gol2, gol3, gol4, rojahome, rojas_away = sheet
+
+        return {
+            'ft': total_goles,
+            'sheet_goles': sheet,
+            'goles': goles_ordenados,
+            'rojas_home': rojas_home_ordenadas,
+            'rojas_away': rojas_away_ordenadas
+        }
+
+    except AttributeError:
+        print("No se pudieron encontrar los goles. Revisa la estructura del HTML.") # noqa
+
+
+def process_full_matches(matches_, dt, web, path_json, path_html, path_result, overwrite=False): # noqa
+    ok = 0
+    matches = {}
+    fecha = dt.strftime('%Y-%m-%d')
+    filename_fecha = dt.strftime('%Y%m%d')
+    path_matches = path(path_result, 'ok', f'{filename_fecha}.json')
+
+    TS = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    logging.info(f'{TS} - Procesando {len(matches_)} partidos {fecha}\n\n')
+    for m, match in enumerate(matches_):
+        total_matches = len(matches_)
+        percent = get_percent(m + 1, total_matches)
+        str_percent = f'{m + 1}-{total_matches} → {percent}'
+        TS = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        [
+            pais,
+            liga,
+            hora,
+            home,
+            away,
+            partido_id,
+            link
+        ] = match
+
+        resumen_link = link.replace('h2h/overall', 'resumen-del-partido')
+        web.open(resumen_link)
+        web.wait(1)
+
+        if not web.EXIST_CLASS('duelParticipant__startTime'):
+            logging.info(f'{TS}|{str_percent}|{partido_id}|{hora} {liga} : {home} - {away} NO DISPONIBLE\n') # noqa
+            continue
+
+        status = status_partido(web)
+        if status == 'finalizado':
+            fecha_hora = web.CLASS('duelParticipant__startTime')
+            fecha, hora = fecha_hora.text().split(' ')
+            day, month, year = fecha.split('.')
+            fecha = f'{year}-{month}-{day}'
+
+            dt = convert_dt(f'{fecha} {hora}')
+
+            marcadores = get_marcador_ft(web)
+
+            web.open(link)
+            web.wait(1)
+
+            filename_hora = re.sub(r":", "", hora)
+            filename_match = f'{m}_{filename_fecha}{filename_hora}_{partido_id}' # noqa
+            path_match = path(path_json, f'{filename_match}.json')
+
+            logging.info(f'{str_percent}|{ok}|{partido_id}|{fecha} {hora}|{liga} : {home} - {away}') # noqa
+
+            team_matches = get_team_matches(
+                path_html,
+                filename_match,
+                dt,
+                home,
+                away,
+                liga,
+                web,
+                overwrite
+            )
+
+            n_vs = team_matches['vs_nmatches']
+            n_h = team_matches['home_nmatches']
+            n_a = team_matches['away_nmatches']
+
+            if team_matches['OK']:
+                momios = get_momios(
+                    path_html,
+                    filename_match,
+                    web,
+                    overwrite
+                )
+                reg = {
+                    'id': partido_id,
+                    'hora': hora,
+                    'fecha': fecha,
+                    'pais': pais,
+                    'liga': liga,
+                    'home': home,
+                    'away': away,
+                    'ft': marcadores['goles'],
+                    'sheet_goles': marcadores['sheet_goles'],
+                    'rojas_home': marcadores['rojas_home'],
+                    'rojas_away': marcadores['rojas_away'],
+                    'url': link,
+                    '1x2': momios['odds_1x2'],
+                    'goles': momios['odds_goles'],
+                    'ambos': momios['odds_ambos'],
+                    'handicap': momios['odds_handicap'],
+                    'home_matches': team_matches['home_matches'],
+                    'away_matches': team_matches['away_matches'],
+                    'vs_matches': team_matches['vs_matches'],
+                    'filename_fecha': filename_fecha,
+                    'filename_match': filename_match
+                }
+                if momios['OK']:
+                    ok += 1
+                    matches[partido_id] = reg
+                    save_matches(path_match, reg, overwrite)
+                    save_matches(path_matches, matches, True)
+                    logging.info(' OK\n')
+                else:
+                    error = get_match_error_short(reg)
+                    logging.info(f' DESCARTADO {error}\n')
+
+            else:
+                logging.info(f' DESCARTADO H:{n_h}, A→{n_a}, VS→{n_vs}\n')
+        else:
+            logging.info(f'{TS}|{str_percent}|{partido_id}|{hora} {liga} : {home} - {away} {status}\n') # noqa
+        # break
+
+    return matches
 
 
 def process_matches(matches_, dt, web, path_json, path_html, path_result, overwrite=False): # noqa
@@ -107,7 +307,7 @@ def process_matches(matches_, dt, web, path_json, path_html, path_result, overwr
         else:
             logging.info(f' DESCARTADO H:{n_h}, A→{n_a}, VS→{n_vs}\n')
 
-    logging.info(f'\n\nPARTIDOS {len(matches)} {fecha}')
+    logging.info(f'\nPARTIDOS {len(matches)} {fecha}')
     if len(matches) > 0:
         save_matches(path_matches, matches, True)
         return path_matches
@@ -205,7 +405,7 @@ def parse_all_matches(html, pais_ligas=None):
                     pass
             partido_actual = partido_actual.find_next_sibling()
     resultados_ordenados = sorted(resultados, key=lambda x: x[2])
-    print(f'Partidos encontrados: {len(resultados_ordenados)}')
+    # print(f'Partidos encontrados: {len(resultados_ordenados)}')
     return resultados_ordenados
 
 
@@ -237,7 +437,7 @@ def get_team_matches(path_html, filename, dt, home, away, liga, web, overwrite=F
                 'vs_nmatches': result['vs_nmatches']
             }
     else:
-        logging.info(f'← {filename_page_h2h}')
+        logging.info(' ← CACHE | | ')
 
     if os.path.exists(html_path):
         with open(html_path, 'r', encoding='utf-8') as file:
@@ -543,7 +743,7 @@ def getAmbos(path_html, filename, web, overwrite=False):
         click_momios_btn('ambos equipos marcarán', web)
         web.save(html_path)
     else:
-        logging.info(f'{nom} ← {filename} ')
+        logging.info(f'{nom} ← CACHE | ')
 
     if os.path.exists(html_path):
         with open(html_path, 'r', encoding='utf-8') as file:
@@ -570,7 +770,7 @@ def parse_odds_ambos(html):
                     'decimal': odds,
                     'american': odds_american
                 }
-    logging.info('Fallo → Ambos 1xBet')
+    # logging.info('Fallo → Ambos 1xBet')
     return {
         'OK': False,
         'msj': 'No hay 1xBet'
@@ -593,7 +793,7 @@ def get1x2(path_html, filename, web, overwrite=False):
         # web.save_screenshot(image_path)
         web.save(html_path)
     else:
-        logging.info(f'{nom} ← {filename} ')
+        logging.info(f'{nom} ← CACHE | ')
 
     if os.path.exists(html_path):
         with open(html_path, 'r', encoding='utf-8') as file:
@@ -622,7 +822,7 @@ def parse_odds_1x2(html):
                     'decimal': odds,
                     'american': odds_american
                 }
-    logging.info('Fallo → 1x2 1xbet')
+    # logging.info('Fallo → 1x2 1xbet')
     return {
         'OK': False,
         'msj': 'No hay 1xbet'
@@ -642,7 +842,7 @@ def getmGoles(path_html, filename, web, overwrite=False):
         click_momios_btn(['más/menos de', 'más de/menos de'], web)
         web.save(html_path)
     else:
-        logging.info(f'{nom} ← {filename} ')
+        logging.info(f'{nom} ← CACHE | ')
 
     if os.path.exists(html_path):
         with open(html_path, 'r', encoding='utf-8') as file:
@@ -679,7 +879,7 @@ def parse_odds_goles(html):
     if len(result) > 0:
         if '3.5' not in result:
             str_casas = ', '.join(casas)
-            logging.info(f"Fallo → No hay -3.5 '{str_casas}'")
+            # logging.info(f"Fallo → No hay -3.5 '{str_casas}'")
             return {
                 'OK': False,
                 'msj': 'No hay 3.5',
@@ -695,7 +895,7 @@ def parse_odds_goles(html):
                     'odds': result
                 }
             else:
-                logging.info(f'Fallo → Momio -3.5 no esta en rango Rango "{menos}"') # noqa
+                # logging.info(f'Fallo → Momio -3.5 no esta en rango Rango "{menos}"') # noqa
                 print('')
                 return {
                     'OK': False,
@@ -704,7 +904,7 @@ def parse_odds_goles(html):
                 }
     else:
         str_casas == ', '.join(casas)
-        logging.info(f'Fallo → No hay Goles "{str_casas}"')
+        # logging.info(f'Fallo → No hay Goles "{str_casas}"')
         return {
             'OK': False,
             'msj': 'No hay Casas'
@@ -724,7 +924,7 @@ def getHandicap(path_html, filename, web, overwrite=False):
         click_momios_btn('handicap asiático', web)
         web.save(html_path)
     else:
-        logging.info(f'{nom} ← {filename} ')
+        logging.info(f'{nom} ← CACHE | ')
 
     if os.path.exists(html_path):
         with open(html_path, 'r', encoding='utf-8') as file:
@@ -776,7 +976,7 @@ def parse_handicap(html):
             _1 = 'SI' if '-1' in result else 'NO'
             _2 = 'SI' if '-2' in result else 'NO'
             msj = f'Fallo → Handicap Asiatico 0/-0.5: {_0}, -1: {_1}, -2: {_2}'
-            logging.info(msj) # noqa
+            # logging.info(msj) # noqa
             logging.info(f'Fallo → Handicap "{str_descartados}"')
             return {
                 'OK': False,

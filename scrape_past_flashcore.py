@@ -7,7 +7,7 @@ from utils import path
 from datetime import datetime
 from utils import prepare_paths
 from parse import get_all_matches
-from parse import process_matches
+from parse import process_full_matches
 from filtros import get_ligas_google_sheet
 
 sys.stdout.reconfigure(encoding='utf-8')
@@ -21,6 +21,16 @@ sys.stdout.reconfigure(encoding='utf-8')
 
 opened_web = False
 path_result, path_cron, path_csv, path_json, path_html = prepare_paths('scrape_past_flashcore.log') # noqa
+
+
+def get_sheet_robot():
+    path_script = os.path.dirname(os.path.realpath(__file__))
+    service_file = path(path_script, 'feroslebosgc.json')
+    gc = pygsheets.authorize(service_file=service_file)
+
+    spreadsheet = gc.open('Mark 4')
+    wks = spreadsheet.worksheet_by_title('Bot2')
+    return wks
 
 
 def get_past_links():
@@ -77,6 +87,7 @@ def main():
         logging.info('No hay links')
         return
 
+    bot2 = get_sheet_robot()
     ligas = get_ligas_google_sheet()
     web = Web(multiples=True)
     for n, dt, link, hecho in links_fechas:
@@ -95,7 +106,7 @@ def main():
             web,
             ligas
         )
-        process_matches(
+        process_full_matches(
             matches,
             dt,
             web,

@@ -224,6 +224,17 @@ HANDICAP: {_handicap}
     return msj
 
 
+def get_match_error_short(match: dict):
+    status = match['status'] if 'status' in match else ''
+    _1x2, _ambos, _goles, _handicap = 'NO', 'NO', 'NO', 'NO'
+    if status != 'aplazado':
+        _1x2 = 'OK' if match['1x2']['OK'] else match['1x2']['msj'] if 'msj' in match['1x2'] else 'NO' # noqa
+        _ambos = 'OK' if match['ambos']['OK'] else match['ambos']['msj'] if 'msj' in match['ambos'] else 'NO' # noqa
+        _goles = 'OK' if match['goles']['OK'] else match['goles']['msj'] if 'msj' in match['goles'] else 'NO' # noqa
+        _handicap = 'OK' if match['handicap']['OK'] else match['handicap']['msj'] if 'msj' in match['handicap'] else 'NO' # noqa
+    return f' 1x2: {_1x2} AMBOS: {_ambos} GOLES: {_goles} HANDICAP: {_handicap}' # noqa
+
+
 def get_match_ok(match: dict, resultado: str = '', mensaje: str = ''):
     pais = match['pais']
     hora = match['hora']
