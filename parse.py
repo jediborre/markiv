@@ -185,7 +185,7 @@ def parse_all_matches(html, pais_ligas=None):
                 try:
                     local, visitante = equipos.split(' - ')
                     link = partido_actual.find_next_sibling('a')['href']
-                    partido_id = link.rstrip('/').split('/')[-2]
+                    partido_id = link.split('/')[-2]
                     print(link, partido_id)
                     link = f'{domain}/partido/{partido_id}/#/h2h/overall'
                     if not aplazado:
