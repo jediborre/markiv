@@ -58,7 +58,6 @@ def get_ligas_google_sheet():
                     result[pais][liga_origen].append(liga_correccion)
             if len(result[pais][liga_origen]) == 1 and not quitar:
                 del result[pais][liga_origen]
-    print(f'OK [{len(result)}]', '\n')
     return result
 
 

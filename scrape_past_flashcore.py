@@ -101,8 +101,7 @@ def main():
             web,
             path_json,
             path_html,
-            path_result,
-            True
+            path_result
         )
 
         if len(matches) == 0:
