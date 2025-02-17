@@ -4,7 +4,7 @@ import logging
 import argparse
 import pygsheets
 from web import Web
-from utils import get_json
+from utils import get_json_list
 from parse import get_marcador_ft
 from parse import status_partido
 from utils import path, pathexist
@@ -29,7 +29,7 @@ args = parser.parse_args()
 def resultados(path_file: str, filename: str):
     logging.info(f'MarkIV {filename}\n')
     web = Web(multiples=True)
-    matches = get_json(path_file)
+    matches = get_json_list(path_file)
     try:
         path_script = os.path.dirname(os.path.realpath(__file__))
         service_file = path(path_script, 'feroslebosgc.json')
@@ -64,6 +64,7 @@ def resultados(path_file: str, filename: str):
                 print(pais, liga, hora, home, away, row, 'En Juego', '-', '-') # noqa
             if finalizado:
                 marcador = get_marcador_ft(web)
+                print(marcador)
                 total_goles = marcador['ft']
                 sheet = marcador['sheet']
                 gol1, gol2, gol3, gol4, rojahome, rojas_away = sheet

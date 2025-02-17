@@ -10,10 +10,10 @@ from utils import wakeup
 from utils import pathexist
 from telebot import types
 from utils import basename
-from utils import get_json
 from utils import send_text
 from dotenv import load_dotenv
 from utils import save_matches
+from utils import get_json_list
 from utils import prepare_paths
 from sheet_utils import get_last_row
 from sheet_utils import get_hum_fecha
@@ -293,7 +293,7 @@ def send_matches(path_matches: str):
     logging.info(f'MarkIV Envio {filename}') # noqa
     print('')
     try:
-        matches = get_json(path_matches)
+        matches = get_json_list(path_matches)
 
         path_script = os.path.dirname(os.path.realpath(__file__))
         service_file = path(path_script, 'feroslebosgc.json')

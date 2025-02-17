@@ -108,7 +108,7 @@ def get_marcador_ft(web, debug=False):
 
         return {
             'ft': total_goles,
-            'sheet_goles': sheet,
+            'sheet': sheet,
             'goles': goles_ordenados,
             'rojas_home': rojas_home_ordenadas,
             'rojas_away': rojas_away_ordenadas
