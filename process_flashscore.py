@@ -4,7 +4,7 @@ import argparse
 import pprint # noqa
 from web import Web
 from utils import path
-from utils import get_json
+from utils import get_json_list
 from utils import basename
 from parse import get_momios
 from utils import save_matches
@@ -28,7 +28,7 @@ def main(path_matches: str, overwrite: bool = False):
     logging.info(f'MarkIV {filename} {path_matches}') # noqa
     web = Web(multiples=True)
     result = []
-    matches = get_json(path_matches)
+    matches = get_json_list(path_matches)
     try:
         for match in matches:
             link = match['url']
