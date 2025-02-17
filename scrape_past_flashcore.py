@@ -127,10 +127,8 @@ def main():
             dt,
             web,
             path_html,
-            path_result,
-            True
+            path_result
         )
-        break
         wks_wayback.update_value(f'C{n}', 'si')
 
     web.close()
