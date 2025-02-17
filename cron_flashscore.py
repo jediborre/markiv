@@ -4,7 +4,7 @@ import logging # noqa
 import argparse
 from utils import path
 from utils import wakeup
-from utils import get_json
+from utils import get_json_list
 from utils import save_matches
 # from utils import is_admin
 from utils import prepare_paths
@@ -33,7 +33,7 @@ def cron_matches(path_matches: str, debug_hora=None):
         'cron': [],
         'filename_matches': ''
     }
-    matches = get_json(path_matches)
+    matches = get_json_list(path_matches)
     if len(matches) == 0:
         print('No hay Partidos')
         return
