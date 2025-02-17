@@ -205,7 +205,7 @@ def process_full_matches(matches_, dt, web, path_html, path_result, overwrite=Fa
                     'home': home,
                     'away': away,
                     'ft': marcadores['goles'],
-                    'sheet_goles': marcadores['sheet_goles'],
+                    'sheet_goles': marcadores['sheet'],
                     'rojas_home': marcadores['rojas_home'],
                     'rojas_away': marcadores['rojas_away'],
                     'url': link,
