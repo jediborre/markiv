@@ -64,7 +64,7 @@ def resultados(path_file: str, filename: str):
                 print(pais, liga, hora, home, away, row, 'En Juego', '-', '-') # noqa
             if finalizado:
                 marcador = get_marcador_ft(web)
-                print(marcador)
+                # print(marcador)
                 total_goles = marcador['ft']
                 sheet = marcador['sheet']
                 gol1, gol2, gol3, gol4, rojahome, rojas_away = sheet
