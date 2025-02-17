@@ -36,6 +36,7 @@ TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID').split(',')
 
 
 def write_sheet_row(wks, row, match):
+    liga = match['liga_mod'] if 'liga_mod' in match else match['liga']
     #                                                                                  Home                Away                VS                Ganador        Ambos Marcan   HandiCap 0/0.5     HandiCap -1    HandiCap -2   Momios FT     Linea de Gol   Roja		Total               Dif Anotaran	Momio GP	      Local				Visitante		Goles Esp	Prob %	 % L	 % V	 % A	 X2	   Asiatico             Linea del tiempo GOL	                                   # noqa
     # ID   Fecha	Hora	Local	Visitante	AP	RESULTADO	Pais	Liga	1	2	3	4	5	1	2	3	4	5	1	2	3	4	5   Home	Away	     Si     No        HM	  AM	   HM	  AM	  HM	AM    -3.5	-4.5  1 	2	3	4  L	V	Final    Mensajes  Dif	uno	          dos	   G+	G-	PG+	PG-	    G+	G-	PG+	PG-	      tres	    cuatro	cinco	seis	siete	ocho	nueve      1	LV1	2	LV2	3	LV3	4	LV4	Total  Correcto	Estatus	L/V	Rango  # noqa
     fecha = get_hum_fecha(match['fecha'])
@@ -84,7 +85,7 @@ def write_sheet_row(wks, row, match):
         '3.5',  # AP,
         '',  # RESULTADO,   *F   G
         match['pais'],  # Pais,
-        match['liga'],  # Liga,
+        liga,  # Liga,
         hmft_1,  # home_matches 1,
         hmft_2,  # home_matches 2,
         hmft_3,  # home_matches 3,
@@ -238,7 +239,7 @@ def get_match_error_short(match: dict):
 def get_match_ok(match: dict, resultado: str = '', mensaje: str = ''):
     pais = match['pais']
     hora = match['hora']
-    liga = match['liga']
+    liga = match['liga_mod'] if 'liga_mod' in match else match['liga']
     home = match['home']
     away = match['away']
     fecha = get_hum_fecha(match['fecha'])

@@ -39,7 +39,7 @@ def main(path_matches: str, overwrite: bool = False):
             match['status'] = status
             if status in ['aplazado']:
                 msj = get_match_error(match)
-                logging.info(msj + '\nAplazado\n')
+                # logging.info(msj + '\nAplazado\n')
             else:
                 momios = get_momios(
                     path_html,

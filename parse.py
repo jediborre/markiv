@@ -138,6 +138,7 @@ def process_full_matches(matches_, dt, web, path_html, path_result, overwrite=Fa
         [
             pais,
             liga,
+            liga_mod,
             hora,
             home,
             away,
@@ -147,6 +148,9 @@ def process_full_matches(matches_, dt, web, path_html, path_result, overwrite=Fa
 
         if partido_id in cache_matches:
             continue
+
+        # if partido_id != 'lKX1No0T':
+        #     continue
 
         resumen_link = link.replace('h2h/overall', 'resumen-del-partido')
         web.open(resumen_link)
@@ -203,6 +207,7 @@ def process_full_matches(matches_, dt, web, path_html, path_result, overwrite=Fa
                     'fecha': fecha,
                     'pais': pais,
                     'liga': liga,
+                    'liga_mod': liga_mod,
                     'home': home,
                     'away': away,
                     'ft': marcadores['goles'],
@@ -255,6 +260,7 @@ def process_matches(matches_, dt, web, path_json, path_html, path_result, overwr
         [
             pais,
             liga,
+            liga_mod,
             hora,
             home,
             away,
@@ -305,6 +311,7 @@ def process_matches(matches_, dt, web, path_json, path_html, path_result, overwr
                 'fecha': fecha,
                 'pais': pais,
                 'liga': liga,
+                'liga_mod': liga_mod,
                 'home': home,
                 'away': away,
                 'url': link,
@@ -412,6 +419,7 @@ def parse_all_matches(html, pais_ligas=None):
                     if not aplazado:
                         resultados.append((
                             pais,
+                            nombre_liga,
                             nombre_liga_,
                             hora,
                             local,
@@ -420,7 +428,7 @@ def parse_all_matches(html, pais_ligas=None):
                             link
                         ))
                     else:
-                        print(local, visitante, 'Aplazado')
+                        # print(local, visitante, 'Aplazado')
                         break
                 except ValueError:
                     pass
@@ -571,7 +579,7 @@ def parse_team_section(matches, dt, team=None, team_name=None, liga=None, debug=
     concedidos = 0
     p35, p45 = 0, 0
     result_matches = []
-    fecha_partido_actual = dt.strftime('%d.%m.%Y')
+    # fecha_partido_actual = dt.strftime('%d.%m.%Y')
     for match in matches:
         date = match.find('span', class_='h2h__date').text # noqa formato dd.mm.yyyy
         dd, mm, yy = date.split('.')
@@ -591,11 +599,9 @@ def parse_team_section(matches, dt, team=None, team_name=None, liga=None, debug=
         result_span = match.find('span', class_='h2h__result')
         scores = result_span.find_all('span')
 
-        if dt_match > dt:
+        es_partido_anterior = dt_match < dt
+        if not es_partido_anterior:
             continue
-        else:
-            if debug:
-                print(team, fecha_partido_actual, date, home_team_name, away_team_name, 'ANTERIOR') # noqa  
 
         if scores[0].text == '-':
             continue
@@ -613,6 +619,7 @@ def parse_team_section(matches, dt, team=None, team_name=None, liga=None, debug=
             liga_psimilarity = fuzz.partial_ratio(liga_clean, league_name_clean) # noqa
             liga_similar = liga_similarity >= similarity_threshold
             liga_psimilar = liga_psimilarity >= similarity_threshold
+            ## print(fecha_partido_actual, date, liga_clean, league_name_clean, liga_similar, liga_psimilar , 'PARTIDO ANTERIOR' if es_partido_anterior else 'POSTERIOR') # noqa
             if liga_similar or liga_psimilar:
                 if len(result_matches) < 5:
                     if FT <= 3:
@@ -1020,7 +1027,10 @@ if __name__ == '__main__':
         # 'n7eyYwcJ',
         # 'xxxgL0DD',  # PENALTI FALLADO
         # 'vsOtJ9xh',  # sumo goles de mas
-        'UipXRFJ6'
+        # 'UipXRFJ6'
+        # 'UDmMQjLi',  # noqa no se porque adjudico el robot a Visitante los 3 goles cuando era a Local "L"
+        # 'fu7cERHc'  # El robot mando 0 - 0 pero quedaron 0 - 1
+        'CMALI2TH'  # solo esta contando los goles de LOCAL
     ]
     for partido_id in ids:
         link = f'https://www.flashscore.com.mx/partido/{partido_id}/?d=1#/resumen-del-partido/resumen-del-partido' # noqa
@@ -1030,4 +1040,4 @@ if __name__ == '__main__':
         print(partido_id)
         marcador = get_marcador_ft(web, True)
         pprint.pprint(marcador)
-    web.close()
+    # web.close()
