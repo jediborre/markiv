@@ -35,29 +35,29 @@ def get_marcador_ft(web, debug=False):
         if len(eventos_home) > 0:
             for evento in eventos_home:
                 minuto = evento.find('div', class_='smv__timeBox').text.strip().replace("'", '') # noqa
-                minuto = int(minuto) if '+' not in minuto else int(minuto[:2]) # noqa
-                icono = evento.find('div', class_='smv__incidentIcon') # noqa
-                if icono:
-                    svg = icono.find('svg')
-                    if svg:
-                        incident_icon = svg.get('class')
-                        # incident_icon_goal = svg.get('data-testid') # noqa
-                        if 'card-ico' in incident_icon:
-                            if 'yellowCard-ico' not in incident_icon: # noqa
-                                # incident_icon = 'redCard-ico'
-                                rojas_home.append([minuto, 'Home']) # noqa
-                        else:
-                            gol_text = icono.text.lower()
-                            if debug:
-                                print('GOAL Home', gol_text, minuto)
-                            if all([x not in gol_text for x in goles_fallos]):
-                                goles.append([minuto, 'Home'])
+                if minuto != '':
+                    minuto = int(minuto) if '+' not in minuto else int(minuto[:2]) # noqa
+                    icono = evento.find('div', class_='smv__incidentIcon') # noqa
+                    if icono:
+                        svg = icono.find('svg')
+                        if svg:
+                            incident_icon = svg.get('class')
+                            # incident_icon_goal = svg.get('data-testid') # noqa
+                            if 'card-ico' in incident_icon:
+                                if 'yellowCard-ico' not in incident_icon: # noqa
+                                    # incident_icon = 'redCard-ico'
+                                    rojas_home.append([minuto, 'Home']) # noqa
+                            else:
+                                gol_text = icono.text.lower()
+                                if debug:
+                                    print('GOAL Home', gol_text, minuto)
+                                if all([x not in gol_text for x in goles_fallos]): # noqa
+                                    goles.append([minuto, 'Home'])
 
         eventos_away = soup.find_all('div', class_='smv__participantRow smv__awayParticipant') # noqa
         if len(eventos_away) > 0:
             for evento in eventos_away:
                 minuto = evento.find('div', class_='smv__timeBox').text.strip().replace("'", '') # noqa
-                print(f"'{minuto}'", f"'{minuto[:2]}'", f"'{evento.find('div', class_='smv__timeBox').text}'")
                 if minuto != '':
                     minuto = int(minuto) if '+' not in minuto else int(minuto[:2]) # noqa
                     icono = evento.find('div', class_='smv__incidentIcon') # noqa
@@ -73,7 +73,6 @@ def get_marcador_ft(web, debug=False):
                                 gol_text = icono.text.lower()
                                 if debug:
                                     print('GOAL Away', gol_text, minuto)
-                                if all([x not in gol_text for x in goles_fallos]):
                                     goles.append([minuto, 'Away']) # noqa
 
         total_goles = str(len(goles))
