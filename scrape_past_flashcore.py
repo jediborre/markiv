@@ -1,5 +1,5 @@
-import sys
 import os
+import sys
 import logging
 import pygsheets
 from web import Web
@@ -33,14 +33,18 @@ def get_sheet_robot():
     return wks
 
 
-def get_past_links():
-    # print('get_past Matches wayBackMachine', '')
+def get_sheet_wayback():
     path_script = os.path.dirname(os.path.realpath(__file__))
     service_file = path(path_script, 'feroslebosgc.json')
     gc = pygsheets.authorize(service_file=service_file)
 
     spreadsheet = gc.open('Mark 4')
-    wks = spreadsheet.worksheet_by_title('LinksBack')
+    return spreadsheet.worksheet_by_title('LinksBack')
+
+
+def get_past_links(wks=None):
+    if wks is None:
+        return []
     rows = wks.get_all_values(returnas='matrix')
 
     result = []
@@ -78,27 +82,34 @@ def parse_spanish_date(str_date):
     return datetime.strptime(english_date, '%b %d %Y')
 
 
+def write_sheet(wks, matches):
+    pass
+
+
 def main():
     global web, path_html
     global path_json, path_html, path_result
 
-    links_fechas = get_past_links()
+    wks_wayback = get_sheet_wayback()
+    links_fechas = get_past_links(wks_wayback)
     if len(links_fechas) == 0:
         logging.info('No hay links')
         return
 
+    # cache_matches = get_past_matches_fromcache(path_result)
     bot2 = get_sheet_robot()
-    ligas = get_ligas_google_sheet()
     web = Web(multiples=True)
+    ligas = get_ligas_google_sheet()
+
     for n, dt, link, hecho in links_fechas:
         if hecho == 'si':
             continue
 
         str_fecha = dt.strftime('%Y%m%d')
-        str_fecha_human = dt.strftime('%d %b %Y')
-
         print(f'{n} - {str_fecha} - {link}')
+        str_fecha_human = dt.strftime('%d %b %Y')
         path_page_matches = path(path_html, f'{n}_{str_fecha}_matches.html')
+
         matches = get_all_matches(
             path_html,
             path_page_matches,
@@ -106,21 +117,22 @@ def main():
             web,
             ligas
         )
-        process_full_matches(
-            matches,
-            dt,
-            web,
-            path_json,
-            path_html,
-            path_result
-        )
 
         if len(matches) == 0:
             logging.info(f'No hay partidos {str_fecha_human}')
             continue
 
-        break
+        cache_matches = process_full_matches(
+            matches,
+            dt,
+            web,
+            path_html,
+            path_result
+        )
+        wks_wayback.update_value(f'C{n}', 'si')
+
     web.close()
+    write_sheet(bot2, cache_matches)
 
 
 if __name__ == "__main__":

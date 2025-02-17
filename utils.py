@@ -54,7 +54,37 @@ class StreamHandlerNoNewLine(logging.StreamHandler):
             self.handleError(record)
 
 
-def get_json(path_file: str):
+def get_past_matches_fromcache(path_result):
+    combined_data = {}
+    path_ok = path(path_result, 'ok')
+    if not pathexist(path_ok):
+        os.makedirs(path_ok)
+
+    for filename in os.listdir(path_ok):
+        if filename.endswith('.json'):
+            file_path = os.path.join(path_ok, filename)
+            try:
+                with open(file_path, 'r') as json_file:
+                    data = json.load(json_file)
+                    if isinstance(data, dict):
+                        combined_data.update(data)
+                    else:
+                        print(f"Warning: {filename} does not contain a dictionary, skipping.") # noqa
+            except Exception as e:
+                print(f"Error reading {filename}: {e}")
+
+    return combined_data
+
+
+def get_json_dict(path_file: str):
+    if not pathexist(path_file):
+        return {}
+    return json.loads(open(path_file, 'r').read())
+
+
+def get_json_list(path_file: str):
+    if not pathexist(path_file):
+        return []
     return json.loads(open(path_file, 'r').read())
 
 

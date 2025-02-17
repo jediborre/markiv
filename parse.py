@@ -1,15 +1,18 @@
 import re
 import os
 import random
+import pprint
 import logging
+from web import Web
 from fuzzywuzzy import fuzz
 from bs4 import BeautifulSoup
 from datetime import datetime
-from utils import get_percent
-from utils import save_matches
 from utils import path
 from utils import convert_dt
+from utils import get_percent
+from utils import save_matches
 from utils import limpia_nombre
+from utils import get_json_dict
 from utils import decimal_american
 from text_unidecode import unidecode
 from filtros import get_ligas_google_sheet
@@ -18,7 +21,13 @@ from send_flashscore import get_match_error_short
 domain = 'https://www.flashscore.com.mx'
 
 
-def get_marcador_ft(web):
+def get_marcador_ft(web, debug=False):
+    goles_fallos = [
+        'penalti fallado',
+        'gol anulado',
+        'fuera de juego',
+        'fueras de juego'
+    ]
     try:
         soup = BeautifulSoup(web.source(), 'html.parser')
         goles, rojas_home, rojas_away = [], [], []
@@ -38,7 +47,11 @@ def get_marcador_ft(web):
                                 # incident_icon = 'redCard-ico'
                                 rojas_home.append([minuto, 'Home']) # noqa
                         else:
-                            goles.append([minuto, 'Home']) # noqa
+                            gol_text = icono.text.lower()
+                            if debug:
+                                print('GOAL Home', gol_text, minuto)
+                            if all([x not in gol_text for x in goles_fallos]):
+                                goles.append([minuto, 'Home'])
 
         eventos_away = soup.find_all('div', class_='smv__participantRow smv__awayParticipant') # noqa
         if len(eventos_away) > 0:
@@ -55,7 +68,11 @@ def get_marcador_ft(web):
                             if 'yellowCard-ico' not in incident_icon: # noqa
                                 rojas_away.append([minuto, 'Away']) # noqa
                         else:
-                            goles.append([minuto, 'Away']) # noqa
+                            gol_text = icono.text.lower()
+                            if debug:
+                                print('GOAL Away', gol_text, minuto)
+                            if all([x not in gol_text for x in goles_fallos]):
+                                goles.append([minuto, 'Away']) # noqa
 
         total_goles = str(len(goles))
         goles_ordenados = sorted(goles, key=lambda x: x[0])
@@ -101,12 +118,14 @@ def get_marcador_ft(web):
         print("No se pudieron encontrar los goles. Revisa la estructura del HTML.") # noqa
 
 
-def process_full_matches(matches_, dt, web, path_json, path_html, path_result, overwrite=False): # noqa
+def process_full_matches(matches_, dt, web, path_html, path_result, overwrite=False): # noqa
     ok = 0
     matches = {}
     fecha = dt.strftime('%Y-%m-%d')
     filename_fecha = dt.strftime('%Y%m%d')
-    path_matches = path(path_result, 'ok', f'{filename_fecha}.json')
+    path_ok = path(path_result, 'ok')
+    path_file = path(path_ok, f'{filename_fecha}.json')
+    cache_matches = get_json_dict(path_file)
 
     TS = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     logging.info(f'{TS} - Procesando {len(matches_)} partidos {fecha}\n\n')
@@ -124,6 +143,9 @@ def process_full_matches(matches_, dt, web, path_json, path_html, path_result, o
             partido_id,
             link
         ] = match
+
+        if partido_id in cache_matches:
+            continue
 
         resumen_link = link.replace('h2h/overall', 'resumen-del-partido')
         web.open(resumen_link)
@@ -149,7 +171,6 @@ def process_full_matches(matches_, dt, web, path_json, path_html, path_result, o
 
             filename_hora = re.sub(r":", "", hora)
             filename_match = f'{m}_{filename_fecha}{filename_hora}_{partido_id}' # noqa
-            path_match = path(path_json, f'{filename_match}.json')
 
             logging.info(f'{str_percent}|{ok}|{partido_id}|{fecha} {hora}|{liga} : {home} - {away}') # noqa
 
@@ -200,9 +221,9 @@ def process_full_matches(matches_, dt, web, path_json, path_html, path_result, o
                 }
                 if momios['OK']:
                     ok += 1
-                    matches[partido_id] = reg
-                    save_matches(path_match, reg, overwrite)
-                    save_matches(path_matches, matches, True)
+                    if partido_id not in matches:
+                        matches[partido_id] = reg
+                    save_matches(path_file, matches, True)
                     logging.info(' OK\n')
                 else:
                     error = get_match_error_short(reg)
@@ -212,7 +233,6 @@ def process_full_matches(matches_, dt, web, path_json, path_html, path_result, o
                 logging.info(f' DESCARTADO H:{n_h}, A→{n_a}, VS→{n_vs}\n')
         else:
             logging.info(f'{TS}|{str_percent}|{partido_id}|{hora} {liga} : {home} - {away} {status}\n') # noqa
-        # break
 
     return matches
 
@@ -990,3 +1010,21 @@ def parse_handicap(html):
             'OK': False,
             'msj': msj
         }
+
+
+if __name__ == '__main__':
+    web = Web(multiples=True)
+    ids = [
+        'viwDtPCi',
+        'n7eyYwcJ',
+        'xxxgL0DD',  # PENALTI FALLADO
+        'vsOtJ9xh'  # sumo goles de mas
+    ]
+    for partido_id in ids:
+        link = f'https://www.flashscore.com.mx/partido/{partido_id}/?d=1#/resumen-del-partido/resumen-del-partido' # noqa
+        web.open(link) # noqa 
+        web.wait(1)
+        print(partido_id)
+        marcador = get_marcador_ft(web, True)
+        pprint.pprint(marcador)
+    web.close()
