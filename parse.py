@@ -105,15 +105,19 @@ def get_marcador_ft(web, debug=False):
             rojas_sheet.append('')
 
         sheet = goles_sheet + rojas_sheet
-        gol1, gol2, gol3, gol4, rojahome, rojas_away = sheet
+        # gol1, gol2, gol3, gol4, rojahome, rojas_away = sheet
 
-        return {
+        result = {
             'ft': total_goles,
             'sheet': sheet,
             'goles': goles_ordenados,
             'rojas_home': rojas_home_ordenadas,
             'rojas_away': rojas_away_ordenadas
         }
+        if debug:
+            if debug:
+                pprint.pprint(result)
+        return result
 
     except AttributeError:
         print("No se pudieron encontrar los goles. Revisa la estructura del HTML.") # noqa
