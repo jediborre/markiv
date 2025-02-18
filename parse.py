@@ -1030,7 +1030,10 @@ if __name__ == '__main__':
         # 'UipXRFJ6'
         # 'UDmMQjLi',  # noqa no se porque adjudico el robot a Visitante los 3 goles cuando era a Local "L"
         # 'fu7cERHc'  # El robot mando 0 - 0 pero quedaron 0 - 1
-        'CMALI2TH'  # solo esta contando los goles de LOCAL
+        # 'CMALI2TH'  # solo esta contando los goles de LOCAL
+        # 'IPEFOmxJ',
+        # 'j5RO0J86',
+        'l24Tp224'
     ]
     for partido_id in ids:
         link = f'https://www.flashscore.com.mx/partido/{partido_id}/?d=1#/resumen-del-partido/resumen-del-partido' # noqa
