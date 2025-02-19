@@ -73,6 +73,7 @@ def get_marcador_ft(web, debug=False):
                                 gol_text = icono.text.lower()
                                 if debug:
                                     print('GOAL Away', gol_text, minuto)
+                                if all([x not in gol_text for x in goles_fallos]): # noqa
                                     goles.append([minuto, 'Away']) # noqa
 
         total_goles = str(len(goles))
@@ -1037,7 +1038,8 @@ if __name__ == '__main__':
         # 'CMALI2TH'  # solo esta contando los goles de LOCAL
         # 'IPEFOmxJ',
         # 'j5RO0J86',
-        'l24Tp224'
+        # 'l24Tp224',
+        'U72xxSLE'
     ]
     for partido_id in ids:
         link = f'https://www.flashscore.com.mx/partido/{partido_id}/?d=1#/resumen-del-partido/resumen-del-partido' # noqa
