@@ -82,10 +82,6 @@ def parse_spanish_date(str_date):
     return datetime.strptime(english_date, '%b %d %Y')
 
 
-def write_sheet(wks, matches):
-    pass
-
-
 def main():
     global web, path_html
     global path_json, path_html, path_result
@@ -96,8 +92,6 @@ def main():
         logging.info('No hay links')
         return
 
-    # cache_matches = get_past_matches_fromcache(path_result)
-    bot2 = get_sheet_robot()
     web = Web(multiples=True)
     ligas = get_ligas_google_sheet()
 
@@ -122,7 +116,7 @@ def main():
             logging.info(f'No hay partidos {str_fecha_human}')
             continue
 
-        cache_matches = process_full_matches(
+        process_full_matches(
             matches,
             dt,
             web,
@@ -132,7 +126,6 @@ def main():
         wks_wayback.update_value(f'C{n}', 'si')
 
     web.close()
-    write_sheet(bot2, cache_matches)
 
 
 if __name__ == "__main__":

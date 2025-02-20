@@ -6,6 +6,7 @@ import base64
 import pprint # noqa
 import logging
 import vertexai
+import pygsheets
 if os.name == 'nt':
     import ctypes
     import win32com.client
@@ -54,12 +55,17 @@ class StreamHandlerNoNewLine(logging.StreamHandler):
             self.handleError(record)
 
 
-def get_past_matches_fromcache(path_result):
-    combined_data = {}
-    path_ok = path(path_result, 'ok')
-    if not pathexist(path_ok):
-        os.makedirs(path_ok)
+def gsheet(sheet_name):
+    path_script = os.path.dirname(os.path.realpath(__file__))
+    service_file = path(path_script, 'feroslebosgc.json')
+    gc = pygsheets.authorize(service_file=service_file)
 
+    spreadsheet = gc.open('Mark 4')
+    return spreadsheet.worksheet_by_title(sheet_name)
+
+
+def get_jsons_folder(path_ok):
+    combined_data = {}
     for filename in os.listdir(path_ok):
         if filename.endswith('.json'):
             file_path = os.path.join(path_ok, filename)

@@ -42,6 +42,11 @@ def write_sheet_row(wks, row, match):
     fecha = get_hum_fecha(match['fecha'])
     home_matches = match['home_matches']['matches']
     link = match['url']
+    sheet = match['sheet_goles'] if 'sheet_goles' in match else ['', '', '', '', '', ''] # noqa
+    total_ft = len(match['ft']) if 'ft' in match else ''
+
+    gol1, gol2, gol3, gol4, rojahome, rojas_away = sheet
+
     hmft_1 = home_matches[0]['ft']
     hmft_2 = home_matches[1]['ft']
     hmft_3 = home_matches[2]['ft']
@@ -117,13 +122,13 @@ def write_sheet_row(wks, row, match):
         gol_35_m,  # Momios -3.5,
         gol_45_m,  # Momios -4.5,
 
-        '',  # Min Gol 1
-        '',  # Min Gol 2
-        '',  # Min Gol 3
-        '',  # Min Gol 4
-        '',  # ROJA Home
-        '',  # ROJA Away
-        '',  # TOTAL
+        gol1,  # Min Gol 1
+        gol2,  # Min Gol 2
+        gol3,  # Min Gol 3
+        gol4,  # Min Gol 4
+        rojahome,  # ROJA Home
+        rojas_away,  # ROJA Away
+        total_ft,  # TOTAL
 
         '',  # Mensaje  *F  AR
         '',  # Dif Anotaran  *F  AS
