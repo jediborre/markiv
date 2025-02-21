@@ -5,6 +5,7 @@ import pygsheets
 from web import Web
 from utils import path
 from datetime import datetime
+from utils import save_matches
 from utils import prepare_paths
 from parse import get_all_matches
 from parse import process_full_matches
@@ -83,7 +84,7 @@ def parse_spanish_date(str_date):
 
 
 def main(links=None):
-    global web, path_html
+    global web
     global path_json, path_html, path_result
 
     if not links:
@@ -120,22 +121,24 @@ def main(links=None):
             logging.info(f'No hay partidos {str_fecha_human}')
             continue
 
-        process_full_matches(
-            matches,
-            dt,
-            web,
-            path_html,
-            path_result
-        )
-        wks_wayback.update_value(f'C{n}', 'si')
+        filename_fecha = dt.strftime('%Y%m%d')
+        path_ok = path(path_result, 'ok')
+        path_file = path(path_ok, f'{filename_fecha}.json')
+
+        matches = process_full_matches(matches, dt, web, path_html)
+        save_matches(path_file, matches, True)
+
+        if not links:
+            wks_wayback.update_value(f'C{n}', 'si')
 
     web.close()
 
 
 if __name__ == "__main__":
-    main([[
-        '1',
-        parse_spanish_date('feb 15 2025'),
-        'https://m.flashscore.com.mx/?d=-5',
-        ''
-    ]])
+    # main([[
+    #     '1',
+    #     parse_spanish_date('ago 12 2024'),
+    #     'https://web.archive.org/web/20240812010255/https://m.flashscore.com.mx/', # noqa
+    #     ''
+    # ]])
+    main()
