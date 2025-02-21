@@ -82,12 +82,16 @@ def parse_spanish_date(str_date):
     return datetime.strptime(english_date, '%b %d %Y')
 
 
-def main():
+def main(links=None):
     global web, path_html
     global path_json, path_html, path_result
 
-    wks_wayback = get_sheet_wayback()
-    links_fechas = get_past_links(wks_wayback)
+    if not links:
+        wks_wayback = get_sheet_wayback()
+        links_fechas = get_past_links(wks_wayback)
+    else:
+        links_fechas = links
+
     if len(links_fechas) == 0:
         logging.info('No hay links')
         return
@@ -129,4 +133,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main([[
+        '1',
+        parse_spanish_date('feb 15 2025'),
+        'https://m.flashscore.com.mx/?d=-5',
+        ''
+    ]])
