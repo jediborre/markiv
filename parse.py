@@ -928,7 +928,7 @@ def parse_odds_goles(html):
                     'odds': result
                 }
     else:
-        str_casas == ', '.join(casas)
+        str_casas = ', '.join(casas)
         # logging.info(f'Fallo → No hay Goles "{str_casas}"')
         return {
             'OK': False,
