@@ -12,7 +12,6 @@ from utils import convert_dt
 from utils import get_percent
 from utils import save_matches
 from utils import limpia_nombre
-from utils import get_json_dict
 from utils import decimal_american
 from text_unidecode import unidecode
 from filtros import get_ligas_google_sheet
@@ -36,7 +35,11 @@ def get_marcador_ft(web, debug=False):
             for evento in eventos_home:
                 minuto = evento.find('div', class_='smv__timeBox').text.strip().replace("'", '') # noqa
                 if minuto != '':
-                    minuto = int(minuto) if '+' not in minuto else int(minuto[:2]) # noqa
+                    if ':' not in minuto:
+                        minuto = int(minuto) if '+' not in minuto else int(minuto[:2]) # noqa
+                    else:
+                        minuto = minuto.split(':')
+                        minuto = int(minuto[0]) if '+' not in minuto[0] else int(minuto[0][:2]) # noqa
                     icono = evento.find('div', class_='smv__incidentIcon') # noqa
                     if icono:
                         svg = icono.find('svg')
@@ -124,14 +127,11 @@ def get_marcador_ft(web, debug=False):
         print("No se pudieron encontrar los goles. Revisa la estructura del HTML.") # noqa
 
 
-def process_full_matches(matches_, dt, web, path_html, path_result, overwrite=False): # noqa
+def process_full_matches(matches_, dt, web, path_html, overwrite=False): # noqa
     ok = 0
-    matches = {}
+    matches = []
     fecha = dt.strftime('%Y-%m-%d')
     filename_fecha = dt.strftime('%Y%m%d')
-    path_ok = path(path_result, 'ok')
-    path_file = path(path_ok, f'{filename_fecha}.json')
-    cache_matches = get_json_dict(path_file)
 
     TS = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     logging.info(f'{TS} - Procesando {len(matches_)} partidos {fecha}\n\n')
@@ -150,12 +150,6 @@ def process_full_matches(matches_, dt, web, path_html, path_result, overwrite=Fa
             partido_id,
             link
         ] = match
-
-        if partido_id in cache_matches:
-            continue
-
-        # if partido_id != 'lKX1No0T':
-        #     continue
 
         resumen_link = link.replace('h2h/overall', 'resumen-del-partido')
         web.open(resumen_link)
@@ -232,9 +226,7 @@ def process_full_matches(matches_, dt, web, path_html, path_result, overwrite=Fa
                 }
                 if momios['OK']:
                     ok += 1
-                    if partido_id not in matches:
-                        matches[partido_id] = reg
-                    save_matches(path_file, matches, True)
+                    matches.append(reg)
                     logging.info(' OK\n')
                 else:
                     error = get_match_error_short(reg)

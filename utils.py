@@ -64,22 +64,24 @@ def gsheet(sheet_name):
     return spreadsheet.worksheet_by_title(sheet_name)
 
 
-def get_jsons_folder(path_ok):
-    combined_data = {}
-    for filename in os.listdir(path_ok):
-        if filename.endswith('.json'):
-            file_path = os.path.join(path_ok, filename)
+def get_jsons_folder(folder_path):
+    merged_list = []
+
+    for filename in os.listdir(folder_path):
+        if filename.endswith('.json'):  # Only process JSON files
+            file_path = os.path.join(folder_path, filename)
             try:
-                with open(file_path, 'r') as json_file:
+                with open(file_path, 'r', encoding='utf-8') as json_file:
                     data = json.load(json_file)
-                    if isinstance(data, dict):
-                        combined_data.update(data)
+
+                    if isinstance(data, list):
+                        merged_list.extend(data)  # Merge lists
                     else:
-                        print(f"Warning: {filename} does not contain a dictionary, skipping.") # noqa
+                        print(f"Warning: {filename} does not contain a list.")
             except Exception as e:
                 print(f"Error reading {filename}: {e}")
 
-    return combined_data
+    return merged_list
 
 
 def get_json_dict(path_file: str):

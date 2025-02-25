@@ -2,6 +2,7 @@ result/*.csv
 result/*.xlsx
 *.pyc
 *.json
+*.bk
 *.png
 *.log
 .env
