@@ -1,6 +1,6 @@
 import os
-import pygsheets
 from utils import path
+from utils import gsheet
 
 
 def get_filtro_ligas():
@@ -30,15 +30,8 @@ def get_filtro_ligas():
 
 
 def get_ligas_google_sheet():
-    # print('get_ligas GSheet', '')
-    path_script = os.path.dirname(os.path.realpath(__file__))
-    service_file = path(path_script, 'feroslebosgc.json')
-    gc = pygsheets.authorize(service_file=service_file)
-
-    spreadsheet = gc.open('Mark 4')
-    wks = spreadsheet.worksheet_by_title('Ligas')
-
     result = {}
+    wks = gsheet('Ligas')
     ligas = wks.get_all_values(returnas='matrix')
     for n, liga in enumerate(ligas):
         if n > 0:

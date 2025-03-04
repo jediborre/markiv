@@ -62,7 +62,11 @@ def get_marcador_ft(web, debug=False):
             for evento in eventos_away:
                 minuto = evento.find('div', class_='smv__timeBox').text.strip().replace("'", '') # noqa
                 if minuto != '':
-                    minuto = int(minuto) if '+' not in minuto else int(minuto[:2]) # noqa
+                    if ':' not in minuto:
+                        minuto = int(minuto) if '+' not in minuto else int(minuto[:2]) # noqa
+                    else:
+                        minuto = minuto.split(':')
+                        minuto = int(minuto[0]) if '+' not in minuto[0] else int(minuto[0][:2]) # noqa
                     icono = evento.find('div', class_='smv__incidentIcon') # noqa
                     if icono:
                         svg = icono.find('svg')
@@ -903,7 +907,7 @@ def parse_odds_goles(html):
                 }
     if len(result) > 0:
         if '3.5' not in result:
-            str_casas = ', '.join(casas)
+            # str_casas = ', '.join(casas)
             # logging.info(f"Fallo → No hay -3.5 '{str_casas}'")
             return {
                 'OK': False,
