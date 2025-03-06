@@ -261,11 +261,17 @@ def keys_uppercase(json_data):
 def decimal_american(odds_decimal):
     if odds_decimal == '-':
         return '-'
+
     odds_float = float(odds_decimal)
+
+    if odds_float == 1.0:
+        return '-'
+        # raise ValueError("Decimal odds cannot be 1.0 (division by zero).")
+
     if odds_float >= 2.0:
         return f"+{int((odds_float - 1) * 100)}"
     else:
-        return f"{int(round(-100 / (odds_float - 1) / 50) * 50)}"
+        return f"{int(round(-100 / (odds_float - 1)))}"
 
 
 def get_momios_image(img_filename):
@@ -545,21 +551,23 @@ Gol HT: {momio_ht_05} {momio_ht_15} {momio_ht_25}
 
 
 if __name__ == '__main__':
-    decimal = 1.615
-    print(decimal, decimal_american(decimal))
-    decimal = 1.222
-    print(decimal, decimal_american(decimal))
-    decimal = 1.25
-    print(decimal, decimal_american(decimal))
-    decimal = 1.083
-    print(decimal, decimal_american(decimal))
-    decimal = 3.85
-    print(decimal, decimal_american(decimal))
-    decimal = 3.65  # +265
-    print(decimal, decimal_american(decimal))
-    decimal = 4.5  # +350
-    print(decimal, decimal_american(decimal))
-    decimal = 6.25  # +525
-    print(decimal, decimal_american(decimal))
-    decimal = 6.5  # +550
+    # decimal = 1.615
+    # print(decimal, decimal_american(decimal))
+    # decimal = 1.222
+    # print(decimal, decimal_american(decimal))
+    # decimal = 1.25
+    # print(decimal, decimal_american(decimal))
+    # decimal = 1.083
+    # print(decimal, decimal_american(decimal))
+    # decimal = 3.85
+    # print(decimal, decimal_american(decimal))
+    # decimal = 3.65  # +265
+    # print(decimal, decimal_american(decimal))
+    # decimal = 4.5  # +350
+    # print(decimal, decimal_american(decimal))
+    # decimal = 6.25  # +525
+    # print(decimal, decimal_american(decimal))
+    # decimal = 6.5  # +550
+    # print(decimal, decimal_american(decimal))
+    decimal = 1
     print(decimal, decimal_american(decimal))

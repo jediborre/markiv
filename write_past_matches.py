@@ -16,7 +16,7 @@ def main():
     if len(past_matches) > 0:
         print(f'Matches {len(past_matches)}')
         for n, match in enumerate(past_matches):
-            print(match['id'], match['fecha'], match['hora'])
+            print(n, match['id'], match['fecha'], match['hora'])
             row = get_last_row(wks)
             write_sheet_row(wks, row, match)
             sleep(1)

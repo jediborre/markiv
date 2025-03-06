@@ -74,7 +74,10 @@ def write_sheet_row(wks, row, match):
     vsft_5 = vs_matches[4]['ft'] if len(vs_matches) > 4 else ''
 
     _1x2_h, _1x2_d, _1x2_a = match['1x2']['american']
-    ambos_si, ambos_no = match['ambos']['american']
+    if len(match['ambos']['american']) == 2:
+        ambos_si, ambos_no = match['ambos']['american']
+    else:
+        ambos_si, _, ambos_no = match['ambos']['american']
     handicap_h_1, handicap_a_1 = match['handicap']['odds']['0, -0.5']['decimal'] # noqa
     handicap_h_2, handicap_a_2 = match['handicap']['odds']['-1']['decimal']
     handicap_h_3, handicap_a_3 = match['handicap']['odds']['-2']['decimal'] if '-2' in match['handicap']['odds'] else ('', '') # noqa
