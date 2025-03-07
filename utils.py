@@ -271,7 +271,7 @@ def decimal_american(odds_decimal):
     if odds_float >= 2.0:
         return f"+{int((odds_float - 1) * 100)}"
     else:
-        return f"{int(round(-100 / (odds_float - 1)))}"
+        return f"{int(round(-100 / (odds_float - 1) / 50) * 50)}"
 
 
 def get_momios_image(img_filename):
