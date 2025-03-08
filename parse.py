@@ -536,13 +536,13 @@ def parse_team_matches(html, dt, team, team_name='', home='', away='', liga='', 
     soup = BeautifulSoup(html, 'html.parser')
     sections = soup.find_all('div', class_='h2h__section')
 
-    tmp_matches_home = sections[0].find('div', class_='rows') if len(sections) > 0 else [] # noqa
-    tmp_matches_away = sections[1].find('div', class_='rows') if len(sections) > 0 else [] # noqa
-    tmp_matches_vs = sections[2].find('div', class_='rows') if len(sections) > 0 else [] # noqa
+    tmp_matches_home = sections[0].find('div', class_='rows') if len(sections) > 0 and sections[0] else None # noqa
+    tmp_matches_away = sections[1].find('div', class_='rows') if len(sections) > 0 and sections[1] else None # noqa
+    tmp_matches_vs = sections[2].find('div', class_='rows') if len(sections) > 0 and sections[2] else None # noqa
 
-    tmp_matches_home = tmp_matches_home.find_all('div', class_='h2h__row')
-    tmp_matches_away = tmp_matches_away.find_all('div', class_='h2h__row')
-    tmp_matches_vs = tmp_matches_vs.find_all('div', class_='h2h__row')
+    tmp_matches_home = tmp_matches_home.find_all('div', class_='h2h__row') if tmp_matches_home else [] # noqa
+    tmp_matches_away = tmp_matches_away.find_all('div', class_='h2h__row') if tmp_matches_away else [] # noqa
+    tmp_matches_vs = tmp_matches_vs.find_all('div', class_='h2h__row') if tmp_matches_vs else [] # noqa
 
     if team == 'all':
         home_matches = parse_team_section(tmp_matches_home, dt, team, home, liga, debug) # noqa
