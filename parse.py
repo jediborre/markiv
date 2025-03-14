@@ -28,7 +28,7 @@ def get_marcador_ft(web, debug=False):
         'fueras de juego'
     ]
     goles_ok = [
-        'iconowcl-icon-soccer',
+        'wcl-icon-soccer',
         'wcl-icon-incidents-penalty-goal'
     ]
     try:
