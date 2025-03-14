@@ -27,6 +27,10 @@ def get_marcador_ft(web, debug=False):
         'fuera de juego',
         'fueras de juego'
     ]
+    goles_ok = [
+        'iconowcl-icon-soccer',
+        'wcl-icon-incidents-penalty-goal'
+    ]
     try:
         soup = BeautifulSoup(web.source(), 'html.parser')
         goles, rojas_home, rojas_away = [], [], []
@@ -45,17 +49,23 @@ def get_marcador_ft(web, debug=False):
                         svg = icono.find('svg')
                         if svg:
                             incident_icon = svg.get('class')
+                            if incident_icon:
                             # incident_icon_goal = svg.get('data-testid') # noqa
-                            if 'card-ico' in incident_icon:
-                                if 'yellowCard-ico' not in incident_icon: # noqa
-                                    # incident_icon = 'redCard-ico'
-                                    rojas_home.append([minuto, 'Home']) # noqa
+                                if 'card-ico' in incident_icon:
+                                    if 'yellowCard-ico' not in incident_icon: # noqa
+                                        # incident_icon = 'redCard-ico'
+                                        rojas_home.append([minuto, 'Home']) # noqa
+                                else:
+                                    gol_text = icono.text.lower()
+                                    if debug:
+                                        print('GOAL Home', gol_text, minuto)
+                                    if all([x not in gol_text for x in goles_fallos]): # noqa
+                                        goles.append([minuto, 'Home'])
                             else:
-                                gol_text = icono.text.lower()
-                                if debug:
-                                    print('GOAL Home', gol_text, minuto)
-                                if all([x not in gol_text for x in goles_fallos]): # noqa
+                                incident_icon_goal = svg.get('data-testid')
+                                if incident_icon_goal in goles_ok:
                                     goles.append([minuto, 'Home'])
+
 
         eventos_away = soup.find_all('div', class_='smv__participantRow smv__awayParticipant') # noqa
         if len(eventos_away) > 0:
@@ -72,16 +82,21 @@ def get_marcador_ft(web, debug=False):
                         svg = icono.find('svg')
                         if svg:
                             incident_icon = svg.get('class')
+                            if incident_icon:
                             # incident_icon_goal = svg.get('data-testid') # noqa
-                            if 'card-ico' in incident_icon:
-                                if 'yellowCard-ico' not in incident_icon: # noqa
-                                    rojas_away.append([minuto, 'Away']) # noqa
+                                if 'card-ico' in incident_icon:
+                                    if 'yellowCard-ico' not in incident_icon: # noqa
+                                        rojas_away.append([minuto, 'Away']) # noqa
+                                else:
+                                    gol_text = icono.text.lower()
+                                    if debug:
+                                        print('GOAL Away', gol_text, minuto)
+                                    if all([x not in gol_text for x in goles_fallos]): # noqa
+                                        goles.append([minuto, 'Away']) # noqa
                             else:
-                                gol_text = icono.text.lower()
-                                if debug:
-                                    print('GOAL Away', gol_text, minuto)
-                                if all([x not in gol_text for x in goles_fallos]): # noqa
-                                    goles.append([minuto, 'Away']) # noqa
+                                incident_icon_goal = svg.get('data-testid')
+                                if incident_icon_goal in goles_ok:
+                                    goles.append([minuto, 'Away'])
 
         total_goles = str(len(goles))
         goles_ordenados = sorted(goles, key=lambda x: x[0])
