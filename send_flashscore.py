@@ -175,6 +175,7 @@ def write_sheet_row(wks, row, match):
         '',  # CRango  BZ,
         '',  # Arc 3    CA
         '',
+        '',
         link
     ]
     wks.update_row(row, reg)
