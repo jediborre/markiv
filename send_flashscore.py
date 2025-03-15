@@ -90,8 +90,8 @@ def write_sheet_row(wks, row, match):
         match['hora'],  # Hora,
         match['home'],  # Home,
         match['away'],  # Away,
-        '3.5',  # AP,
-        '',  # RESULTADO,   *F   G
+        '',  # RESULTADO,
+        '',  # APUESTA,   *F   G
         match['pais'],  # Pais,
         liga,  # Liga,
         hmft_1,  # home_matches 1,

@@ -1,4 +1,6 @@
 import os
+import json
+import pprint # noqa
 from utils import path
 from utils import gsheet
 
@@ -56,4 +58,7 @@ def get_ligas_google_sheet():
 
 if __name__ == '__main__':
     ligas = get_ligas_google_sheet()
-    print(ligas)
+    file = r"C:\Users\Fernando Borrego\Desktop\markiv\result\ok\202503150800.json" # noqa
+    matches = json.loads(open(file, 'r', encoding='utf-8').read())
+    for match in matches:
+        print(match['pais'], match['liga'], match['liga_mod'])

@@ -398,7 +398,7 @@ def parse_all_matches(html, pais_ligas=None):
         pais, nombre_liga = tmp_liga.split(': ')
         pais = unidecode(pais).upper()
         nombre_liga = re.sub(r'\s+$', '', nombre_liga)
-        nombre_liga_ = nombre_liga.lower()
+        nombre_liga_ = unidecode(nombre_liga.lower())
         partido_actual = liga.find_next_sibling()
 
         # Elimina ligas por default
@@ -412,11 +412,9 @@ def parse_all_matches(html, pais_ligas=None):
                 if quitar_liga:
                     # print(f'{pais} {nombre_liga_} → Quitar')
                     continue
-                if len(pais_ligas[pais][nombre_liga]) > 1:
+                if len(pais_ligas[pais][nombre_liga_]) > 1:
                     # print(f'{pais} {nombre_liga} → {pais_ligas[pais][nombre_liga][1]}') # noqa
-                    nombre_liga_ = pais_ligas[pais][nombre_liga][1]
-                else:
-                    nombre_liga_ = unidecode(nombre_liga)
+                    nombre_liga_ = pais_ligas[pais][nombre_liga_][1]
 
         while partido_actual and partido_actual.name != 'h4':
             aplazado = False

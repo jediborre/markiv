@@ -569,5 +569,6 @@ if __name__ == '__main__':
     # print(decimal, decimal_american(decimal))
     # decimal = 6.5  # +550
     # print(decimal, decimal_american(decimal))
-    decimal = 1
-    print(decimal, decimal_american(decimal))
+    # decimal = 1
+    # print(decimal, decimal_american(decimal))
+    gsheet('Ligas')
