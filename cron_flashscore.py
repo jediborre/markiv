@@ -54,11 +54,15 @@ def cron_matches(path_matches: str, debug_hora=None):
 
         # Programacion Hora Partido - 1 hora
         una_hora = timedelta(hours=1)
-        dt_horaactual = datetime.now(pytz.timezone('America/Mexico_City')) # noqa
-        dt_partido = datetime.strptime(f"{fecha} {hora}", "%Y-%m-%d %H:%M").replace(tzinfo=pytz.timezone('America/Mexico_City')) # noqa
+        zona_horaria = pytz.timezone('America/Mexico_City')
+        dt_horaactual = datetime.now(zona_horaria)
+        
+        dt_partido = datetime.strptime(f"{fecha} {hora}", "%Y-%m-%d %H:%M")
+        dt_partido = zona_horaria.localize(dt_partido)
 
         dt_partido_m1h = dt_partido - una_hora
         fechahora_partido_m1h = dt_partido_m1h.strftime('%Y%m%d%H%M')
+        print(match_id, fecha, hora, '->', dt_partido_m1h.strftime('%Y-%m-%d %H:%M'), dt_partido_m1h.isoformat()) # noqa
 
         if dt_horaactual <= dt_partido_m1h:
             if fechahora_partido_m1h not in result:
@@ -117,4 +121,4 @@ if __name__ == '__main__':
         print(f'Archivo {path_file} no existe')
         exit(1)
 
-    cron_matches(path_file)
+    cron_matches(path_file, True)
