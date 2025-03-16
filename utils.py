@@ -22,6 +22,13 @@ load_dotenv()
 matches_result = []
 
 
+def busca_id_bot(bot_regs, id: str):
+    for row, value in enumerate(bot_regs):
+        if value[0] == id:
+            return row + 1
+    return None
+
+
 def convert_dt(dt_str):
     if len(dt_str) == 8: # noqa yy-mm-dd
         return datetime.strptime(dt_str, '%y-%m-%d')

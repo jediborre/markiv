@@ -4,6 +4,7 @@ import logging
 import argparse
 from web import Web
 from utils import gsheet
+from utils import busca_id_bot
 from utils import get_json_list
 from parse import get_marcador_ft
 from parse import status_partido
@@ -24,13 +25,6 @@ path_result, path_ok = prepare_paths_ok()
 parser = argparse.ArgumentParser(description="Solicita partidos de hoy o mañana de flashscore") # noqa
 parser.add_argument('file', type=str, help='Archivo de Partidos Flashscore')
 args = parser.parse_args()
-
-
-def busca_id_bot(bot_regs, id: str):
-    for row, value in enumerate(bot_regs):
-        if value[0] == id:
-            return row
-    return None
 
 
 def resultados(path_file: str, filename: str):
