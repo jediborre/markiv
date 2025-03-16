@@ -138,8 +138,7 @@ def get_marcador_ft(web, debug=False):
             'rojas_away': rojas_away_ordenadas
         }
         if debug:
-            if debug:
-                pprint.pprint(result)
+            pprint.pprint(result)
         return result
 
     except AttributeError:
