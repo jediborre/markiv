@@ -190,7 +190,8 @@ def pathexist(*paths):
 
 def prepare_paths_ok(log_filename='seguimiento_markiv.log'):
     script_path = os.path.dirname(os.path.abspath(__file__))
-    log_filepath = path(script_path, log_filename)
+    log_path = path(script_path, 'log')
+    log_filepath = path(log_path, log_filename)
     path_result = path(script_path, 'result')
     path_ok = path(path_result, 'ok')
 
@@ -211,6 +212,7 @@ def prepare_paths_ok(log_filename='seguimiento_markiv.log'):
 def prepare_paths(log_filename='web_markiv.log'):
     script_path = os.path.dirname(os.path.abspath(__file__))
     path_tmp = path(script_path, 'tmp')
+    path_log = path(script_path, 'log')
     path_csv = path(path_tmp, 'csv')
     path_html = path(path_tmp, 'html')
     path_json = path(path_tmp, 'json')
@@ -221,6 +223,8 @@ def prepare_paths(log_filename='web_markiv.log'):
 
     if not pathexist(path_result):
         os.makedirs(path_result)
+    if not pathexist(path_log):
+        os.makedirs(path_log)
     if not pathexist(path_cron):
         os.makedirs(path_cron)
     if not pathexist(path_tmp):
