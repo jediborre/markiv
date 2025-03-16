@@ -4,8 +4,8 @@ import logging # noqa
 import pprint # noqa
 import telebot
 import argparse
-import pygsheets
 from utils import path
+from utils import gsheet
 from utils import wakeup
 from utils import pathexist
 from telebot import types
@@ -305,12 +305,7 @@ def send_matches(path_matches: str):
     try:
         matches = get_json_list(path_matches)
 
-        path_script = os.path.dirname(os.path.realpath(__file__))
-        service_file = path(path_script, 'feroslebosgc.json')
-        gc = pygsheets.authorize(service_file=service_file)
-
-        spreadsheet = gc.open('Mark 4')
-        wks = spreadsheet.worksheet_by_title('Bot')
+        wks = gsheet('Bot')
         bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 
         matches_, rows = [], []
@@ -325,14 +320,14 @@ def send_matches(path_matches: str):
 
         save_matches(path_filename, matches_, True, debug=False)
 
-        tres_hora = timedelta(hours=4)
+        cinco_horas = timedelta(hours=5)
         fechahora_partidos = dt_filename.replace(tzinfo=pytz.timezone('America/Mexico_City')) # noqa
-        dt_partidos_p3h = fechahora_partidos + tres_hora
+        dt_partidos_p5h = fechahora_partidos + cinco_horas
 
         task_result = wakeup(
             'Resultado',
             'resultado_flashscore.py',
-            dt_partidos_p3h,
+            dt_partidos_p5h,
             filename,
             len(matches_)
         )

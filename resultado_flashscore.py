@@ -2,8 +2,8 @@ import os
 import sys
 import logging
 import argparse
-import pygsheets
 from web import Web
+from utils import gsheet
 from utils import get_json_list
 from parse import get_marcador_ft
 from parse import status_partido
@@ -26,25 +26,29 @@ parser.add_argument('file', type=str, help='Archivo de Partidos Flashscore')
 args = parser.parse_args()
 
 
+def busca_id_bot(bot_regs, id: str):
+    for row, value in enumerate(bot_regs):
+        if value[0] == id:
+            return row
+    return None
+
+
 def resultados(path_file: str, filename: str):
     logging.info(f'MarkIV {filename}\n')
     web = Web(multiples=True)
     matches = get_json_list(path_file)
     try:
-        path_script = os.path.dirname(os.path.realpath(__file__))
-        service_file = path(path_script, 'feroslebosgc.json')
-        gc = pygsheets.authorize(service_file=service_file)
-
-        spreadsheet = gc.open('Mark 4')
-        wks = spreadsheet.worksheet_by_title('Bot')
+        wks = gsheet('Bot')
+        bot_regs = wks.get_all_values(returnas='matrix')
         for m in matches:
+            id = m["id"]
             link = m["url"].replace('h2h/overall', 'resumen-del-partido')
             liga = m["liga"]
             home = m["home"]
             away = m["away"]
             hora = m["hora"]
             pais = m["pais"]
-            row = m["row"]
+            row = busca_id_bot(bot_regs, id)
             print(link)
             web.open(link)
             web.wait(1)

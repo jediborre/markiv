@@ -3,6 +3,7 @@ import json
 import pprint # noqa
 from utils import path
 from utils import gsheet
+from text_unidecode import unidecode
 
 
 def get_filtro_ligas():
@@ -41,7 +42,8 @@ def get_ligas_google_sheet():
                 continue
             pais, origen, destino, quitar = liga
             pais = pais.strip().upper()
-            liga_origen = origen.strip()
+            liga_origen = unidecode(origen.strip())
+            liga_origen = liga_origen.lower()
             liga_correccion = destino.strip()
             quitar = quitar.strip().lower() == 'no'
             if pais not in result:
@@ -61,4 +63,13 @@ if __name__ == '__main__':
     file = r"C:\Users\Fernando Borrego\Desktop\markiv\result\ok\202503150800.json" # noqa
     matches = json.loads(open(file, 'r', encoding='utf-8').read())
     for match in matches:
-        print(match['pais'], match['liga'], match['liga_mod'])
+        pais = match['pais']
+        liga = match['liga']
+        liga_m = match['liga_mod']
+        liga_o = unidecode(liga.lower())
+        liga_ = ''
+        if pais in ligas:
+            if liga_o in ligas[pais]:
+                if len(ligas[pais][liga_o]) > 1:
+                    liga_ = ligas[pais][liga_o][1]
+        print(f"{pais} '{liga}' '{liga_m}' '{liga_}'") # noqa
