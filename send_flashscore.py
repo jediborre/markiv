@@ -320,9 +320,15 @@ def send_matches(path_matches: str):
 
         save_matches(path_filename, matches_, True, debug=False)
 
-        cinco_horas = timedelta(hours=5)
-        fechahora_partidos = dt_filename.replace(tzinfo=pytz.timezone('America/Mexico_City')) # noqa
-        dt_partidos_p5h = fechahora_partidos + cinco_horas
+        zona_horaria = pytz.timezone('America/Mexico_City')
+
+        tres_horas = timedelta(hours=3)
+        if dt_filename.tzinfo is None:
+            fechahora_partidos = zona_horaria.localize(dt_filename)
+        else:
+            fechahora_partidos = dt_filename.astimezone(zona_horaria)
+
+        dt_partidos_p5h = fechahora_partidos + tres_horas
 
         task_result = wakeup(
             'Resultado',
