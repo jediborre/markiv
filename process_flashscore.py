@@ -14,7 +14,7 @@ from send_flashscore import send_matches
 from send_flashscore import get_match_ok
 from send_flashscore import get_match_error
 
-path_result, path_cron, path_csv, path_json, path_html = prepare_paths('procesa_flashcore.log') # noqa
+path_result, path_cron, path_csv, path_json, path_html = prepare_paths() # noqa
 
 parser = argparse.ArgumentParser(
     description="Procesa Partidos de la hora Flashscore"

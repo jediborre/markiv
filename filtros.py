@@ -60,7 +60,7 @@ def get_ligas_google_sheet():
 
 if __name__ == '__main__':
     ligas = get_ligas_google_sheet()
-    file = r"C:\Users\Fernando Borrego\Desktop\markiv\result\ok\202503150800.json" # noqa
+    file = r"C:\Users\Robot\Documents\markiv\result\20250325\ok\202503251245.json" # noqa
     matches = json.loads(open(file, 'r', encoding='utf-8').read())
     for match in matches:
         pais = match['pais']

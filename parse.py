@@ -374,6 +374,9 @@ def get_all_matches(path_html, filename, matches_link, web, ligas=None, overwrit
 def parse_all_matches(html, pais_ligas=None):
     global domain
     resultados = []
+    filter_paises = [
+        'EUROPA'
+    ]
     filter_ligas = [
         'amistoso',
         'amistosos',
@@ -404,10 +407,13 @@ def parse_all_matches(html, pais_ligas=None):
         if any([x in unidecode(nombre_liga.lower()) for x in filter_ligas]):
             continue
 
+        if any([x in pais for x in filter_paises]):
+            continue
+
         if pais in pais_ligas:
             # print(f'{pais} {nombre_liga_} {pais_ligas[pais]}')
-            if nombre_liga in pais_ligas[pais]:
-                quitar_liga = pais_ligas[pais][nombre_liga][0]
+            if nombre_liga_ in pais_ligas[pais]:
+                quitar_liga = pais_ligas[pais][nombre_liga_][0]
                 if quitar_liga:
                     # print(f'{pais} {nombre_liga_} → Quitar')
                     continue

@@ -216,7 +216,7 @@ def prepare_paths_ok(log_filename='seguimiento_markiv.log'):
     return [path_result, path_ok]
 
 
-def prepare_paths(log_filename='web_markiv.log'):
+def prepare_paths(log_filename=''):
     script_path = os.path.dirname(os.path.abspath(__file__))
     path_tmp = path(script_path, 'tmp')
     path_log = path(script_path, 'logs')
@@ -224,7 +224,7 @@ def prepare_paths(log_filename='web_markiv.log'):
     path_html = path(path_tmp, 'html')
     path_json = path(path_tmp, 'json')
 
-    log_filepath = path(script_path, log_filename)
+    log_filepath = path(path_log, log_filename)
     path_result = path(script_path, 'result')
     path_cron = path(script_path, 'cron')
 
@@ -243,14 +243,15 @@ def prepare_paths(log_filename='web_markiv.log'):
     if not pathexist(path_json):
         os.makedirs(path_json)
 
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(message)s',
-        handlers=[
-            logging.FileHandler(log_filepath, encoding='utf-8'),
-            StreamHandlerNoNewLine(sys.stdout)
-        ]
-    )
+    if log_filename:
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(message)s',
+            handlers=[
+                logging.FileHandler(log_filepath, encoding='utf-8'),
+                StreamHandlerNoNewLine(sys.stdout)
+            ]
+        )
     return [
         path_result,
         path_cron,
