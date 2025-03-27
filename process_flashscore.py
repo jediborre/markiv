@@ -10,6 +10,7 @@ from parse import get_momios
 from utils import save_matches
 from utils import prepare_paths
 from parse import status_partido
+from parse import click_OK_cookies_btn
 from send_flashscore import send_matches
 from send_flashscore import get_match_ok
 from send_flashscore import get_match_error
@@ -30,11 +31,14 @@ def main(path_matches: str, overwrite: bool = False):
     result = []
     matches = get_json_list(path_matches)
     try:
-        for match in matches:
+        for n, match in enumerate(matches):
             link = match['url']
             filename_match = match['filename_match']
             web.open(link)
             web.wait(1)
+            if n == 0:
+                click_OK_cookies_btn(web) # noqa
+                # input('Vamos a dar OK a Cookies') # noqa
             status = status_partido(web)
             match['status'] = status
             if status in ['aplazado']:

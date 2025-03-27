@@ -234,6 +234,10 @@ class Web:
             self.driver.add_cookie(cookie)
         self.driver.refresh()
 
+    def EXIST_ID(self, id_name):
+        element = self.driver.find_elements(By.ID, id_name)
+        return len(element) > 0
+
     def ID(self, id_name, multiples=False):
         if multiples:
             elements = self.driver.find_elements(By.ID, id_name)
@@ -274,6 +278,7 @@ class Web:
         return self.driver.page_source
 
     def save(self, filename):
+        self.wait(1)
         open(filename, 'w', encoding='utf-8').write(self.source())
 
     def save_screenshot(self, filename):

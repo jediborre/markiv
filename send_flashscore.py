@@ -8,9 +8,10 @@ from utils import path
 from utils import gsheet
 from utils import wakeup
 from utils import pathexist
-from telebot import types
+# from telebot import types
 from utils import basename
-from utils import send_text
+from utils import busca_id_bot
+# from utils import send_text
 from dotenv import load_dotenv
 from utils import save_matches
 from utils import get_json_list
@@ -204,6 +205,7 @@ def update_optional_columns(wks, row):
 
 def get_match_error(match: dict):
     id = match['id']
+    link = match['url']
     fecha = get_hum_fecha(match['fecha'])
     pais = match['pais']
     hora = match['hora']
@@ -226,6 +228,7 @@ GOLES: {_goles}
 HANDICAP: {_handicap}
 '''
     msj = f'''{timestamp}
+{link}
 #{id} {fecha} {hora} {status}
 {pais} {liga}
 {home} v {away}'''
@@ -263,29 +266,33 @@ def get_match_ok(match: dict, resultado: str = '', mensaje: str = ''):
     return msj
 
 
-def process_match(wks, bot, match: dict):
-    link = match['url']
+def process_match(wks, bot, match: dict, bot_regs):
+    # link = match['url']
 
-    msj = get_match_ok(match, '', '')
-    markup = types.InlineKeyboardMarkup()
-    if link:
-        link_boton = types.InlineKeyboardButton('Apostar', url=link) # noqa
-        markup.add(link_boton)
-    for chat_id in TELEGRAM_CHAT_ID:
-        send_text(
-            bot,
-            chat_id,
-            msj,
-            markup
-        )
+    # msj = get_match_ok(match, '', '')
+    # markup = types.InlineKeyboardMarkup()
+    # if link:
+    #     link_boton = types.InlineKeyboardButton('Apostar', url=link) # noqa
+    #     markup.add(link_boton)
+    # for chat_id in TELEGRAM_CHAT_ID:
+    #     send_text(
+    #         bot,
+    #         chat_id,
+    #         msj,
+    #         markup
+    #     )
 
-    row = get_last_row(wks)
-    result = write_sheet_row(wks, row, match)
-    mensaje = result['mensaje']
-    resultado = result['resultado']
-    match['mensaje'] = mensaje
-    match['resultado'] = resultado
-    match['row'] = row
+    id = match['id']
+    hay_docs = busca_id_bot(bot_regs, id)
+    if not hay_docs:
+        row = get_last_row(wks)
+        write_sheet_row(wks, row, match)
+    # result = write_sheet_row(wks, row, match)
+    # mensaje = result['mensaje']
+    # resultado = result['resultado']
+    # match['mensaje'] = mensaje
+    # match['resultado'] = resultado
+    # match['row'] = row
 
     return match
 
@@ -307,16 +314,15 @@ def send_matches(path_matches: str):
 
         wks = gsheet('Bot')
         bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
+        bot_regs = wks.get_all_values(returnas='matrix')
 
-        matches_, rows = [], []
+        matches_ = []
 
         for n, match in enumerate(matches):
             logging.info(f'{match["home"]} v {match["away"]} {match["fecha"]} {match["hora"]} | {n}-{len(matches)}') # noqa
             print('')
-            match = process_match(wks, bot, match)
+            match = process_match(wks, bot, match, bot_regs)
             matches_.append(match)
-            if match['row'] is not None:
-                rows.append(match['row'])
 
         save_matches(path_filename, matches_, True, debug=False)
 
@@ -330,18 +336,27 @@ def send_matches(path_matches: str):
 
         dt_partidos_p5h = fechahora_partidos + tres_horas
 
-        task_result = wakeup(
+        # Programacion Traer Resultado Encuentro
+        wakeup(
             'Resultado',
             'resultado_flashscore.py',
             dt_partidos_p5h,
             filename,
             len(matches_)
         )
-        print(task_result)
 
-        # if len(rows) > 0:
-        #     for row in rows:
-        #         update_optional_columns(wks, row)
+        # Programacion Envio Resultado GSheet
+        diez_minutos = timedelta(minutes=10)
+        dt_docs_p10m = fechahora_partidos + diez_minutos
+
+        wakeup(
+            'Telegram',
+            'send_docsbet.py',
+            dt_docs_p10m,
+            filename,
+            len(matches_)
+        )
+
     except Exception as e:
         logging.error(f'Error: {e}')
     except KeyboardInterrupt:

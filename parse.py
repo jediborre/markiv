@@ -515,6 +515,22 @@ def click_more_matches(web, dt, team, team_name, liga, retries=0):
         print(' DONE')
 
 
+def click_OK_cookies_btn(web, retries=0):
+    MAX_RETRIES = 5
+    btn_exist = web.EXIST_ID('onetrust-accept-btn-handler')
+    if btn_exist:
+        btn = web.ID('onetrust-accept-btn-handler')
+        btn.click()
+        web.wait(2)
+    else:
+        if retries < MAX_RETRIES:
+            print('REINTENTANDO COOKIES')
+            web.wait(5)
+            click_OK_cookies_btn(web, retries + 1)
+        else:
+            print('MAX RETRIES COOKIES')
+
+
 def click_momios_btn(name, web, debug=False):
     found = False
     btn_momios = web.CLASS('wcl-tab_y-fEC', True)
@@ -526,9 +542,9 @@ def click_momios_btn(name, web, debug=False):
                     print(f'BOTON: {texto} in "{name}" -> {any([x in texto for x in name])}') # noqa
                 if any([x in texto for x in name]):
                     btn.scroll_top()
+                    btn.click()
+                    web.wait(1)
                     if debug:
-                        btn.click()
-                        web.wait(1)
                         logging.info(f'{texto} → Click')
                     btn.click()
                     web.wait(random.randint(1, 3))
@@ -836,6 +852,7 @@ def get1x2(path_html, filename, web, overwrite=False):
 
     if not os.path.exists(html_path):
         # logging.info(f'{nom} → {filename} ')
+        web.scrollY(400)
         click_momios_btn('1x2', web)
         # web.save_screenshot(image_path)
         web.save(html_path)
@@ -886,7 +903,9 @@ def getmGoles(path_html, filename, web, overwrite=False):
 
     if not os.path.exists(html_path):
         # logging.info(f'{nom} → {filename} ')
+        web.scrollY(500)
         click_momios_btn(['más/menos de', 'más de/menos de'], web)
+        web.wait(1)
         web.save(html_path)
     else:
         logging.info(f'{nom} ← CACHE | ')
@@ -914,6 +933,7 @@ def parse_odds_goles(html):
                 for span in row.find_all('span')
                 if span.text.strip() and span.text.strip() != '-'
             ]
+            # print(odds)
             if casa_apuesta == '1xbet' and len(odds) == 3:
                 goals = odds[0]
                 odds_decimal = odds[1:]
@@ -923,6 +943,7 @@ def parse_odds_goles(html):
                     'decimal': odds_decimal,
                     'american': odds_american
                 }
+
     if len(result) > 0:
         if '3.5' not in result:
             # str_casas = ', '.join(casas)
