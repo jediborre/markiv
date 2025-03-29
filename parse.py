@@ -286,6 +286,9 @@ def process_matches(matches_, dt, web, path_json, path_html, path_result, overwr
         web.open(link)
         web.wait(1)
 
+        if m == 0:
+            click_OK_cookies_btn(web)
+
         if not web.EXIST_CLASS('duelParticipant__startTime'):
             logging.info(f'{TS}|{str_percent}|{partido_id}|{hora} {liga} : {home} - {away} NO DISPONIBLE\n') # noqa
             continue

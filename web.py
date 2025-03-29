@@ -166,7 +166,7 @@ class Web:
     def open_chrome(self):
         CHROME_PATH = os.getenv('CHROME_PATH')
         cmd = f'"{CHROME_PATH}" --remote-debugging-port=9222 --user-data-dir="C:\\Log"' # noqa
-        logging.info(cmd)
+        # logging.info(cmd)
         subprocess.Popen(cmd, shell=True)
 
     def start_browser(self):
@@ -174,15 +174,25 @@ class Web:
         chrome_options.add_argument('log-level=3')
         chrome_options.add_argument('--no-sandbox')
         chrome_options.add_argument('--disable-dev-shm-usage')
-        chrome_options.add_argument('--disable-extensions')
-        chrome_options.add_argument(f'user-agent={self.random_user_agent()}')
-        if self.prod:
-            chrome_options.add_argument(f'--proxy-server={self.random_proxy()}') # noqa
-            chrome_options.debugger_address = 'localhost:9222'
+        #     chrome_options.add_extension(adblockplus)
+        # chrome_options.debugger_address = 'localhost:9222'
+        # chrome_options.add_argument('--disable-extensions')
+        # chrome_options.add_argument(f'--proxy-server={self.random_proxy()}') # noqa
+
+        app_dir = os.path.dirname(os.path.abspath(__file__))
+        ublock = os.path.join(app_dir, 'ext', 'uBlock.crx')
+        # adblock = os.path.join(app_dir, 'ext', 'adblock.crx')
+        # adblockplus = os.path.join(app_dir, 'ext', 'adblockplus.crx')
+
+        # if os.path.exists(adblock):
+        #     chrome_options.add_extension(adblock)
+        # if os.path.exists(adblockplus):
+        #     chrome_options.add_extension(adblockplus)
+        if os.path.exists(ublock):
+            chrome_options.add_extension(ublock)
 
         try:
-            # if self.prod:
-            #     self.open_chrome()
+            # self.open_chrome()
             self.driver = webdriver.Chrome(options=chrome_options)
             self.driver.maximize_window()
         except SessionNotCreatedException as e:

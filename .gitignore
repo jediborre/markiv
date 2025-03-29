@@ -18,3 +18,4 @@ Data.sqlite
 Data.sqlite-journal
 chromedriver.exe
 *.html
+*.crx
