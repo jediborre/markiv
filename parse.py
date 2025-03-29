@@ -472,9 +472,9 @@ def get_team_matches(path_html, filename, dt, home, away, liga, web, overwrite=F
         result = parse_team_matches(web.source(), dt, 'vs')
         if result['vs_nmatches'] > 3:
             try:
-                print('\nHome Matches ', end="")
+                # print('\nHome Matches ', end="")
                 click_more_matches(web, dt, 'home', home, liga)
-                print('Away Matches ', end="")
+                # print('Away Matches ', end="")
                 click_more_matches(web, dt, 'away', away, liga)
             except RecursionError:
                 print('RecursionError')
@@ -515,7 +515,8 @@ def click_more_matches(web, dt, team, team_name, liga, retries=0):
         else:
             print(' DONE MAX RETRIES')
     else:
-        print(' DONE')
+        pass
+        # print(' DONE')
 
 
 def click_OK_cookies_btn(web, retries=0):

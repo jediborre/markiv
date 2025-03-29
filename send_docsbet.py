@@ -31,7 +31,7 @@ def process_match(bot_regs, bot, match):
     id = match['id']
     row = busca_id_bot(bot_regs, id)
     if row:
-        bot_reg = bot_regs[row]
+        bot_reg = bot_regs[row - 1]
         if not bot_reg:
             return
         home = bot_reg[3]
@@ -41,7 +41,8 @@ def process_match(bot_regs, bot, match):
         apostar = 'OK' in apuesta
         if apostar:
             msj = get_match_ok(match, apuesta, '')
-            logging.info(f'{id} -> {msj}')
+            logging.info(f'{msj}')
+            # logging.info(f'{id} -> {msj}')
             markup = types.InlineKeyboardMarkup()
             if link:
                 link_boton = types.InlineKeyboardButton('Apostar', url=link) # noqa
