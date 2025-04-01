@@ -289,8 +289,20 @@ def process_matches(matches_, dt, web, path_json, path_html, path_result, overwr
         if m == 0:
             click_OK_cookies_btn(web)
 
+        web.REMOVE_CLASS('boxOverContentRevive')
+        web.REMOVE_CLASS('boxOverContent--detailModern')
+        input('Presione ENTER para continuar...')
+
         if not web.EXIST_CLASS('duelParticipant__startTime'):
             logging.info(f'{TS}|{str_percent}|{partido_id}|{hora} {liga} : {home} - {away} NO DISPONIBLE\n') # noqa
+            continue
+
+        status = status_partido(web)
+        if status == 'anulado':
+            logging.info(f'{TS}|{str_percent}|{partido_id}|{hora} {liga} : {home} - {away} ANULADO\n')
+            continue
+        elif status == 'aplazado':
+            logging.info(f'{TS}|{str_percent}|{partido_id}|{hora} {liga} : {home} - {away} APLAZADO\n')
             continue
 
         fecha_hora = web.CLASS('duelParticipant__startTime')
@@ -726,9 +738,12 @@ def status_partido(web):
     try:
         soup = BeautifulSoup(web.source(), 'html.parser')
         resultado = soup.find('div', class_='duelParticipant__score').text.strip() # noqa
-        if 'Finalizado' in resultado:
+        resultado = resultado.lower()
+        if 'anulado' in resultado:
+            return 'anulado'
+        if 'finalizado' in resultado:
             return 'finalizado'
-        elif 'Aplazado' in resultado:
+        elif 'aplazado' in resultado:
             return 'aplazado'
         else:
             return ''

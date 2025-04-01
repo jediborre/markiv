@@ -65,6 +65,12 @@ class ChainedWeb:
             except NoSuchElementException as e:
                 raise NoSuchElementException(f"NoSuchElementException: No se encontraron elementos con la clase '{class_name}'. Detalles: {e.args}") # noqa
 
+    def execute(self, script, *args):
+        try:
+            self.driver.execute_script(script, *args)
+        except WebDriverException as e:
+            logging.info(f'Error executing script: {script} - {e.msg}')
+
     def click(self):
         try:
             self.element.click()
@@ -283,6 +289,24 @@ class Web:
         else:
             element = self.driver.find_element(By.CLASS_NAME, f'div.{class_name}') # noqa
             return ChainedWeb(element, self.driver)
+
+    def REMOVE_ID(self, id_name, timeout=5):
+        try:
+            element = WebDriverWait(self.driver, timeout).until(
+                EC.presence_of_element_located((By.ID, id_name))
+            )
+            self.driver.execute_script("arguments[0].remove();", element)
+        except Exception:
+            logging.info(f'REMOVE ERROR: No existe la clase {id_name}')
+
+    def REMOVE_CLASS(self, class_name, timeout=5):
+        try:
+            element = WebDriverWait(self.driver, timeout).until(
+                EC.presence_of_element_located((By.CLASS_NAME, class_name))
+            )
+            self.driver.execute_script("arguments[0].remove();", element)
+        except Exception:
+            logging.info(f'REMOVE ERROR: No existe la clase {class_name}')
 
     def source(self):
         return self.driver.page_source
