@@ -10,6 +10,7 @@ from parse import get_marcador_ft
 from parse import status_partido
 from utils import path, pathexist
 from utils import prepare_paths_ok
+from parse import click_OK_cookies_btn
 
 # https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json
 
@@ -34,7 +35,7 @@ def resultados(path_file: str, filename: str):
     try:
         wks = gsheet('Bot')
         bot_regs = wks.get_all_values(returnas='matrix')
-        for m in matches:
+        for n, m in enumerate(matches):
             id = m["id"]
             link = m["url"].replace('h2h/overall', 'resumen-del-partido')
             liga = m["liga"]
@@ -46,6 +47,14 @@ def resultados(path_file: str, filename: str):
             print(link)
             web.open(link)
             web.wait(1)
+
+            if n == 0:
+                click_OK_cookies_btn(web)
+
+            web.REMOVE_CLASS('seoAdWrapper')
+            web.REMOVE_CLASS('boxOverContentRevive')
+            web.REMOVE_CLASS('boxOverContent--detailModern')
+
             status = status_partido(web)
             finalizado = False
             if status == 'finalizado':

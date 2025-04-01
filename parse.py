@@ -33,6 +33,9 @@ def get_marcador_ft(web, debug=False):
     ]
     try:
         soup = BeautifulSoup(web.source(), 'html.parser')
+        marcador = soup.find('div', class_='detailScore__wrapper').text.strip()
+        marcador_ft = sum(map(int, marcador.split('-'))) # noqa
+
         goles, rojas_home, rojas_away = [], [], []
         eventos_home = soup.find_all('div', class_='smv__participantRow smv__homeParticipant') # noqa
         if len(eventos_home) > 0:
@@ -130,6 +133,10 @@ def get_marcador_ft(web, debug=False):
         sheet = goles_sheet + rojas_sheet
         # gol1, gol2, gol3, gol4, rojahome, rojas_away = sheet
 
+        if marcador_ft != int(total_goles):
+            sheet = ['', '', '', '', '', '']
+            logging.info('Error en el marcador', marcador_ft, int(total_goles)) # noqa
+
         result = {
             'ft': total_goles,
             'sheet': sheet,
@@ -172,6 +179,13 @@ def process_full_matches(matches_, dt, web, path_html, overwrite=False): # noqa
         resumen_link = link.replace('h2h/overall', 'resumen-del-partido')
         web.open(resumen_link)
         web.wait(1)
+
+        if m == 0:
+            click_OK_cookies_btn(web)
+
+        web.REMOVE_CLASS('seoAdWrapper')
+        web.REMOVE_CLASS('boxOverContentRevive')
+        web.REMOVE_CLASS('boxOverContent--detailModern')
 
         if not web.EXIST_CLASS('duelParticipant__startTime'):
             logging.info(f'{TS}|{str_percent}|{partido_id}|{hora} {liga} : {home} - {away} NO DISPONIBLE\n') # noqa
@@ -299,10 +313,10 @@ def process_matches(matches_, dt, web, path_json, path_html, path_result, overwr
 
         status = status_partido(web)
         if status == 'anulado':
-            logging.info(f'{TS}|{str_percent}|{partido_id}|{hora} {liga} : {home} - {away} ANULADO\n')
+            logging.info(f'{TS}|{str_percent}|{partido_id}|{hora} {liga} : {home} - {away} ANULADO\n') # noqa
             continue
         elif status == 'aplazado':
-            logging.info(f'{TS}|{str_percent}|{partido_id}|{hora} {liga} : {home} - {away} APLAZADO\n')
+            logging.info(f'{TS}|{str_percent}|{partido_id}|{hora} {liga} : {home} - {away} APLAZADO\n') # noqa
             continue
 
         fecha_hora = web.CLASS('duelParticipant__startTime')

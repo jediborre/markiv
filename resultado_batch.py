@@ -2,6 +2,7 @@ from web import Web
 from utils import gsheet
 from parse import get_marcador_ft
 from parse import status_partido
+from parse import click_OK_cookies_btn
 
 
 def main():
@@ -21,6 +22,13 @@ def main():
         if id != '' and ft == '':
             web.open(link)
             web.wait(1)
+            if row == 0:
+                click_OK_cookies_btn(web)
+
+            web.REMOVE_CLASS('seoAdWrapper')
+            web.REMOVE_CLASS('boxOverContentRevive')
+            web.REMOVE_CLASS('boxOverContent--detailModern')
+
             status = status_partido(web)
             finalizado = False
             if status == 'finalizado':
