@@ -289,9 +289,9 @@ def process_matches(matches_, dt, web, path_json, path_html, path_result, overwr
         if m == 0:
             click_OK_cookies_btn(web)
 
+        web.REMOVE_CLASS('seoAdWrapper')
         web.REMOVE_CLASS('boxOverContentRevive')
         web.REMOVE_CLASS('boxOverContent--detailModern')
-        input('Presione ENTER para continuar...')
 
         if not web.EXIST_CLASS('duelParticipant__startTime'):
             logging.info(f'{TS}|{str_percent}|{partido_id}|{hora} {liga} : {home} - {away} NO DISPONIBLE\n') # noqa
