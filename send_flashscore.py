@@ -1,5 +1,6 @@
 import os
 import pytz
+import time
 import logging # noqa
 import pprint # noqa
 import telebot
@@ -19,6 +20,7 @@ from utils import prepare_paths
 from sheet_utils import get_last_row
 from sheet_utils import get_hum_fecha
 from sheet_utils import update_formula
+from send_docsbet import telegram_ok_matches
 from datetime import datetime, timedelta
 
 # https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json
@@ -267,32 +269,13 @@ def get_match_ok(match: dict, resultado: str = '', mensaje: str = ''):
 
 
 def process_match(wks, bot, match: dict, bot_regs):
-    # link = match['url']
-
-    # msj = get_match_ok(match, '', '')
-    # markup = types.InlineKeyboardMarkup()
-    # if link:
-    #     link_boton = types.InlineKeyboardButton('Apostar', url=link) # noqa
-    #     markup.add(link_boton)
-    # for chat_id in TELEGRAM_CHAT_ID:
-    #     send_text(
-    #         bot,
-    #         chat_id,
-    #         msj,
-    #         markup
-    #     )
-
     id = match['id']
     hay_docs = busca_id_bot(bot_regs, id)
     if not hay_docs:
         row = get_last_row(wks)
         write_sheet_row(wks, row, match)
-    # result = write_sheet_row(wks, row, match)
-    # mensaje = result['mensaje']
-    # resultado = result['resultado']
-    # match['mensaje'] = mensaje
-    # match['resultado'] = resultado
-    # match['row'] = row
+    else:
+        print(f'{id} Ya se encuentra en la hoja')
 
     return match
 
@@ -307,7 +290,7 @@ def send_matches(path_matches: str):
     if not pathexist(path_ok):
         os.makedirs(path_ok)
     path_filename = path(path_ok, filename)
-    logging.info(f'MarkIV Envio {filename}') # noqa
+    logging.info(f'Envio MarkIV {filename}') # noqa
     print('')
     try:
         matches = get_json_list(path_matches)
@@ -319,43 +302,54 @@ def send_matches(path_matches: str):
         matches_ = []
 
         for n, match in enumerate(matches):
-            logging.info(f'{match["home"]} v {match["away"]} {match["fecha"]} {match["hora"]} | {n}-{len(matches)}') # noqa
-            print('')
-            match = process_match(wks, bot, match, bot_regs)
-            matches_.append(match)
+            logging.info(f'{n}-{len(matches)} | {match["fecha"]} {match["hora"]} | {match["home"]} v {match["away"]}\n') # noqa
+            id = match['id']
+            hay_docs = busca_id_bot(bot_regs, id)
+            if not hay_docs:
+                row = get_last_row(wks)
+                write_sheet_row(wks, row, match)
+                matches_.append(process_match(wks, bot, match, bot_regs))
+            else:
+                print(f'{id} Ya se encuentra en la hoja')
 
-        save_matches(path_filename, matches_, True, debug=False)
+        if len(matches_) > 0:
+            save_matches(path_filename, matches_, True, debug=False)
 
-        zona_horaria = pytz.timezone('America/Mexico_City')
+            zona_horaria = pytz.timezone('America/Mexico_City')
 
-        tres_horas = timedelta(hours=3)
-        if dt_filename.tzinfo is None:
-            fechahora_partidos = zona_horaria.localize(dt_filename)
+            tres_horas = timedelta(hours=3)
+            if dt_filename.tzinfo is None:
+                fechahora_partidos = zona_horaria.localize(dt_filename)
+            else:
+                fechahora_partidos = dt_filename.astimezone(zona_horaria)
+
+            dt_partidos_p5h = fechahora_partidos + tres_horas
+
+            # Programacion Traer Resultado Encuentro
+            wakeup(
+                'Resultado',
+                'resultado_flashscore.py',
+                dt_partidos_p5h,
+                filename,
+                len(matches_)
+            )
+
+            # Programacion Envio Resultado GSheet
+            logging.info('Esperando Docs')
+            time.sleep(60 * 10)
+            telegram_ok_matches(filename)
+            # diez_minutos = timedelta(minutes=10)
+            # dt_docs_p10m = fechahora_partidos + diez_minutos
+
+            # wakeup(
+            #     'Telegram',
+            #     'send_docsbet.py',
+            #     dt_docs_p10m,
+            #     filename,
+            #     len(matches_)
+            # )
         else:
-            fechahora_partidos = dt_filename.astimezone(zona_horaria)
-
-        dt_partidos_p5h = fechahora_partidos + tres_horas
-
-        # Programacion Traer Resultado Encuentro
-        wakeup(
-            'Resultado',
-            'resultado_flashscore.py',
-            dt_partidos_p5h,
-            filename,
-            len(matches_)
-        )
-
-        # Programacion Envio Resultado GSheet
-        diez_minutos = timedelta(minutes=10)
-        dt_docs_p10m = fechahora_partidos + diez_minutos
-
-        wakeup(
-            'Telegram',
-            'send_docsbet.py',
-            dt_docs_p10m,
-            filename,
-            len(matches_)
-        )
+            logging.info('No hay partidos para enviar')
 
     except Exception as e:
         logging.error(f'Error: {e}')

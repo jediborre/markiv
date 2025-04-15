@@ -11,7 +11,6 @@ from utils import busca_id_bot
 from dotenv import load_dotenv
 from utils import get_json_list
 from utils import prepare_paths
-from send_flashscore import get_match_ok
 
 load_dotenv()
 
@@ -61,7 +60,7 @@ def process_match(bot_regs, bot, match):
         return
 
 
-def send_matches(path_matches: str):
+def telegram_ok_matches(path_matches: str):
     try:
         matches = get_json_list(path_matches)
 
@@ -91,4 +90,4 @@ if __name__ == '__main__':
         logging.info(f'Archivo {path_file} no existe')
         exit(1)
 
-    send_matches(path_file)
+    telegram_ok_matches(path_file)

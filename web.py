@@ -175,6 +175,28 @@ class Web:
         # logging.info(cmd)
         subprocess.Popen(cmd, shell=True)
 
+    def cerrar_tab(self, tries=0):
+        try:
+            original_window = self.driver.current_window_handle
+            tabs = self.driver.window_handles
+
+            if len(tabs) > 1:
+                for window in tabs:
+                    if window != original_window:
+                        self.driver.switch_to.window(window)
+                        break
+
+                self.driver.close()
+                self.driver.switch_to.window(original_window)
+        except WebDriverException as e:
+            logging.info(f'Error closing tab: {e.msg}')
+            if tries < 3:
+                time.sleep(2)
+                self.cerrar_tab(tries + 1)
+            else:
+                tabs = self.driver.window_handles
+                self.driver.switch_to.window(tabs[0])
+
     def start_browser(self):
         chrome_options = webdriver.ChromeOptions()
         chrome_options.add_argument('log-level=3')
@@ -202,18 +224,8 @@ class Web:
             logging.info(e.msg)
             sys.exit(0)
 
-        time.sleep(3)
-
-        original_window = self.driver.current_window_handle
-        all_windows = self.driver.window_handles
-
-        for window in all_windows:
-            if window != original_window:
-                self.driver.switch_to.window(window)
-                break
-
-        self.driver.close()
-        self.driver.switch_to.window(original_window)
+        time.sleep(5)
+        self.cerrar_tab()
 
     def wait(self, secs=1):
         time.sleep(secs)

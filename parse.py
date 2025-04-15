@@ -144,6 +144,7 @@ def get_marcador_ft(web, debug=False):
         if marcador_ft != int(total_goles):
             sheet = ['', '', '', '', '', '']
             logging.info(f'Error en el marcador {marcador_ft} {total_goles}') # noqa
+            total_goles = '-'
 
         result = {
             'ft': total_goles,
