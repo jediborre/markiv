@@ -1,24 +1,16 @@
 import re
 import os
 import sys
-import time
-import telebot
 import logging
 import argparse
+import telebot
 from web import Web
 from utils import gsheet
-from utils import send_text
-from utils import busca_id_bot
-from dotenv import load_dotenv
 from bs4 import BeautifulSoup
-from utils import get_json_list
+from utils import busca_id_bot
+from utils import get_json_dict
 from utils import path, pathexist
 from utils import prepare_paths_ok
-
-load_dotenv()
-
-TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
-TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID').split(',')
 
 # https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json
 
@@ -92,158 +84,57 @@ def get_current_scores(web: Web):
     return matches
 
 
-def seguimiento(path_file: str, filename: str, web, bot, botregs, resultados=None): # noqa
+def get_score(m, _matches):
+    liga = m["liga"]
+    home = m["home"]
+    away = m["away"]
+    hora = m["hora"]
+    pais = m["pais"]
+    if liga in _matches:
+        # [{'hora': '17:00', 'home': 'Juárez', 'away': 'Cruz Azul', 'score': '1:0', 'url': 'https://www.flashscore.com.mx/partido/OWSpVMH6/#/h2h/overall'}, {'hora': '19:00', 'home': 'Toluca', 'away': 'Monterrey', 'score': '1:1', 'url': 'https://www.flashscore.com.mx/partido/M7WTY4Is/#/h2h/overall'}, {'hora': "80'", 'home': 'Atlas', 'away': 'León', 'score': '1:0', 'url': 'https://www.flashscore.com.mx/partido/UXZyXrmf/#/h2h/overall'}] # noqa
+        record = next((match for match in _matches[liga] if match['home'] == home and match['away'] == away), None) # noqa
+        if record:
+            home_score, away_score = record['score'].split(':') if record else (None, None) # noqa
+            record['hora'] == 'Aplazado'
+            minuto = record['hora'] if ':' not in record['hora'] else None # noqa
+            if minuto:
+                print(pais, hora, home, home_score, away, away_score, minuto) # noqa
+            else:
+                print(pais, home, home_score, away, away_score, 'FT')
+        else:
+            print(pais, home, away, 'No encontrado')
+    else:
+        print(pais, hora, home, away, 'No encontrado')
+
+
+def seguimiento(path_file: str, filename: str, web, bot, botregs, matches, resultados=None): # noqa
+    logging.info(f'Seguimiento {filename} {path_file}')
     if resultados is None:
         resultados = {}
-
-    matches = get_json_list(path_file)
     _matches = get_current_scores(web)
-
     try:
-        algun_partido_activo = False
-
-    # 1. Actualizar estado de los partidos existentes en 'resultados'
-    ids_actualizados_o_nuevos = set()
-    for id_partido, datos_partido in list(resultados.items()): # Iterar sobre copia para poder borrar
-        # Si el partido ya terminó en una iteración anterior, no hacer nada
-        if datos_partido.get('termino', False):
-            print(f"Info: Partido {datos_partido['home']} vs {datos_partido['away']} ({id_partido}) ya terminó.")
-            ids_actualizados_o_nuevos.add(id_partido)
-            continue
-
-        # Buscar datos actuales para este partido
-        liga = datos_partido['liga']
-        home = datos_partido['home']
-        away = datos_partido['away']
-        record_actual = None
-        if liga in _matches:
-            record_actual = next((match for match in _matches[liga] if match['home'] == home and match['away'] == away), None)
-
-        if record_actual:
-            ids_actualizados_o_nuevos.add(id_partido)
-            minuto_actual_str = record_actual['hora']
-            score_actual_str = record_actual['score']
-
-            # --- Lógica de Detección de Goles ---
-            goles_local_actual = -1 # Valor inválido inicial
-            goles_visitante_actual = -1
-
-            try:
-                if ':' in score_actual_str:
-                    parts = score_actual_str.split(':')
-                    goles_local_actual = int(parts[0])
-                    goles_visitante_actual = int(parts[1])
-            except (ValueError, TypeError, IndexError):
-                print(f"Alerta: Formato de marcador inesperado '{score_actual_str}' para {home} vs {away}. No se detectarán goles en este ciclo.")
-                # Mantener los goles anteriores o resetear? Mejor mantener para evitar falsos positivos
-                goles_local_actual = datos_partido.get('goles_local_anterior', 0)
-                goles_visitante_actual = datos_partido.get('goles_visitante_anterior', 0)
-
-
-            # Obtener goles anteriores del último registro guardado
-            goles_local_anterior = datos_partido.get('goles_local_anterior', 0)
-            goles_visitante_anterior = datos_partido.get('goles_visitante_anterior', 0)
-
-            # Detectar GOL LOCAL
-            if goles_local_actual > goles_local_anterior:
-                print(f"¡GOL! Minuto {minuto_actual_str} - {datos_partido['pais']} {datos_partido['hora']} - {home} ({goles_local_actual}) vs {away} ({goles_visitante_actual}) - LOCAL")
-
-            # Detectar GOL VISITANTE
-            if goles_visitante_actual > goles_visitante_anterior:
-                 print(f"¡GOL! Minuto {minuto_actual_str} - {datos_partido['pais']} {datos_partido['hora']} - {home} ({goles_local_actual}) vs {away} ({goles_visitante_actual}) - VISITANTE")
-
-            # --- Fin Lógica de Detección de Goles ---
-
-            # Actualizar estado en resultados
-            datos_partido['minuto'] = minuto_actual_str
-            # Guardar los goles actuales para la próxima comparación
-            datos_partido['goles_local_anterior'] = goles_local_actual
-            datos_partido['goles_visitante_anterior'] = goles_visitante_actual
-
-            # Añadir al historial (seguimiento)
-            # Evitar duplicados si el minuto y marcador no cambian
-            ultimo_seguimiento = datos_partido['seguimiento'][-1] if datos_partido['seguimiento'] else None
-            if not ultimo_seguimiento or ultimo_seguimiento[0] != minuto_actual_str or ultimo_seguimiento[1] != score_actual_str:
-                 datos_partido['seguimiento'].append([minuto_actual_str, score_actual_str])
-                 print(f"Update: {datos_partido['pais']} {datos_partido['hora']} {home} vs {away} -> Min: {minuto_actual_str}, Score: {score_actual_str}")
-
-            if not minuto_actual_str or any(t in minuto_actual_str for t in ['FT', 'Fin', 'Terminado', 'Aplazado', ':']):
-                 datos_partido['termino'] = True
-                 print(f"Info: Partido {home} vs {away} ({id_partido}) marcado como terminado/finalizado.")
-            else:
-                 datos_partido['termino'] = False
-                 algun_partido_activo = True # Si no ha terminado, marcamos que algo sigue activo
-
-        else:
-            print(f"Alerta: No se encontraron datos actuales para {home} vs {away} ({id_partido}). Estado no actualizado.")
-            if not datos_partido.get('termino', False):
-                 algun_partido_activo = True
-
         for m in matches:
             id_partido = m["id"]
-            if id_partido in ids_actualizados_o_nuevos: # Ya procesado o añadido
-                continue
-
             row = busca_id_bot(bot_regs, id_partido)
             if row:
                 bot_reg = bot_regs[row - 1]
-                if not bot_reg: continue # Registro vacío o inválido
 
                 apuesta = bot_reg[6]
                 if 'OK' in apuesta:
-                    # Es un partido nuevo a seguir
-                    print(f"Info: Iniciando seguimiento para {m['home']} vs {m['away']} ({id_partido})")
-                    ids_actualizados_o_nuevos.add(id_partido)
-                    resultados[id_partido] = {
-                        'liga': m["liga"],
-                        'home': m["home"],
-                        'away': m["away"],
-                        'hora': m["hora"],
-                        'pais': m["pais"],
-                        'apuesta': apuesta,
-                        'termino': False, # Inicia como no terminado
-                        'minuto': None,   # Minuto inicial desconocido
-                        'seguimiento': [], # Historial de [minuto, score]
-                        'goles_local_anterior': 0, # Goles iniciales para comparación
-                        'goles_visitante_anterior': 0
-                    }
-                    algun_partido_activo = True # Un nuevo partido siempre está activo inicialmente
-
-                    # Intentar obtener datos iniciales si están disponibles ya
-                    liga = m["liga"]
-                    home = m["home"]
-                    away = m["away"]
-                    record_inicial = None
-                    if liga in _matches:
-                        record_inicial = next((match for match in _matches[liga] if match['home'] == home and match['away'] == away), None)
-
-                    if record_inicial:
-                        minuto_inicial_str = record_inicial['hora']
-                        score_inicial_str = record_inicial['score']
-                        resultados[id_partido]['minuto'] = minuto_inicial_str
-                        resultados[id_partido]['seguimiento'].append([minuto_inicial_str, score_inicial_str])
-                        print(f"Update inicial: {m['pais']} {m['hora']} {home} vs {away} -> Min: {minuto_inicial_str}, Score: {score_inicial_str}")
-                        try:
-                            if ':' in score_inicial_str:
-                                parts = score_inicial_str.split(':')
-                                resultados[id_partido]['goles_local_anterior'] = int(parts[0])
-                                resultados[id_partido]['goles_visitante_anterior'] = int(parts[1])
-                        except (ValueError, TypeError, IndexError):
-                            print(f"Alerta: Formato de marcador inicial inesperado '{score_inicial_str}' para {home} vs {away}.")
-                            # Se quedan en 0 si falla la conversión inicial
-
-        # 3. Decidir si continuar el seguimiento
-        if algun_partido_activo:
-            print(f"\n--- Ciclo completado. Esperando {40} segundos para la próxima actualización... ---")
-            time.sleep(40)
-            # Llamada recursiva pasando el diccionario 'resultados' actualizado
-            seguimiento(path_file, filename, web, bot, bot_regs, resultados)
-        else:
-            print("\n--- Todos los partidos seguidos han terminado. ---")
-            # Opcional: Guardar los resultados finales si es necesario
-            # with open('resultados_finales.json', 'w', encoding='utf-8') as f:
-            #     json.dump(resultados, f, ensure_ascii=False, indent=4)
-            return resultados
+                    if id_partido not in resultados:
+                        resultados[id_partido] = {
+                            "liga": m["liga"],
+                            "home": m["home"],
+                            "away": m["away"],
+                            "hora": m["hora"],
+                            "pais": m["pais"],
+                            "home_score": 0,
+                            "away_score": 0,
+                            'termino': False,
+                            'minuto': None,
+                            'seguimiento': []
+                        }
+                    score = get_score(m, _matches)
 
     except KeyboardInterrupt:
         print('\nFin...')
@@ -258,7 +149,8 @@ if __name__ == '__main__':
     if pathexist(path_file):
         logging.info(f'Seguimiento MarkIV {filename}')
         web = Web(multiples=True)
+        matches = get_json_dict(path_file)
         wks = gsheet('Bot')
         bot_regs = wks.get_all_values(returnas='matrix')
         bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
-        seguimiento(path_file, filename, web, bot, bot_regs)
+        seguimiento(path_file, filename, web, bot, bot_regs, matches)

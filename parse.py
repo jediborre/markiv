@@ -20,6 +20,14 @@ from send_flashscore import get_match_error_short
 domain = 'https://www.flashscore.com.mx'
 
 
+def remueve_anuncios(web):
+    web.REMOVE_CLASS('seoAdWrapper')
+    web.REMOVE_CLASS('boxOverContentRevive')
+    web.REMOVE_CLASS('boxOverContent--detailModern')
+    if web.EXIST_CLASS('wcl-button_5-cn0'):
+        web.CLASS('wcl-button_5-cn0').click()
+
+
 def get_marcador_ft(web, debug=False):
     goles_fallos = [
         'penalti fallado',
@@ -135,7 +143,7 @@ def get_marcador_ft(web, debug=False):
 
         if marcador_ft != int(total_goles):
             sheet = ['', '', '', '', '', '']
-            logging.info('Error en el marcador', marcador_ft, int(total_goles)) # noqa
+            logging.info(f'Error en el marcador {marcador_ft} {total_goles}') # noqa
 
         result = {
             'ft': total_goles,
@@ -303,9 +311,7 @@ def process_matches(matches_, dt, web, path_json, path_html, path_result, overwr
         if m == 0:
             click_OK_cookies_btn(web)
 
-        web.REMOVE_CLASS('seoAdWrapper')
-        web.REMOVE_CLASS('boxOverContentRevive')
-        web.REMOVE_CLASS('boxOverContent--detailModern')
+        remueve_anuncios(web)
 
         if not web.EXIST_CLASS('duelParticipant__startTime'):
             logging.info(f'{TS}|{str_percent}|{partido_id}|{hora} {liga} : {home} - {away} NO DISPONIBLE\n') # noqa
@@ -552,6 +558,7 @@ def click_OK_cookies_btn(web, retries=0):
         btn = web.ID('onetrust-accept-btn-handler')
         btn.click()
         web.wait(2)
+        return True
     else:
         if retries < MAX_RETRIES:
             print('REINTENTANDO COOKIES')

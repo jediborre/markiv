@@ -9,6 +9,7 @@ from utils import get_json_list
 from parse import get_marcador_ft
 from parse import status_partido
 from utils import path, pathexist
+from parse import remueve_anuncios
 from utils import prepare_paths_ok
 from parse import click_OK_cookies_btn
 
@@ -51,9 +52,7 @@ def resultados(path_file: str, filename: str):
             if n == 0:
                 click_OK_cookies_btn(web)
 
-            web.REMOVE_CLASS('seoAdWrapper')
-            web.REMOVE_CLASS('boxOverContentRevive')
-            web.REMOVE_CLASS('boxOverContent--detailModern')
+            remueve_anuncios(web)
 
             status = status_partido(web)
             finalizado = False

@@ -4,12 +4,13 @@ import argparse
 import pprint # noqa
 from web import Web
 from utils import path
-from utils import get_json_list
 from utils import basename
 from parse import get_momios
 from utils import save_matches
 from utils import prepare_paths
+from utils import get_json_list
 from parse import status_partido
+from parse import remueve_anuncios
 from parse import click_OK_cookies_btn
 from send_flashscore import send_matches
 from send_flashscore import get_match_ok
@@ -38,7 +39,9 @@ def main(path_matches: str, overwrite: bool = False):
             web.wait(1)
             if n == 0:
                 click_OK_cookies_btn(web) # noqa
-                # input('Vamos a dar OK a Cookies') # noqa
+
+            remueve_anuncios(web)
+
             status = status_partido(web)
             match['status'] = status
             if status in ['aplazado']:

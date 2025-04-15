@@ -1,14 +1,26 @@
 from web import Web
 from utils import gsheet
-from parse import get_marcador_ft
 from parse import status_partido
+from parse import get_marcador_ft
+from parse import remueve_anuncios
 from parse import click_OK_cookies_btn
 
 
 def main():
     wks = gsheet('Bot')
-    web = Web(multiples=True)
+    hay_resultados = False
     bot_regs = wks.get_all_values(returnas='matrix')
+    for value in bot_regs:
+        id = value[0]
+        ft = value[42]
+        if id != '' and ft == '':
+            hay_resultados = True
+            break
+    if not hay_resultados:
+        print('No hay resultados pendientes')
+        return
+    acepto_cookies = False
+    web = Web(multiples=True)
     for row, value in enumerate(bot_regs):
         r = row + 1
         id = value[0]
@@ -22,12 +34,11 @@ def main():
         if id != '' and ft == '':
             web.open(link)
             web.wait(1)
-            if row == 0:
-                click_OK_cookies_btn(web)
 
-            web.REMOVE_CLASS('seoAdWrapper')
-            web.REMOVE_CLASS('boxOverContentRevive')
-            web.REMOVE_CLASS('boxOverContent--detailModern')
+            if not acepto_cookies:
+                acepto_cookies = click_OK_cookies_btn(web)
+
+            remueve_anuncios(web)
 
             status = status_partido(web)
             finalizado = False

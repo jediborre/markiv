@@ -187,13 +187,7 @@ class Web:
 
         app_dir = os.path.dirname(os.path.abspath(__file__))
         ublock = os.path.join(app_dir, 'ext', 'uBlock.crx')
-        # adblock = os.path.join(app_dir, 'ext', 'adblock.crx')
-        # adblockplus = os.path.join(app_dir, 'ext', 'adblockplus.crx')
 
-        # if os.path.exists(adblock):
-        #     chrome_options.add_extension(adblock)
-        # if os.path.exists(adblockplus):
-        #     chrome_options.add_extension(adblockplus)
         if os.path.exists(ublock):
             chrome_options.add_extension(ublock)
 
@@ -207,6 +201,19 @@ class Web:
         except WebDriverException as e:
             logging.info(e.msg)
             sys.exit(0)
+
+        time.sleep(3)
+
+        original_window = self.driver.current_window_handle
+        all_windows = self.driver.window_handles
+
+        for window in all_windows:
+            if window != original_window:
+                self.driver.switch_to.window(window)
+                break
+
+        self.driver.close()
+        self.driver.switch_to.window(original_window)
 
     def wait(self, secs=1):
         time.sleep(secs)
@@ -250,6 +257,10 @@ class Web:
             self.driver.add_cookie(cookie)
         self.driver.refresh()
 
+    def EXIST_CLASS(self, class_name):
+        element = self.driver.find_elements(By.CLASS_NAME, class_name)
+        return len(element) > 0
+
     def EXIST_ID(self, id_name):
         element = self.driver.find_elements(By.ID, id_name)
         return len(element) > 0
@@ -265,10 +276,6 @@ class Web:
     def XPATH(self, xpath):
         element = self.driver.find_element(By.XPATH, xpath)
         return ChainedWeb(element, self.driver)
-
-    def EXIST_CLASS(self, class_name):
-        elements = self.driver.find_elements(By.CLASS_NAME, class_name)
-        return len(elements) > 0
 
     def CLASS(self, class_name, multiples=False):
         if multiples:
