@@ -562,6 +562,46 @@ Gol HT: {momio_ht_05} {momio_ht_15} {momio_ht_25}
     return result
 
 
+def get_hum_fecha(fecha):
+    mes = {
+        '01': 'Ene',
+        '02': 'Feb',
+        '03': 'Mar',
+        '04': 'Abr',
+        '05': 'May',
+        '06': 'Jun',
+        '07': 'Jul',
+        '08': 'Ago',
+        '09': 'Sep',
+        '10': 'Oct',
+        '11': 'Nov',
+        '12': 'Dic',
+    }
+    if fecha:
+        y, m, d = fecha.split('-')
+        return f'{mes[m]} {d} {y}'
+    else:
+        return fecha
+
+
+def get_match_ok(match: dict, resultado: str = '', mensaje: str = ''):
+    pais = match['pais']
+    hora = match['hora']
+    liga = match['liga_mod'] if 'liga_mod' in match else match['liga']
+    home = match['home']
+    away = match['away']
+    fecha = get_hum_fecha(match['fecha'])
+    # timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    msj = f'''{fecha} {hora}
+{pais} {liga}
+{home} v {away}'''
+    if resultado:
+        msj += f'\n{resultado}'
+
+    return msj
+
+
 if __name__ == '__main__':
     # decimal = 1.615
     # print(decimal, decimal_american(decimal))

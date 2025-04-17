@@ -17,8 +17,8 @@ from dotenv import load_dotenv
 from utils import save_matches
 from utils import get_json_list
 from utils import prepare_paths
+from utils import get_hum_fecha
 from sheet_utils import get_last_row
-from sheet_utils import get_hum_fecha
 from sheet_utils import update_formula
 from send_docsbet import telegram_ok_matches
 from datetime import datetime, timedelta
@@ -250,24 +250,6 @@ def get_match_error_short(match: dict):
     return f' 1x2: {_1x2} AMBOS: {_ambos} GOLES: {_goles} HANDICAP: {_handicap}' # noqa
 
 
-def get_match_ok(match: dict, resultado: str = '', mensaje: str = ''):
-    pais = match['pais']
-    hora = match['hora']
-    liga = match['liga_mod'] if 'liga_mod' in match else match['liga']
-    home = match['home']
-    away = match['away']
-    fecha = get_hum_fecha(match['fecha'])
-    # timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
-    msj = f'''{fecha} {hora}
-{pais} {liga}
-{home} v {away}'''
-    if resultado:
-        msj += f'\n{resultado}'
-
-    return msj
-
-
 def process_match(wks, bot, match: dict, bot_regs):
     id = match['id']
     hay_docs = busca_id_bot(bot_regs, id)
@@ -333,7 +315,7 @@ def send_matches(path_matches: str):
                 filename,
                 len(matches_)
             )
-            logging.info('Esperando Docs')
+            logging.info('Esperando Docs 10 min.')
             time.sleep(60 * 10)
             telegram_ok_matches(filename)
         else:

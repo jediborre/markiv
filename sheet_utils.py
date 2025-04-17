@@ -1,28 +1,7 @@
 import re
+from utils import get_hum_fecha
 import pprint # noqa
 # from utils import get_f1
-
-
-def get_hum_fecha(fecha):
-    mes = {
-        '01': 'Ene',
-        '02': 'Feb',
-        '03': 'Mar',
-        '04': 'Abr',
-        '05': 'May',
-        '06': 'Jun',
-        '07': 'Jul',
-        '08': 'Ago',
-        '09': 'Sep',
-        '10': 'Oct',
-        '11': 'Nov',
-        '12': 'Dic',
-    }
-    if fecha:
-        y, m, d = fecha.split('-')
-        return f'{mes[m]} {d} {y}'
-    else:
-        return fecha
 
 
 def get_last_row(worksheet, col="A"):
