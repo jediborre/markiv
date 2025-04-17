@@ -47,6 +47,7 @@ def main(path_matches: str, overwrite: bool = False):
             status = status_partido(web)
             match['status'] = status
             if status == 'finalizado':
+                web.wait(1)
                 btn_resumen = click_momios_btn('resumen', web)
                 try:
                     if btn_resumen:
