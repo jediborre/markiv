@@ -9,12 +9,12 @@ from parse import get_momios
 from utils import save_matches
 from utils import prepare_paths
 from utils import get_json_list
+from utils import get_match_ok
 from parse import status_partido
 from parse import get_marcador_ft
 from parse import remueve_anuncios
 from parse import click_OK_cookies_btn
 from send_flashscore import send_matches
-from send_flashscore import get_match_ok
 from send_flashscore import get_match_error
 
 path_result, path_cron, path_csv, path_json, path_html = prepare_paths() # noqa
