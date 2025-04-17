@@ -48,18 +48,23 @@ def main(path_matches: str, overwrite: bool = False):
             match['status'] = status
             if status == 'finalizado':
                 btn_resumen = click_momios_btn('resumen', web)
-                if btn_resumen:
+                try:
+                    if btn_resumen:
+                        web.wait(3)
+                        marcador = get_marcador_ft(web)
+                        sheet = marcador['sheet']
+                        total_goles = marcador['ft']
+                        gol1, gol2, gol3, gol4, rojahome, rojas_away = sheet
+                        match['ft'] = total_goles
+                        match['sheet_goles'] = sheet
+                        match['rojas_home'] = rojahome
+                        match['rojas_away'] = rojas_away
+                        match['status'] = 'finalizado'
+                except Exception as e:
                     web.wait(1)
-                    marcador = get_marcador_ft(web)
-                    sheet = marcador['sheet']
-                    total_goles = marcador['ft']
-                    gol1, gol2, gol3, gol4, rojahome, rojas_away = sheet
-                    match['ft'] = total_goles
-                    match['sheet_goles'] = sheet
-                    match['rojas_home'] = rojahome
-                    match['rojas_away'] = rojas_away
-                    match['status'] = 'finalizado'
+                    logging.error(f'Error al obtener marcador: {e}')
                 click_momios_btn('momios', web)
+                web.wait(3)
             if status in ['aplazado']:
                 msj = get_match_error(match)
                 # logging.info(msj + '\nAplazado\n')
