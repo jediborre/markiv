@@ -333,21 +333,9 @@ def send_matches(path_matches: str):
                 filename,
                 len(matches_)
             )
-
-            # Programacion Envio Resultado GSheet
             logging.info('Esperando Docs')
             time.sleep(60 * 10)
             telegram_ok_matches(filename)
-            # diez_minutos = timedelta(minutes=10)
-            # dt_docs_p10m = fechahora_partidos + diez_minutos
-
-            # wakeup(
-            #     'Telegram',
-            #     'send_docsbet.py',
-            #     dt_docs_p10m,
-            #     filename,
-            #     len(matches_)
-            # )
         else:
             logging.info('No hay partidos para enviar')
 

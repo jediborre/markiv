@@ -10,6 +10,7 @@ from utils import save_matches
 from utils import prepare_paths
 from utils import get_json_list
 from parse import status_partido
+from parse import get_marcador_ft
 from parse import remueve_anuncios
 from parse import click_OK_cookies_btn
 from send_flashscore import send_matches
@@ -42,8 +43,11 @@ def main(path_matches: str, overwrite: bool = False):
 
             remueve_anuncios(web)
 
+            finalizado = False
             status = status_partido(web)
             match['status'] = status
+            if status == 'finalizado':
+                finalizado = True
             if status in ['aplazado']:
                 msj = get_match_error(match)
                 # logging.info(msj + '\nAplazado\n')
@@ -58,6 +62,16 @@ def main(path_matches: str, overwrite: bool = False):
                 match['ambos'] = momios['odds_ambos']
                 match['goles'] = momios['odds_goles']
                 match['handicap'] = momios['odds_handicap']
+                if finalizado:
+                    marcador = get_marcador_ft(web)
+                    sheet = marcador['sheet']
+                    total_goles = marcador['ft']
+                    gol1, gol2, gol3, gol4, rojahome, rojas_away = sheet
+                    match['ft'] = total_goles
+                    match['sheet_goles'] = sheet
+                    match['rojas_home'] = rojahome
+                    match['rojas_away'] = rojas_away
+                    match['status'] = 'finalizado'
                 if momios['OK']:
                     msj = get_match_ok(match)
                     logging.info(msj + '\n')
