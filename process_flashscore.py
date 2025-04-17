@@ -48,7 +48,8 @@ def main(path_matches: str, overwrite: bool = False):
             match['status'] = status
             if status == 'finalizado':
                 btn_resumen = click_momios_btn('resumen', web)
-                if not btn_resumen:
+                if btn_resumen:
+                    web.wait(1)
                     marcador = get_marcador_ft(web)
                     sheet = marcador['sheet']
                     total_goles = marcador['ft']
