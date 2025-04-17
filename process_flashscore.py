@@ -47,7 +47,7 @@ def main(path_matches: str, overwrite: bool = False):
             status = status_partido(web)
             match['status'] = status
             if status == 'finalizado':
-                btn_resumen = click_momios_btn('momios', web)
+                btn_resumen = click_momios_btn('partido', web)
                 if not btn_resumen:
                     marcador = get_marcador_ft(web)
                     sheet = marcador['sheet']
