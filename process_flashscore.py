@@ -50,6 +50,7 @@ def main(path_matches: str, overwrite: bool = False):
                 web.wait(1)
                 btn_resumen = click_momios_btn('resumen', web)
                 if btn_resumen:
+                    input('hay resumen')
                     try:
                         web.wait(3)
                         marcador = get_marcador_ft(web)
@@ -64,6 +65,8 @@ def main(path_matches: str, overwrite: bool = False):
                     except Exception as e:
                         web.wait(1)
                         logging.error(f'Error al obtener marcador: {e}')
+                else:
+                    input('No hay resumen')
                 click_momios_btn('momios', web)
                 web.wait(3)
             if status in ['aplazado']:
