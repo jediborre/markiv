@@ -602,6 +602,29 @@ def get_match_ok(match: dict, resultado: str = '', mensaje: str = ''):
     return msj
 
 
+def get_match_error_short(match: dict):
+    status = match['status'] if 'status' in match else ''
+    _1x2, _ambos, _goles, _handicap = 'NO', 'NO', 'NO', 'NO'
+    if status != 'aplazado':
+        _1x2 = 'OK' if match['1x2']['OK'] else match['1x2']['msj'] if 'msj' in match['1x2'] else 'NO' # noqa
+        _ambos = 'OK' if match['ambos']['OK'] else match['ambos']['msj'] if 'msj' in match['ambos'] else 'NO' # noqa
+        _goles = 'OK' if match['goles']['OK'] else match['goles']['msj'] if 'msj' in match['goles'] else 'NO' # noqa
+        _handicap = 'OK' if match['handicap']['OK'] else match['handicap']['msj'] if 'msj' in match['handicap'] else 'NO' # noqa
+    return f' 1x2: {_1x2} AMBOS: {_ambos} GOLES: {_goles} HANDICAP: {_handicap}' # noqa
+
+
+def process_match(wks, bot, match: dict, bot_regs):
+    id = match['id']
+    hay_docs = busca_id_bot(bot_regs, id)
+    if not hay_docs:
+        row = get_last_row(wks)
+        write_sheet_row(wks, row, match)
+    else:
+        print(f'{id} Ya se encuentra en la hoja')
+
+    return match
+
+
 if __name__ == '__main__':
     # decimal = 1.615
     # print(decimal, decimal_american(decimal))

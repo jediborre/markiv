@@ -14,8 +14,8 @@ from utils import save_matches
 from utils import limpia_nombre
 from utils import decimal_american
 from text_unidecode import unidecode
+from utils import get_match_error_short
 from filtros import get_ligas_google_sheet
-from send_flashscore import get_match_error_short
 
 domain = 'https://www.flashscore.com.mx'
 
