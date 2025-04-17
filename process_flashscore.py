@@ -47,7 +47,7 @@ def main(path_matches: str, overwrite: bool = False):
             match['status'] = status
             if status == 'finalizado':
                 id = match['id']
-                web.open(f'https://www.flashscore.com.mx/partido/{id}/#/resumen-del-partido')
+                web.open(f'https://www.flashscore.com.mx/partido/{id}/#/resumen-del-partido') # noqa
                 web.wait(1)
                 marcador = get_marcador_ft(web)
                 sheet = marcador['sheet']
