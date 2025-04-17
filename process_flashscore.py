@@ -13,6 +13,7 @@ from utils import get_match_ok
 from utils import get_match_error
 from parse import status_partido
 from parse import get_marcador_ft
+from parse import click_momios_btn
 from parse import remueve_anuncios
 from parse import click_OK_cookies_btn
 from send_flashscore import send_matches
@@ -46,20 +47,18 @@ def main(path_matches: str, overwrite: bool = False):
             status = status_partido(web)
             match['status'] = status
             if status == 'finalizado':
-                id = match['id']
-                web.open(f'https://www.flashscore.com.mx/partido/{id}/#/resumen-del-partido') # noqa
-                web.wait(1)
-                marcador = get_marcador_ft(web)
-                sheet = marcador['sheet']
-                total_goles = marcador['ft']
-                gol1, gol2, gol3, gol4, rojahome, rojas_away = sheet
-                match['ft'] = total_goles
-                match['sheet_goles'] = sheet
-                match['rojas_home'] = rojahome
-                match['rojas_away'] = rojas_away
-                match['status'] = 'finalizado'
-                web.open(link)
-                web.wait(4)
+                btn_resumen = click_momios_btn('momios', web)
+                if not btn_resumen:
+                    marcador = get_marcador_ft(web)
+                    sheet = marcador['sheet']
+                    total_goles = marcador['ft']
+                    gol1, gol2, gol3, gol4, rojahome, rojas_away = sheet
+                    match['ft'] = total_goles
+                    match['sheet_goles'] = sheet
+                    match['rojas_home'] = rojahome
+                    match['rojas_away'] = rojas_away
+                    match['status'] = 'finalizado'
+                click_momios_btn('momios', web)
             if status in ['aplazado']:
                 msj = get_match_error(match)
                 # logging.info(msj + '\nAplazado\n')
