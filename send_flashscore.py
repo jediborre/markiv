@@ -178,7 +178,7 @@ def write_sheet_row(wks, row, match):
         '',  # Roja    CA
         '',  # 1er Gol CB
         '',  # PRE RESULTADO MIXTO CC        
-        link  # Link CD,
+        link,  # Link CD,
         '', #  CE
         '', #  CF
     ]
