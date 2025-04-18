@@ -37,6 +37,20 @@ TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID').split(',')
 
 
+def upsert_by_id(wks, record, key_col=1):
+    keys = wks.get_col(key_col, include_tailing_empty=True)
+    while keys and keys[-1] == "":
+        keys.pop()
+    try:
+        r = keys.index(record[0]) + 1
+        wks.update_row(r, record)
+        return r
+    except ValueError:
+        r = len(keys) + 1
+        wks.update_row(r, record)
+        return r
+
+
 def write_sheet_row(wks, row, match):
     liga = match['liga_mod'] if 'liga_mod' in match else match['liga']
     #                                                                                  Home                Away                VS                Ganador        Ambos Marcan   HandiCap 0/0.5     HandiCap -1    HandiCap -2   Momios FT     Linea de Gol   Roja		Total               Dif Anotaran	Momio GP	      Local				Visitante		Goles Esp	Prob %	 % L	 % V	 % A	 X2	   Asiatico             Linea del tiempo GOL	                                   # noqa
@@ -182,15 +196,17 @@ def write_sheet_row(wks, row, match):
         '',  # CE
         '',  # CF
     ]
-    wks.append_table(
-        values=reg,
-        start='A1',
-        dimension='ROWS',
-        overwrite=False
-    )
+    # wks.append_table(
+    #     values=reg,
+    #     start='A1',
+    #     dimension='ROWS',
+    #     overwrite=False
+    # )
     # wks.update_row(row, reg)
     # wks.update_value(f'BT{row}', 'SI')
-
+    print(f'GSHEET: {match['id']}')
+    row = upsert_by_id(wks, reg)
+    wks.update_value(f'BT{row}', 'SI')
 
     return {
         'row': row,
