@@ -177,10 +177,10 @@ def write_sheet_row(wks, row, match):
         '',  # Over / Under 3.5  BZ,
         '',  # Roja    CA
         '',  # 1er Gol CB
-        '',  # PRE RESULTADO MIXTO CC        
+        '',  # PRE RESULTADO MIXTO CC
         link,  # Link CD,
-        '', #  CE
-        '', #  CF
+        '',  # CE
+        '',  # CF
     ]
     wks.append_table(
         values=reg,
