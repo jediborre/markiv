@@ -168,20 +168,29 @@ def write_sheet_row(wks, row, match):
         '',  # Linea del tiempo GOL LV4  *F  BR
         '',  # Linea del tiempo GOL TOTAL  *F  BS
 
-        '',  # Correcto BT
-        '',  # Estatus
-        '',  # L/V  *F  BV
+        'SI',  # Correcto BT
+        '',  # Cadena BU
+        '',  # L/V BV
         '',  # Rango  *F  BW
-        '',  # X2    BX
-        '',  # Hoja  BY
-        '',  # CRango  BZ,
-        '',  # Arc 3    CA
-        '',
-        '',
-        link
+        '',  # Hoja    BX
+        '',  # Matriz  BY
+        '',  # Over / Under 3.5  BZ,
+        '',  # Roja    CA
+        '',  # 1er Gol CB
+        '',  # PRE RESULTADO MIXTO CC        
+        link  # Link CD,
+        '', #  CE
+        '', #  CF
     ]
-    wks.update_row(row, reg)
-    wks.update_value(f'BT{row}', 'SI')
+    wks.append_table(
+        values=reg,
+        start='A1',
+        dimension='ROWS',
+        overwrite=False
+    )
+    # wks.update_row(row, reg)
+    # wks.update_value(f'BT{row}', 'SI')
+
 
     return {
         'row': row,
