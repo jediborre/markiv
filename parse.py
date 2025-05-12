@@ -192,9 +192,7 @@ def process_full_matches(matches_, dt, web, path_html, overwrite=False): # noqa
         if m == 0:
             click_OK_cookies_btn(web)
 
-        web.REMOVE_CLASS('seoAdWrapper')
-        web.REMOVE_CLASS('boxOverContentRevive')
-        web.REMOVE_CLASS('boxOverContent--detailModern')
+        remueve_anuncios(web)
 
         if not web.EXIST_CLASS('duelParticipant__startTime'):
             logging.info(f'{TS}|{str_percent}|{partido_id}|{hora} {liga} : {home} - {away} NO DISPONIBLE\n') # noqa
@@ -213,6 +211,8 @@ def process_full_matches(matches_, dt, web, path_html, overwrite=False): # noqa
 
             web.open(link)
             web.wait(1)
+
+            remueve_anuncios(web)
 
             filename_hora = re.sub(r":", "", hora)
             filename_match = f'{m}_{filename_fecha}{filename_hora}_{partido_id}' # noqa

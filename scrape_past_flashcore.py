@@ -135,10 +135,10 @@ def main(links=None):
 
 
 if __name__ == "__main__":
-    # main([[
-    #     '1',
-    #     parse_spanish_date('ago 12 2024'),
-    #     'https://web.archive.org/web/20240812010255/https://m.flashscore.com.mx/', # noqa
-    #     ''
-    # ]])
-    main()
+    main([[
+        '1',
+        parse_spanish_date('may 11 2025'),
+        'https://m.flashscore.com.mx/', # noqa
+        ''
+    ]])
+    # main()
