@@ -122,8 +122,10 @@ def main(links=None):
             continue
 
         filename_fecha = dt.strftime('%Y%m%d')
-        path_ok = path(path_result, 'ok')
-        path_file = path(path_ok, f'{filename_fecha}_{n}.json')
+        path_result_date = path(path_result, filename_fecha)
+        if not os.path.exists(path_result_date):
+            os.makedirs(path_result_date)
+        path_file = path(path_result_date, f'{filename_fecha}_ok.json')
 
         matches = process_full_matches(matches, dt, web, path_html)
         save_matches(path_file, matches, True)
