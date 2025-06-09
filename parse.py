@@ -314,7 +314,6 @@ def process_matches(matches_, dt, web, path_json, path_html, path_result, overwr
             click_OK_cookies_btn(web)
 
         remueve_anuncios(web)
-        input('Presiona Enter para continuar...')
 
         if not web.EXIST_CLASS('duelParticipant__startTime'):
             logging.info(f'{TS}|{str_percent}|{partido_id}|{hora} {liga} : {home} - {away} NO DISPONIBLE\n') # noqa
@@ -387,8 +386,6 @@ def process_matches(matches_, dt, web, path_json, path_html, path_result, overwr
             logging.info(' OK\n')
         else:
             logging.info(f' DESCARTADO H:{n_h}, A→{n_a}, VS→{n_vs}\n')
-
-        input('Presiona Enter para continuar...')
 
     logging.info(f'\nPARTIDOS {len(matches)} {fecha}')
     if len(matches) > 0:
@@ -610,15 +607,16 @@ def click_momios_btn(name, web, debug=False):
 
 def parse_team_matches(html, dt, team, team_name='', home='', away='', liga='', debug=False): # noqa
     soup = BeautifulSoup(html, 'html.parser')
-    sections = soup.find_all('div', class_='h2h__section')
+    div_h2h = soup.find('div', class_='h2h') # noqa
+    sections = div_h2h.find_all('div', class_='h2h__section')
 
     tmp_matches_home = sections[0].find('div', class_='rows') if len(sections) > 0 and sections[0] else None # noqa
     tmp_matches_away = sections[1].find('div', class_='rows') if len(sections) > 0 and sections[1] else None # noqa
     tmp_matches_vs = sections[2].find('div', class_='rows') if len(sections) > 0 and sections[2] else None # noqa
 
-    tmp_matches_home = tmp_matches_home.find_all('div', class_='h2h__row') if tmp_matches_home else [] # noqa
-    tmp_matches_away = tmp_matches_away.find_all('div', class_='h2h__row') if tmp_matches_away else [] # noqa
-    tmp_matches_vs = tmp_matches_vs.find_all('div', class_='h2h__row') if tmp_matches_vs else [] # noqa
+    tmp_matches_home = tmp_matches_home.find_all('a', class_='h2h__row') if tmp_matches_home else [] # noqa
+    tmp_matches_away = tmp_matches_away.find_all('a', class_='h2h__row') if tmp_matches_away else [] # noqa
+    tmp_matches_vs = tmp_matches_vs.find_all('a', class_='h2h__row') if tmp_matches_vs else [] # noqa
 
     if team == 'all':
         home_matches = parse_team_section(tmp_matches_home, dt, team, home, liga, debug) # noqa
@@ -643,7 +641,6 @@ def parse_team_matches(html, dt, team, team_name='', home='', away='', liga='', 
         ok = len(team_matches['matches']) == 5
     elif team == 'vs':
         team_matches = parse_team_section(tmp_matches_vs, dt, debug=debug)
-        print(team_matches)
         ok = len(team_matches['matches']) > 3
     return {
         'OK': ok,
@@ -676,8 +673,6 @@ def parse_team_section(matches, dt, team=None, team_name=None, liga=None, debug=
 
         result_span = match.find('span', class_='h2h__result')
         scores = result_span.find_all('span')
-
-        logging.info(f'Partido: {date} {league_name} {home_team_name} {home_FT} - {away_FT} {away_team_name}') # noqa
 
         es_partido_anterior = dt_match < dt
         if not es_partido_anterior:
