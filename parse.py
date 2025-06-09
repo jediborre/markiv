@@ -23,6 +23,7 @@ domain = 'https://www.flashscore.com.mx'
 def remueve_anuncios(web):
     web.REMOVE_CLASS('seoAdWrapper')
     web.REMOVE_CLASS('boxOverContentRevive')
+    web.REMOVE_CLASS('container__bannerZone')
     web.REMOVE_CLASS('boxOverContent--detailModern')
     if web.EXIST_CLASS('wcl-button_5-cn0'):
         web.CLASS('wcl-button_5-cn0').click()
@@ -313,6 +314,7 @@ def process_matches(matches_, dt, web, path_json, path_html, path_result, overwr
             click_OK_cookies_btn(web)
 
         remueve_anuncios(web)
+        input('Presiona Enter para continuar...')
 
         if not web.EXIST_CLASS('duelParticipant__startTime'):
             logging.info(f'{TS}|{str_percent}|{partido_id}|{hora} {liga} : {home} - {away} NO DISPONIBLE\n') # noqa
@@ -347,7 +349,7 @@ def process_matches(matches_, dt, web, path_json, path_html, path_result, overwr
             away,
             liga,
             web,
-            overwrite
+            True
         )
 
         n_vs = team_matches['vs_nmatches']
@@ -385,6 +387,8 @@ def process_matches(matches_, dt, web, path_json, path_html, path_result, overwr
             logging.info(' OK\n')
         else:
             logging.info(f' DESCARTADO H:{n_h}, A→{n_a}, VS→{n_vs}\n')
+
+        input('Presiona Enter para continuar...')
 
     logging.info(f'\nPARTIDOS {len(matches)} {fecha}')
     if len(matches) > 0:
@@ -521,7 +525,7 @@ def get_team_matches(path_html, filename, dt, home, away, liga, web, overwrite=F
                 'vs_nmatches': result['vs_nmatches']
             }
     else:
-        logging.info(' ← CACHE | | ')
+        logging.info(' ← CACHE | ')
 
     if os.path.exists(html_path):
         with open(html_path, 'r', encoding='utf-8') as file:
@@ -639,6 +643,7 @@ def parse_team_matches(html, dt, team, team_name='', home='', away='', liga='', 
         ok = len(team_matches['matches']) == 5
     elif team == 'vs':
         team_matches = parse_team_section(tmp_matches_vs, dt, debug=debug)
+        print(team_matches)
         ok = len(team_matches['matches']) > 3
     return {
         'OK': ok,
@@ -671,6 +676,8 @@ def parse_team_section(matches, dt, team=None, team_name=None, liga=None, debug=
 
         result_span = match.find('span', class_='h2h__result')
         scores = result_span.find_all('span')
+
+        logging.info(f'Partido: {date} {league_name} {home_team_name} {home_FT} - {away_FT} {away_team_name}') # noqa
 
         es_partido_anterior = dt_match < dt
         if not es_partido_anterior:
