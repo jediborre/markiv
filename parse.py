@@ -359,7 +359,7 @@ def process_matches(matches_, dt, web, path_json, path_html, path_result, overwr
             away,
             liga,
             web,
-            True
+            overwrite
         )
 
         n_vs = team_matches['vs_nmatches']
