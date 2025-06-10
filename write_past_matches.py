@@ -10,7 +10,7 @@ path_result, path_cron, path_csv, path_json, path_html = prepare_paths('write_pa
 
 
 def main():
-    wks = gsheet('Bot')
+    wks = gsheet('Bot2')
     path_ok = path(path_result, 'past')
     past_matches = get_jsons_folder(path_ok)
     if len(past_matches) > 0:

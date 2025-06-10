@@ -137,10 +137,13 @@ def main(links=None):
 
 
 if __name__ == "__main__":
+    # https://www.flashscore.mobi/?d=-1 ayer
+    # https://www.flashscore.mobi/?d=-2 antier
+    # https://www.flashscore.mobi/?d=-3 anteayer
     main([[
         '1',
-        parse_spanish_date('may 11 2025'),
-        'https://m.flashscore.com.mx/', # noqa
+        parse_spanish_date('jun 6 2025'),
+        'https://m.flashscore.com.mx/?d=-3', # noqa
         ''
     ]])
     # main()

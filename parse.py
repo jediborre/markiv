@@ -21,9 +21,19 @@ domain = 'https://www.flashscore.com.mx'
 
 
 def remueve_anuncios(web):
+    web.REMOVE_CLASS('banner')
     web.REMOVE_CLASS('seoAdWrapper')
+    web.REMOVE_CLASS('zone__content')
+    web.REMOVE_CLASS('lmc__bannerCont')
+    web.REMOVE_CLASS('zone__container')
+    web.REMOVE_CLASS('lmc__bannerCont')
     web.REMOVE_CLASS('boxOverContentRevive')
     web.REMOVE_CLASS('container__bannerZone')
+    web.REMOVE_CLASS('prematchOddsBonus__bonus')
+    web.REMOVE_CLASS('prematchOddsBonus__bonus')
+    web.REMOVE_CLASS('prematchOddsBonus__bonus')
+    web.REMOVE_CLASS('prematchOddsBonus__bonus')
+    web.REMOVE_CLASS('zone__container')
     web.REMOVE_CLASS('boxOverContent--detailModern')
     if web.EXIST_CLASS('wcl-button_5-cn0'):
         web.CLASS('wcl-button_5-cn0').click()
@@ -314,6 +324,7 @@ def process_matches(matches_, dt, web, path_json, path_html, path_result, overwr
             click_OK_cookies_btn(web)
 
         remueve_anuncios(web)
+        # input('Presiona Enter para continuar...')
 
         if not web.EXIST_CLASS('duelParticipant__startTime'):
             logging.info(f'{TS}|{str_percent}|{partido_id}|{hora} {liga} : {home} - {away} NO DISPONIBLE\n') # noqa

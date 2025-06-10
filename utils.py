@@ -7,6 +7,7 @@ import pprint # noqa
 import logging
 import vertexai
 import pygsheets
+import pywintypes
 if os.name == 'nt':
     import ctypes
     import win32com.client
@@ -164,8 +165,12 @@ def create_task(task_name, trigger_time, python_path, script_path, args):
         )
         return f"New Task '{task_name}' @{trigger_time}"
 
+    except pywintypes.com_error:
+        logging.error(f"COM error occurred while creating task '{task_name}': "
+                      f"Access Denied)")
     except Exception as e:
         logging.exception(f"Exception occurred while creating the task: {e}")
+    return None
 
 
 def limpia_nombre(nombre, post=True):
