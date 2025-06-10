@@ -167,7 +167,7 @@ def create_task(task_name, trigger_time, python_path, script_path, args):
 
     except pywintypes.com_error:
         logging.error(f"COM error occurred while creating task '{task_name}': "
-                      f"Access Denied)")
+                      f"Access Denied\n")
     except Exception as e:
         logging.exception(f"Exception occurred while creating the task: {e}")
     return None
