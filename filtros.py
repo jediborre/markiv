@@ -1,5 +1,5 @@
 import os
-import json
+import json # noqa
 import pprint # noqa
 from utils import path
 from utils import gsheet
@@ -59,17 +59,4 @@ def get_ligas_google_sheet():
 
 
 if __name__ == '__main__':
-    ligas = get_ligas_google_sheet()
-    file = r"C:\Users\Robot\Documents\markiv\result\20250325\ok\202503251245.json" # noqa
-    matches = json.loads(open(file, 'r', encoding='utf-8').read())
-    for match in matches:
-        pais = match['pais']
-        liga = match['liga']
-        liga_m = match['liga_mod']
-        liga_o = unidecode(liga.lower())
-        liga_ = ''
-        if pais in ligas:
-            if liga_o in ligas[pais]:
-                if len(ligas[pais][liga_o]) > 1:
-                    liga_ = ligas[pais][liga_o][1]
-        print(f"{pais} '{liga}' '{liga_m}' '{liga_}'") # noqa
+    pass

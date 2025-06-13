@@ -28,7 +28,7 @@ parser.add_argument('--over', action='store_true', help="Sobreescribir")
 
 def main(path_matches: str, overwrite: bool = False):
     filename = basename(path_matches, True)
-    logging.info(f'Momios MarkIV {filename} {path_matches}') # noqa
+    logging.info(f'Odds Friday {filename} {path_matches}') # noqa
     web = Web(multiples=True)
     result = []
     matches = get_json_list(path_matches)

@@ -225,7 +225,7 @@ def send_matches(path_matches: str):
     if not pathexist(path_ok):
         os.makedirs(path_ok)
     path_filename = path(path_ok, filename)
-    logging.info(f'Envio MarkIV {filename}') # noqa
+    logging.info(f'Envio Friday {filename}') # noqa
     print('')
     try:
         matches = get_json_list(path_matches)

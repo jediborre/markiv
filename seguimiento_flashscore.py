@@ -135,6 +135,8 @@ def seguimiento(path_file: str, filename: str, web, bot, botregs, matches, resul
                             'seguimiento': []
                         }
                     score = get_score(m, _matches)
+                    if score:
+                        resultados[id_partido]['seguimiento'].append(score)
 
     except KeyboardInterrupt:
         print('\nFin...')
@@ -147,7 +149,7 @@ if __name__ == '__main__':
     path_file = path(path_result, filename.split('.')[0][:8], filename)
 
     if pathexist(path_file):
-        logging.info(f'Seguimiento MarkIV {filename}')
+        logging.info(f'Seguimiento Friday {filename}')
         web = Web(multiples=True)
         matches = get_json_dict(path_file)
         wks = gsheet('Bot')

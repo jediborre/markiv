@@ -30,7 +30,7 @@ args = parser.parse_args()
 
 
 def resultados(path_file: str, filename: str):
-    logging.info(f'MarkIV {filename}\n')
+    logging.info(f'Friday {filename}\n')
     web = Web(multiples=True)
     matches = get_json_list(path_file)
     try:

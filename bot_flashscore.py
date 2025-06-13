@@ -5,7 +5,7 @@ import json
 import telebot
 import logging
 import pprint # noqa
-import pygsheets
+from utils import gsheet
 from telebot import types
 from dotenv import load_dotenv
 from utils import es_momio_americano
@@ -30,7 +30,7 @@ if not os.path.exists(gemini_path):
 result_path = os.path.join(script_path, 'db', 'flashscore')
 if not os.path.exists(result_path):
     os.makedirs(result_path)
-log_file_path = os.path.join(script_path, 'log_markiv.log')
+log_file_path = os.path.join(script_path, 'log_friday.log')
 
 logging.basicConfig(
     level=logging.INFO,
@@ -55,9 +55,7 @@ pais_match_file = os.path.join(result_path, f'{db_file}_pais.json')
 matches_result_file = os.path.join(result_path, f'matches_{db_file}.json') # noqa
 execute = os.path.exists(match_file) and os.path.exists(pais_match_file)
 
-gc = pygsheets.authorize(service_file='feroslebosgc.json')
-spreadsheet = gc.open('Mark 4')
-wks = spreadsheet.worksheet_by_title('Bot')
+wks = gsheet('Bot')
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 
 

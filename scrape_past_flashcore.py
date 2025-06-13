@@ -5,6 +5,7 @@ import pygsheets
 from web import Web
 from utils import path
 from datetime import datetime
+from utils import gsheet
 from utils import save_matches
 from utils import prepare_paths
 from parse import get_all_matches
@@ -22,25 +23,6 @@ sys.stdout.reconfigure(encoding='utf-8')
 
 opened_web = False
 path_result, path_cron, path_csv, path_json, path_html = prepare_paths('scrape_past_flashcore.log') # noqa
-
-
-def get_sheet_robot():
-    path_script = os.path.dirname(os.path.realpath(__file__))
-    service_file = path(path_script, 'feroslebosgc.json')
-    gc = pygsheets.authorize(service_file=service_file)
-
-    spreadsheet = gc.open('Mark 4')
-    wks = spreadsheet.worksheet_by_title('Bot2')
-    return wks
-
-
-def get_sheet_wayback():
-    path_script = os.path.dirname(os.path.realpath(__file__))
-    service_file = path(path_script, 'feroslebosgc.json')
-    gc = pygsheets.authorize(service_file=service_file)
-
-    spreadsheet = gc.open('Mark 4')
-    return spreadsheet.worksheet_by_title('LinksBack')
 
 
 def get_past_links(wks=None):
@@ -88,7 +70,7 @@ def main(links=None):
     global path_json, path_html, path_result
 
     if not links:
-        wks_wayback = get_sheet_wayback()
+        wks_wayback = gsheet('LinksBack')
         links_fechas = get_past_links(wks_wayback)
     else:
         links_fechas = links

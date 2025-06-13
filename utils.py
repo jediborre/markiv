@@ -21,6 +21,8 @@ sys.stdout.reconfigure(encoding='utf-8')
 load_dotenv()
 
 matches_result = []
+GSHEET_AUTH = os.getenv('GSHEET_AUTH', '')
+SPREADSHEET_NAME = os.getenv('SPREADSHEET_NAME', 'Viernes')
 
 
 def busca_id_bot(bot_regs, id: str):
@@ -64,11 +66,24 @@ class StreamHandlerNoNewLine(logging.StreamHandler):
 
 
 def gsheet(sheet_name):
+    global SPREADSHEET_NAME, GSHEET_AUTH
+    if not GSHEET_AUTH:
+        logging.error("Google Sheets authentication file not found.")
+        return None
+
+    if not SPREADSHEET_NAME:
+        logging.error("Google Sheets spreadsheet name not set.")
+        return None
+
+    if not sheet_name:
+        logging.error("Google Sheets sheet name not set.")
+        return None
+
     path_script = os.path.dirname(os.path.realpath(__file__))
-    service_file = path(path_script, 'feroslebosgc.json')
+    service_file = path(path_script, GSHEET_AUTH)
     gc = pygsheets.authorize(service_file=service_file)
 
-    spreadsheet = gc.open('Mark 4')
+    spreadsheet = gc.open(SPREADSHEET_NAME)
     return spreadsheet.worksheet_by_title(sheet_name)
 
 
@@ -150,7 +165,7 @@ def create_task(task_name, trigger_time, python_path, script_path, args):
         action.Path = python_path
         action.Arguments = f'"{script_path}" {args}'
 
-        taskDef.RegistrationInfo.Description = f'MarkIV Match {args}'
+        taskDef.RegistrationInfo.Description = f'Friday Match {args}'
         taskDef.Principal.UserId = r'ROBOT\\Robot'
         taskDef.Principal.LogonType = 3
 
@@ -200,7 +215,7 @@ def pathexist(*paths):
     return os.path.exists(path(*paths))
 
 
-def prepare_paths_ok(log_filename='seguimiento_markiv.log'):
+def prepare_paths_ok(log_filename='seguimiento_friday.log'):
     script_path = os.path.dirname(os.path.abspath(__file__))
     log_path = path(script_path, 'logs')
     log_filepath = path(log_path, log_filename)
