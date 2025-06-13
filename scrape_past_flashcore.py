@@ -1,7 +1,6 @@
 import os
 import sys
 import logging
-import pygsheets
 from web import Web
 from utils import path
 from datetime import datetime
