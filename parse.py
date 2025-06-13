@@ -25,7 +25,6 @@ def remueve_anuncios(web):
     web.REMOVE_CLASS('seoAdWrapper')
     web.REMOVE_CLASS('zone__content')
     web.REMOVE_CLASS('lmc__bannerCont')
-    web.REMOVE_CLASS('zone__container')
     web.REMOVE_CLASS('lmc__bannerCont')
     web.REMOVE_CLASS('boxOverContentRevive')
     web.REMOVE_CLASS('container__bannerZone')

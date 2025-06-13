@@ -199,16 +199,17 @@ class Web:
 
     def start_browser(self):
         chrome_options = webdriver.ChromeOptions()
-        chrome_options.add_argument('log-level=3')
+        chrome_options.add_argument('--log-level=3')
         chrome_options.add_argument('--no-sandbox')
         chrome_options.add_argument('--disable-dev-shm-usage')
+        chrome_options.add_experimental_option("excludeSwitches", ["enable-logging"]) # noqa
         #     chrome_options.add_extension(adblockplus)
         # chrome_options.debugger_address = 'localhost:9222'
         # chrome_options.add_argument('--disable-extensions')
         # chrome_options.add_argument(f'--proxy-server={self.random_proxy()}') # noqa
 
         app_dir = os.path.dirname(os.path.abspath(__file__))
-        ublock = os.path.join(app_dir, 'ext', 'uBlock.crx')
+        ublock = os.path.join(app_dir, 'ext', 'uBlockLite.crx')
 
         if os.path.exists(ublock):
             chrome_options.add_extension(ublock)
@@ -314,18 +315,24 @@ class Web:
             element = WebDriverWait(self.driver, timeout).until(
                 EC.presence_of_element_located((By.ID, id_name))
             )
-            self.driver.execute_script("arguments[0].remove();", element)
+            if self.EXIST_ID(id_name):
+                self.driver.execute_script("arguments[0].remove();", element)
+            else:
+                logging.info(f"REMOVE ERROR: NO EXISTE ID EN DOM '{id_name}'\n") # noqa
         except Exception:
-            logging.info(f'REMOVE ERROR: No existe la clase {id_name}')
+            logging.info(f"REMOVE ERROR EXCEPTION: NO EXISTE ID en DOM '{id_name}'\n") # noqa
 
     def REMOVE_CLASS(self, class_name, timeout=5):
         try:
             element = WebDriverWait(self.driver, timeout).until(
                 EC.presence_of_element_located((By.CLASS_NAME, class_name))
             )
-            self.driver.execute_script("arguments[0].remove();", element)
+            if self.EXIST_CLASS(class_name):
+                self.driver.execute_script("arguments[0].remove();", element)
+            else:
+                logging.info(f"REMOVE ERROR: NO EXISTE CLASS EN DOM '{class_name}'\n") # noqa
         except Exception:
-            logging.info(f'REMOVE ERROR: No existe la clase {class_name}')
+            logging.info(f"REMOVE ERROR EXCEPTION: NO EXISTE CLASS EN DOM '{class_name}'\n") # noqa
 
     def source(self):
         return self.driver.page_source
