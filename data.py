@@ -162,9 +162,14 @@ def muestra(data):
     for escenario, stats in escenarios.items():
         print(f"Escenario: {escenario}")
         for apuesta, resultados in stats.items():
-            print(f"  Apuesta {apuesta}: Ganados: {resultados['ganados']}, "
-                  f"Perdidos: {resultados['perdidos']}, "
-                  f"Total: {resultados['ganados'] + resultados['perdidos']}")
+            total_esc = resultados['ganados'] + resultados['perdidos']
+            ganados_esc = resultados['ganados']
+            perdidos_esc = resultados['perdidos']
+            porc_ganados_esc = ganados_esc / total_esc * 100 if total_esc > 0 else 0
+            porc_perdidos_esc = (perdidos_esc / total_esc * 100) if total_esc > 0 else 0
+            print(f"  Apuesta {apuesta}: "
+                  f"Ganados: {ganados_esc} ({porc_ganados_esc:.2f}%) - {total_esc} / "
+                  f"Perdidos: {perdidos_esc} ({porc_perdidos_esc:.2f}%) - {total_esc}")
 
 
 def main():
