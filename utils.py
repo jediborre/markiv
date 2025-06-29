@@ -6,6 +6,7 @@ import base64
 import pprint # noqa
 import logging
 import vertexai
+import platform
 import pygsheets
 import pywintypes
 if os.name == 'nt':
@@ -23,6 +24,13 @@ load_dotenv()
 matches_result = []
 GSHEET_AUTH = os.getenv('GSHEET_AUTH', '')
 SPREADSHEET_NAME = os.getenv('SPREADSHEET_NAME', 'Viernes')
+
+
+def cls():
+    if platform.system() == "Windows":
+        os.system('cls')
+    else:
+        os.system('clear')
 
 
 def busca_id_bot(bot_regs, id: str):
