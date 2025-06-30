@@ -8,15 +8,18 @@ from utils import gsheet
 def parse_apuesta(texto):
     """
     Parsea una cadena de resultado de apuesta en un diccionario.
+
     Ejemplos de entrada:
-    "38 - 3 - 92.68% = -3.5 goles (Escenario: Escenario Moderado)"
-    "0 - 6 - 100.00% = 1.5 goles (Escenario: Escenario Conservador)"
+    "OK | 32 - 0 - 100.00% = -3.5 goles (Conservador)"
+    "OK | 1 - 13 - 92.86% = 1.5 goles (Conservador)"
+    "32 - 3 - 91.43% = -3.5 goles (Moderado)"
 
     Returns:
         dict: Diccionario con los datos parseados
     """
-    patron = (r'(\d+)\s*-\s*(\d+)\s*-\s*([\d.]+)%\s*=\s*'
-              r'([-+]?[\d.]+)\s*goles\s*\(Escenario:\s*(.+?)\)')
+    # Patrón regex que maneja el prefijo opcional "OK |"
+    patron = (r'(?:OK\s*\|\s*)?(\d+)\s*-\s*(\d+)\s*-\s*([\d.]+)%\s*=\s*'
+              r'([-+]?[\d.]+)\s*goles\s*\((.+?)\)')
 
     match = re.match(patron, texto.strip())
 
@@ -25,19 +28,12 @@ def parse_apuesta(texto):
 
     wins, losses, efectividad, apuesta, escenario = match.groups()
 
-    # Extraer el tipo de escenario (después de "Escenario ")
-    escenario_limpio = escenario.strip()
-    if escenario_limpio.startswith("Escenario "):
-        escenario_tipo = escenario_limpio[10:].strip()  # Remover "Escenario "
-    else:
-        escenario_tipo = escenario_limpio
-
     return {
         'wins': int(wins),
         'losses': int(losses),
         'efectividad': float(efectividad),
         'apuesta': float(apuesta),
-        'escenario': escenario_tipo
+        'escenario': escenario.strip()
     }
 
 
@@ -81,8 +77,8 @@ def procesar(data):
             fecha = row[1]
             total = row[42]
             visitante = row[4]
-            apuesta = row[5]
-            if apuesta in ['NO apostar', '']:
+            apuesta = row[6]
+            if apuesta in ['', 'NO apostar', 'NO hay data']:
                 continue
             n += 1
             apuesta_corta = '-3.5' if '-3.5' in apuesta else '1.5' if '1.5' in apuesta else apuesta # noqa
@@ -156,20 +152,20 @@ def muestra(data):
         else:
             descartados += 1
     print(f"Jugables: {jugables} - {juegos} ({jugables / juegos * 100:.2f}%)")
-    print(f"Descartados: {descartados} - {juegos} ({descartados / juegos * 100:.2f}%)")
+    print(f"Descartados: {descartados} - {juegos} ({descartados / juegos * 100:.2f}%)") # noqa
     print(f"Ganados: {ganados} - {jugables} ({ganados / jugables * 100:.2f}%)")
-    print(f"Perdidos: {perdidos} - {jugables} ({perdidos / jugables * 100:.2f}%)")
+    print(f"Perdidos: {perdidos} - {jugables} ({perdidos / jugables * 100:.2f}%)") # noqa
     for escenario, stats in escenarios.items():
         print(f"Escenario: {escenario}")
         for apuesta, resultados in stats.items():
             total_esc = resultados['ganados'] + resultados['perdidos']
             ganados_esc = resultados['ganados']
             perdidos_esc = resultados['perdidos']
-            porc_ganados_esc = ganados_esc / total_esc * 100 if total_esc > 0 else 0
-            porc_perdidos_esc = (perdidos_esc / total_esc * 100) if total_esc > 0 else 0
+            porc_ganados_esc = ganados_esc / total_esc * 100 if total_esc > 0 else 0 # noqa
+            porc_perdidos_esc = (perdidos_esc / total_esc * 100) if total_esc > 0 else 0 # noqa
             print(f"  Apuesta {apuesta}: "
-                  f"Ganados: {ganados_esc} ({porc_ganados_esc:.2f}%) - {total_esc} / "
-                  f"Perdidos: {perdidos_esc} ({porc_perdidos_esc:.2f}%) - {total_esc}")
+                  f"Ganados: {ganados_esc} ({porc_ganados_esc:.2f}%) - {total_esc} / " # noqa
+                  f"Perdidos: {perdidos_esc} ({porc_perdidos_esc:.2f}%) - {total_esc}") # noqa
 
 
 def main():
