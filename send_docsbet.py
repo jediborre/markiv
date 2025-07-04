@@ -27,8 +27,8 @@ TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID').split(',')
 
 
 def process_match(bot_regs, bot, match):
-    link = match['url']
     id = match['id']
+    link = match['url']
     row = busca_id_bot(bot_regs, id)
     if row:
         bot_reg = bot_regs[row - 1]
@@ -36,34 +36,34 @@ def process_match(bot_regs, bot, match):
             return
         home = bot_reg[3]
         away = bot_reg[4]
-        # resultado = bot_reg[5]
         apuesta = bot_reg[6]
-        apostar = 'OK' in apuesta
+        # resultado = bot_reg[5]
+        apostar = 'NO' in apuesta
+        msj = get_match_ok(match, apuesta, '')
+        logging.info(f'{id} -> {msj}')
+        markup = types.InlineKeyboardMarkup()
+        if link:
+            link_boton = types.InlineKeyboardButton('Apostar', url=link) # noqa
+            markup.add(link_boton)
+        for chat_id in TELEGRAM_CHAT_ID:
+            send_text(
+                bot,
+                chat_id,
+                msj,
+                markup
+            )
         if apostar:
-            msj = get_match_ok(match, apuesta, '')
-            logging.info(f'{msj}')
-            # logging.info(f'{id} -> {msj}')
-            markup = types.InlineKeyboardMarkup()
-            if link:
-                link_boton = types.InlineKeyboardButton('Apostar', url=link) # noqa
-                markup.add(link_boton)
-            for chat_id in TELEGRAM_CHAT_ID:
-                send_text(
-                    bot,
-                    chat_id,
-                    msj,
-                    markup
-                )
+            pass
         else:
-            logging.info(f'{id} -> {home} - {away}, No apostar')
+            logging.info(f'{id} -> {home} - {away}, NO {apuesta}') # noqa
     else:
         logging.info(f'{id} No encontrado')
         return
 
 
-def telegram_ok_matches(path_matches: str):
+def telegram_ok_matches(matches):
     try:
-        matches = get_json_list(path_matches)
+        print('\ntelegram_ok_matches', len(matches))
 
         wks = gsheet('Bot')
         bot_regs = wks.get_all_values(returnas='matrix')
@@ -91,4 +91,5 @@ if __name__ == '__main__':
         logging.info(f'Archivo {path_file} no existe')
         exit(1)
 
-    telegram_ok_matches(path_file)
+    matches = get_json_list(path_file)
+    telegram_ok_matches(matches)

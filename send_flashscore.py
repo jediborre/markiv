@@ -217,6 +217,7 @@ def write_sheet_row(wks, row, match):
 
 def send_matches(path_matches: str):
     global cron
+    min = 1  # Espera para Volver a consultar resultado OK o no
     filename = basename(path_matches)
     filename_fechahora = basename(path_matches, True)
     dt_filename = datetime.strptime(filename_fechahora, "%Y%m%d%H%M")
@@ -268,9 +269,9 @@ def send_matches(path_matches: str):
                 filename,
                 len(matches_)
             )
-            logging.info('Esperando Docs 10 min.')
-            time.sleep(60 * 10)
-            telegram_ok_matches(filename)
+            logging.info(f'Esperando Docs {min} min.')
+            time.sleep(60 * min)
+            telegram_ok_matches(matches_)
         else:
             logging.info('No hay partidos para enviar')
 
