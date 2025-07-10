@@ -111,7 +111,9 @@ def cron_matches(path_matches: str, debug_hora=None):
                 for m in cron_matches:
                     logging.info(f'{m["hora"]}|{m["id"]}|{m["pais"]} : {m["liga"]}|{m["home"]} - {m["away"]} {task_result}') # noqa
 
-    print(f"\nPARTIDOS {result["fecha"]}: {len(matches)}, Descartados: {descartados}") # noqa
+    print(f"\nPARTIDOS CANDIDATOS {result["fecha"]}: {len(matches)}") # noqa
+    if descartados > 0:
+        print(f'Descartados: {descartados}')
 
 
 if __name__ == '__main__':

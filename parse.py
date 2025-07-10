@@ -400,7 +400,7 @@ def process_matches(matches_, dt, web, path_json, path_html, path_result, overwr
     logging.info(f'\nPARTIDOS {len(matches)} {fecha}')
     if len(matches) > 0:
         save_matches(path_matches, matches, True)
-        return path_matches
+        return [path_matches, len(matches)]
 
 
 def get_all_matches(path_html, filename, matches_link, web, ligas=None, overwrite=False): # noqa

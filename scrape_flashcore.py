@@ -1,9 +1,12 @@
+import os
 import sys
 import pprint # noqa
+import telebot
 import logging
 import argparse
 from web import Web
 from utils import path
+from utils import send_text
 from utils import prepare_paths
 from parse import get_all_matches
 from parse import process_matches
@@ -20,6 +23,8 @@ sys.stdout.reconfigure(encoding='utf-8')
 # .venv/Scripts/Activate.ps1
 # clear;python .\scrape_flashcore.py --over
 
+TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID').split(',')
 
 opened_web = False
 parser = argparse.ArgumentParser(description="Solicita partidos de hoy o mañana de flashscore") # noqa
@@ -64,7 +69,7 @@ def main(hoy=False, overwrite=False):
         logging.info(f'No hay partidos {fecha}')
         return
 
-    path_matches = process_matches(
+    [path_matches, n_matches] = process_matches(
         matches,
         date,
         web,
@@ -76,6 +81,15 @@ def main(hoy=False, overwrite=False):
     web.close()
 
     cron_matches(path_matches)
+
+    msj = f'Partidos {fecha}: {n_matches}-{len(matches)}'
+    bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
+    for chat_id in TELEGRAM_CHAT_ID:
+        send_text(
+            bot,
+            chat_id,
+            msj
+        )
 
 
 if __name__ == "__main__":
