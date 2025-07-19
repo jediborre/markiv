@@ -12,6 +12,8 @@ import pywintypes
 if os.name == 'nt':
     import ctypes
     import win32com.client
+import numpy as np
+import pandas as pd
 from dotenv import load_dotenv
 from datetime import datetime
 from text_unidecode import unidecode
@@ -24,6 +26,24 @@ load_dotenv()
 matches_result = []
 GSHEET_AUTH = os.getenv('GSHEET_AUTH', '')
 SPREADSHEET_NAME = os.getenv('SPREADSHEET_NAME', 'Viernes')
+
+
+def safe_float(value, default=np.nan):
+    if value in ('-', '', None) or pd.isna(value):
+        return default
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return default
+
+
+def safe_int(value, default=np.nan):
+    if value in ('-', '', None) or pd.isna(value):
+        return default
+    try:
+        return int(float(value))
+    except (ValueError, TypeError):
+        return default
 
 
 def cls():
@@ -203,7 +223,7 @@ def limpia_nombre(nombre, post=True):
 
 
 def get_percent(n, total):
-    return f'{round(n/total*100, 2)}%'
+    return f'{round(n / total * 100, 2)}%'
 
 
 def basename(filename, noext=False):
@@ -626,6 +646,8 @@ def get_match_ok(match: dict, resultado: str = '', mensaje: str = ''):
 {home} v {away}'''
     if resultado:
         msj += f'\n{resultado}'
+    if mensaje:
+        msj += f'\n{mensaje}'
 
     return msj
 

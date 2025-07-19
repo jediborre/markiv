@@ -12,6 +12,7 @@ from utils import busca_id_bot
 from dotenv import load_dotenv
 from utils import get_json_list
 from utils import prepare_paths
+from pulpo import predict_pulpo
 
 load_dotenv()
 
@@ -34,12 +35,17 @@ def process_match(bot_regs, bot, match):
         bot_reg = bot_regs[row - 1]
         if not bot_reg:
             return
+        resultado_pulpo_ = ""
+        prediccion_pulpo = predict_pulpo(bot_reg)
+        if prediccion_pulpo != "ERROR":
+            resultado_pulpo, history_pred, odds_pred, prob_de_ganar = prediccion_pulpo
+            resultado_pulpo_ = f"{resultado_pulpo} H:{history_pred:.5f} O:{odds_pred:.5f}" # noqa
         home = bot_reg[3]
         away = bot_reg[4]
         apuesta = bot_reg[6]
         # resultado = bot_reg[5]
         apostar = 'NO' in apuesta
-        msj = get_match_ok(match, apuesta, '')
+        msj = get_match_ok(match, apuesta, resultado_pulpo_)
         logging.info(f'{id} -> {msj}')
         markup = types.InlineKeyboardMarkup()
         if link:
@@ -63,7 +69,7 @@ def process_match(bot_regs, bot, match):
 
 def telegram_ok_matches(matches):
     try:
-        print('\ntelegram_ok_matches', len(matches))
+        print(f'Telegram Matches [{len(matches)}]')
 
         wks = gsheet('Bot')
         bot_regs = wks.get_all_values(returnas='matrix')
