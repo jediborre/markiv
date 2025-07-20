@@ -122,10 +122,8 @@ def get_score(m, _matches):
                 # print(pais, home, home_score, away, away_score, 'FT')
                 return [home_score, away_score, 'FT']
         else:
-            print(pais, home, away, 'No encontrado')
             return None
     else:
-        print(pais, hora, home, away, 'No encontrado')
         return None
 
 def ft(bot, id_partido, hora, pais, liga, home, away, home_score, away_score): # noqa
@@ -143,9 +141,7 @@ def ft(bot, id_partido, hora, pais, liga, home, away, home_score, away_score): #
         gana = 'PIERDE'
 
     msj = [
-        f'FT {gana} -3.5',
-        f'{home} - {away} | FT: {ft}',
-        f'{home_score} - {away_score}',
+        f'{gana} -3.5 | {home} - {away} | {home_score} - {away_score}',
     ]
     for chat_id in TELEGRAM_CHAT_ID:
         send_text(
@@ -164,9 +160,7 @@ def inicio(bot, id_partido, hora, minuto, pais, liga, home, away, home_score, aw
     #     link_boton = types.InlineKeyboardButton('Apostar', url=link) # noqa
     #     markup.add(link_boton)
     msj = [
-        f'INICIO {hora}',
-        f'{home_score} - {away_score}',
-        f'{home} - {away}',
+        f'INICIO {hora} | {pais} {home} - {away}',
     ]
     for chat_id in TELEGRAM_CHAT_ID:
         send_text(
@@ -187,8 +181,8 @@ def pierde(bot, id_partido, hora, minuto, pais, liga, home, away, home_score, aw
     msj = [
         'PIERDE -3.5',
         f'GOL {minuto} {quien}',
+        f'{home} - {away} | ',
         f'{home_score} - {away_score}',
-        f'{home} - {away}',
     ]
     for chat_id in TELEGRAM_CHAT_ID:
         send_text(
@@ -207,9 +201,7 @@ def gol(bot, id_partido, hora, minuto, pais, liga, home, away, home_score, away_
     #     link_boton = types.InlineKeyboardButton('Apostar', url=link) # noqa
     #     markup.add(link_boton)
     msj = [
-        f'GOL {minuto} {quien}',
-        f'{home_score} - {away_score}',
-        f'{home} - {away}',
+        f'GOL {minuto} {quien} {home_score} - {away_score}',
     ]
     for chat_id in TELEGRAM_CHAT_ID:
         send_text(
@@ -294,16 +286,20 @@ def seguimiento(path_file: str, filename: str, web, bot, botregs, matches, resul
                             resultados[id_partido]['termino'] = True
                             ft(bot, id_partido, hora, pais, liga, home, away, home_score, away_score) # noqa
                         resultados[id_partido]['seguimiento'].append(score)
-                    # print(f'{id_partido} -> {m["liga"]} {home} vs {m["away"]} Hora: {hora}') # noqa
+                    else:
+                        resultados[id_partido]['sigue'] = False
+                        print(f'{id_partido} -> {m["liga"]} {home} vs {m["away"]} Hora: {hora} No encontrado') # noqa
+
         lost = []
         complete = []
+        _seguimiento = []
         for id_partido, data in resultados.items():
             complete.append(data['termino'])
             if data['gana'] is not None:
                 if not data['gana']:
                     lost.append(True)
-                else:
-                    lost.append(False)
+            else:
+                _seguimiento.append(data['sigue'])
 
         if len(lost) > 0:
             if all(lost):
@@ -318,9 +314,14 @@ def seguimiento(path_file: str, filename: str, web, bot, botregs, matches, resul
             exit(0)
             return
         else:
-            # pprint.pprint(resultados)
-            time.sleep(60)  # Espera 1 minuto antes de volver a verificar
-            seguimiento(path_file, filename, web, bot, botregs, matches, resultados) # noqa
+            if any(_seguimiento):
+                time.sleep(60)  # Espera 1 minuto antes de volver a verificar
+                seguimiento(path_file, filename, web, bot, botregs, matches, resultados) # noqa
+            else:
+                print('No hay partidos en seguimiento.')
+                web.close()
+                exit(0)
+                return
 
     except KeyboardInterrupt:
         print('\nFin...')
