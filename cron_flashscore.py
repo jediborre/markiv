@@ -4,8 +4,8 @@ import logging # noqa
 import argparse
 from utils import path
 from utils import wakeup
-from utils import get_json_list
 from utils import save_matches
+from utils import get_json_list
 # from utils import is_admin
 from utils import prepare_paths
 from datetime import datetime, timedelta

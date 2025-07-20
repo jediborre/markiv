@@ -90,6 +90,7 @@ def main(hoy=False, overwrite=False):
             chat_id,
             msj
         )
+    exit(0)
 
 
 if __name__ == "__main__":

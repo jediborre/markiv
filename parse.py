@@ -7,6 +7,7 @@ from web import Web
 from fuzzywuzzy import fuzz
 from bs4 import BeautifulSoup
 from datetime import datetime
+
 from utils import path
 from utils import convert_dt
 from utils import get_percent
@@ -18,6 +19,14 @@ from utils import get_match_error_short
 from filtros import get_ligas_google_sheet
 
 domain = 'https://www.flashscore.com.mx'
+
+
+def remueve_anuncios_movil(web: Web):
+    if web.EXIST_ID('pmp-sticky-footer'):
+        # print('Eliminando sticky footer...')
+        web.REMOVE_ID('pmp-sticky-footer')
+    else:
+        print('Sticky footer no encontrado, continuando...')
 
 
 def remueve_anuncios(web):
@@ -412,6 +421,7 @@ def get_all_matches(path_html, filename, matches_link, web, ligas=None, overwrit
     if not os.path.exists(html_path):
         web.open(matches_link)
         web.wait_ID('main', 5)
+        remueve_anuncios_movil(web)
         web.save(html_path)
 
     with open(html_path, 'r', encoding='utf-8') as html:

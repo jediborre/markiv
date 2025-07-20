@@ -108,7 +108,7 @@ def get_score(m, _matches):
         record = next((match for match in _matches[liga] if match['home'] == home and match['away'] == away), None) # noqa
         if record:
             home_score, away_score = record['score'].split(':') if record else (None, None) # noqa
-            # todo implementa inicio juego
+            _home_score, _away_score = home_score, away_score
             home_score = int(home_score.strip()) if home_score != '-' else 0
             away_score = int(away_score.strip()) if away_score != '-' else 0
             record['hora'] == 'Aplazado'
@@ -117,6 +117,8 @@ def get_score(m, _matches):
                 # print(pais, hora, home, home_score, away, away_score, minuto) # noqa
                 return [home_score, away_score, minuto]
             else:
+                if _home_score == '-' and _away_score == '-':
+                    return [_home_score, _away_score, 'AUNNO']
                 # print(pais, home, home_score, away, away_score, 'FT')
                 return [home_score, away_score, 'FT']
         else:
@@ -144,6 +146,49 @@ def ft(bot, id_partido, hora, pais, liga, home, away, home_score, away_score): #
         f'FT {gana} -3.5',
         f'{home} - {away} | FT: {ft}',
         f'{home_score} - {away_score}',
+    ]
+    for chat_id in TELEGRAM_CHAT_ID:
+        send_text(
+            bot,
+            chat_id,
+            '\n'.join(msj),
+            markup
+        )
+
+
+def inicio(bot, id_partido, hora, minuto, pais, liga, home, away, home_score, away_score, quien): # noqa
+    print(f'{id_partido} {hora} | {minuto} | {pais} {liga} | {home} vs {away} {home_score} - {away_score} GOL') # noqa
+    markup = None
+    # markup = types.InlineKeyboardMarkup()
+    # if link:
+    #     link_boton = types.InlineKeyboardButton('Apostar', url=link) # noqa
+    #     markup.add(link_boton)
+    msj = [
+        f'INICIO {hora}',
+        f'{home_score} - {away_score}',
+        f'{home} - {away}',
+    ]
+    for chat_id in TELEGRAM_CHAT_ID:
+        send_text(
+            bot,
+            chat_id,
+            '\n'.join(msj),
+            markup
+        )
+
+
+def pierde(bot, id_partido, hora, minuto, pais, liga, home, away, home_score, away_score, quien): # noqa
+    print(f'{id_partido} {hora} | {minuto} | {pais} {liga} | {home} vs {away} {home_score} - {away_score} GOL PIERDE') # noqa
+    markup = None
+    # markup = types.InlineKeyboardMarkup()
+    # if link:
+    #     link_boton = types.InlineKeyboardButton('Apostar', url=link) # noqa
+    #     markup.add(link_boton)
+    msj = [
+        'PIERDE -3.5',
+        f'GOL {minuto} {quien}',
+        f'{home_score} - {away_score}',
+        f'{home} - {away}',
     ]
     for chat_id in TELEGRAM_CHAT_ID:
         send_text(
@@ -205,36 +250,72 @@ def seguimiento(path_file: str, filename: str, web, bot, botregs, matches, resul
                         "home_score": 0,
                         "away_score": 0,
                         'termino': False,
+                        'gana': None,
+                        'sigue': True,
                         'minuto': None,
                         'seguimiento': []
                     }
-                score = get_score(m, _matches)
-                if score:
-                    home_score, away_score, minuto = score
-                    if home_score != resultados[id_partido]['home_score'] or away_score != resultados[id_partido]['away_score']: # noqa
-                        quien = ''
-                        if resultados[id_partido]['home_score'] != home_score:
-                            quien = home
-                        if away_score != resultados[id_partido]['away_score']:
-                            quien = away
-                        gol(bot, id_partido, hora, minuto, pais, liga, home, away, home_score, away_score, quien) # noqa
-                    else:
-                        print(f'{id_partido} {hora} | {minuto} | {pais} {liga} | {home} vs {m["away"]} {home_score} - {away_score}') # noqa
-                    resultados[id_partido]['home_score'] = home_score
-                    resultados[id_partido]['away_score'] = away_score
-                    resultados[id_partido]['minuto'] = minuto
-                    if minuto == 'FT':
-                        resultados[id_partido]['termino'] = True
-                        ft(bot, id_partido, hora, pais, liga, home, away, home_score, away_score) # noqa
-                    resultados[id_partido]['seguimiento'].append(score)
-                # print(f'{id_partido} -> {m["liga"]} {home} vs {m["away"]} Hora: {hora}') # noqa
+                if resultados[id_partido]['sigue']:
+                    score = get_score(m, _matches)
+                    if score:
+                        home_score, away_score, minuto = score
+                        if home_score != resultados[id_partido]['home_score'] or away_score != resultados[id_partido]['away_score']: # noqa
+                            quien = ''
+                            if resultados[id_partido]['home_score'] == '-':
+                                inicio(bot, id_partido, hora, minuto, pais, liga, home, away, home_score, away_score, quien) # noqa
+                            else:
+                                score = home_score + away_score
+                                if resultados[id_partido]['home_score'] != home_score:
+                                    quien = home
+                                if away_score != resultados[id_partido]['away_score']:
+                                    quien = away
+                                if type(score) is int and score < 4:
+                                    gol(bot, id_partido, hora, minuto, pais, liga, home, away, home_score, away_score, quien) # noqa
+                                else:
+                                    if type(score) is str:
+                                        print(f'{id_partido} {hora} | {minuto} | {pais} {liga} | {home} vs {away} AUN NO COMIENZA') # noqa
+                                    else:
+                                        resultados[id_partido]['gana'] = False
+                                        resultados[id_partido]['sigue'] = False
+                                        pierde(bot, id_partido, hora, minuto, pais, liga, home, away, home_score, away_score, quien) # noqa
+
+                        else:
+                            score = home_score + away_score
+                            if type(score) is str:
+                                print(f'{id_partido} {hora} | {minuto} | {pais} {liga} | {home} vs {away} AUN NO COMIENZA') # noqa
+                            else:
+                                print(f'{id_partido} {hora} | {minuto} | {pais} {liga} | {home} vs {m["away"]} {home_score} - {away_score}') # noqa
+
+                        resultados[id_partido]['minuto'] = minuto
+                        resultados[id_partido]['home_score'] = home_score
+                        resultados[id_partido]['away_score'] = away_score
+                        if minuto == 'FT':
+                            resultados[id_partido]['sigue'] = False
+                            resultados[id_partido]['termino'] = True
+                            ft(bot, id_partido, hora, pais, liga, home, away, home_score, away_score) # noqa
+                        resultados[id_partido]['seguimiento'].append(score)
+                    # print(f'{id_partido} -> {m["liga"]} {home} vs {m["away"]} Hora: {hora}') # noqa
+        lost = []
         complete = []
         for id_partido, data in resultados.items():
             complete.append(data['termino'])
+            if data['gana'] is not None:
+                if not data['gana']:
+                    lost.append(True)
+                else:
+                    lost.append(False)
+
+        if len(lost) > 0:
+            if all(lost):
+                print('Todos los partidos han perdido -3.5')
+                web.close()
+                exit(0)
+                return
 
         if all(complete):
             print('Todos los partidos han terminado.')
             web.close()
+            exit(0)
             return
         else:
             # pprint.pprint(resultados)
@@ -252,7 +333,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     filename = args.file
     fecha = filename.split('.')[0][:8]
-    path_file = path(path_result, fecha, filename)
+    path_file = path(path_result, fecha, 'seguimiento', filename)
 
     if pathexist(path_file):
         logging.info(f'Seguimiento Friday {filename} > {path_file}\n')
