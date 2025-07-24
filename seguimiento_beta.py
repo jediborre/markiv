@@ -127,8 +127,7 @@ def get_current_scores(web):
 
                     # print(
                     #     f"{nombre_liga} {hora_display} | {home} vs {away} {score} |"
-                    #     f" RC Home: {'SI' if home_red_card else 'NO'},
-                    #     f"RC Away: {'SI' if away_red_card else 'NO'} | {id_match}"
+                    #     f" RC Home: {'SI' if home_red_card else 'NO'}, RC Away: {'SI' if away_red_card else 'NO'} | {id_match}"
                     # )
                     if not aplazado:
                         if nombre_liga not in matches:
@@ -280,11 +279,7 @@ def gol(bot, id_partido, hora, minuto, pais, liga, home, away, home_score, away_
 
 
 def roja(bot, id_partido, hora, minuto, pais, liga, home, away, home_score, away_score, quien): # noqa
-    print(
-        f"{id_partido} {hora} |"
-        f"{minuto} | {pais} {liga} | "
-        f"{home} vs {away} {home_score} - {away_score} ROJA"
-    )
+    print(f'{id_partido} {hora} | {minuto} | {pais} {liga} | {home} vs {away} {home_score} - {away_score} ROJA')
     markup = None
     # markup = types.InlineKeyboardMarkup()
     # if link:
