@@ -144,7 +144,9 @@ def get_current_scores(web):
                         }
                         matches[nombre_liga].append(match)
                     else:
-                        print(f'{nombre_liga} {hora_display} | {home} vs {away} APLAZADO')
+                        pass
+                        # Aplazado match
+                        # print(f'{nombre_liga} {hora_display} | {home} vs {away} APLAZADO') # noqa
                 else:
                     print(f"No score link (<a> tag) found immediately after span: {partido_actual.get_text(strip=True)}") # noqa
 
