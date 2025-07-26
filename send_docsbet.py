@@ -47,12 +47,12 @@ def process_match(bot_regs, bot, match):
             match['pulpo'] = prob_de_ganar
             match['pulpo_odds'] = odds_pred
             match['pulpo_history'] = history_pred
-            resultado_pulpo_ = f"{resultado_pulpo} H:{history_pred:.5f} O:{odds_pred:.5f}" # noqa
+            resultado_pulpo_ = f"{resultado_pulpo} H:{history_pred:.5f} O:{odds_pred:.5f} P:{prob_de_ganar:.4f}" # noqa
         home = bot_reg[3]
         away = bot_reg[4]
         apuesta = bot_reg[6]
         # resultado = bot_reg[5]
-        apostar = 'NO' in apuesta
+        apostar = 'APOSTAR' == resultado_pulpo
         msj = get_match_ok(match, apuesta, resultado_pulpo_)
         logging.info(f'{id} -> {msj}')
         markup = types.InlineKeyboardMarkup()

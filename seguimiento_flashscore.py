@@ -121,7 +121,7 @@ def get_current_scores(web):
                         home = home.strip()
                         away = away.strip()
                     except ValueError:
-                        print(f"Skipping match due to team parsing error: liga: {nombre_liga} | '{teams_raw}'") # noqa
+                        # print(f"Skipping match due to team parsing error: liga: {nombre_liga} | '{teams_raw}'") # noqa
                         partido_actual = score_link_tag.find_next_sibling()
                         continue
 
