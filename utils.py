@@ -45,7 +45,8 @@ def close_console():
             if console_window != 0:
                 print("Cerrando ventana de consola...")
                 win32gui.PostMessage(console_window, win32con.WM_CLOSE, 0, 0)
-                os.system("exit")
+                # os.system("exit")
+                # os._exit(0)
     except Exception as e:
         print(f"Error al intentar cerrar la ventana de consola: {e}")
 

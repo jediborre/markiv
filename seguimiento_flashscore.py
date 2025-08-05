@@ -7,7 +7,7 @@ import logging
 import argparse
 import telebot
 from web import Web
-from utils import close_console, gsheet
+from utils import gsheet
 from utils import send_text
 from bs4 import BeautifulSoup
 from utils import busca_id_bot
@@ -453,7 +453,10 @@ if __name__ == '__main__':
         bot_regs = wks.get_all_values(returnas='matrix')
         bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
         seguimiento(path_file, filename, web, bot, bot_regs, matches)
-        close_console()
+        if web is not None:
+            print('Cerrando WebDriver...')
+            web.quit()
+
     else:
         logging.error(f'Seguimiento Friday Archivo {path_file} no encontrado')
         raise FileNotFoundError(f'Seguimiento Friday Archivo {path_file} no encontrado')

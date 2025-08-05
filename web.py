@@ -257,10 +257,15 @@ class Web:
             pass
 
     def quit(self):
-        self.driver.close()
-        self.driver.quit()
-        self.kill_processes_by_name("chrome")
-        self.kill_processes_by_name("chromedriver")
+        try:
+            # self.driver.close()
+            self.driver.quit()
+            # self.kill_processes_by_name("chrome")
+            # self.kill_processes_by_name("chromedriver")
+        except Exception as e:
+            logging.info(f'Error quitting WebDriver: {e.msg}')
+            # self.kill_processes_by_name("chrome")
+            # self.kill_processes_by_name("chromedriver")
 
     def get_cookies(self):
         return self.driver.get_cookies()
