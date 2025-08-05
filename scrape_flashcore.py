@@ -78,7 +78,9 @@ def main(hoy=False, overwrite=False):
         path_result,
         overwrite
     )
-    web.close()
+    if web is not None:
+        web.close()
+        web.quit()
 
     cron_matches(path_matches)
 
@@ -90,7 +92,6 @@ def main(hoy=False, overwrite=False):
             chat_id,
             msj
         )
-    exit(0)
 
 
 if __name__ == "__main__":
