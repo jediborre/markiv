@@ -7,7 +7,7 @@ import logging
 import argparse
 import telebot
 from web import Web
-from utils import gsheet
+from utils import close_console, gsheet
 from utils import send_text
 from bs4 import BeautifulSoup
 from utils import busca_id_bot
@@ -222,7 +222,7 @@ def ft(bot, id_partido, hora, pais, liga, home, away, home_score, away_score): #
 
 
 def inicio(bot, id_partido, hora, minuto, pais, liga, home, away, home_score, away_score, quien): # noqa
-    print(f'{id_partido} {hora} | {minuto} | {pais} {liga} | {home} vs {away} {home_score} - {away_score} GOL') # noqa
+    print(f'{id_partido} {hora} | {minuto} | {pais} {liga} | {home} vs {away} {home_score} - {away_score} INICIO') # noqa
     markup = None
     # markup = types.InlineKeyboardMarkup()
     # if link:
@@ -385,12 +385,15 @@ def seguimiento(path_file: str, filename: str, web, bot, botregs, matches, resul
                         if minuto == 'FT':
                             resultados[id_partido]['sigue'] = False
                             resultados[id_partido]['termino'] = True
+                            # Set gana based on final score
+                            final_total = home_score + away_score
+                            resultados[id_partido]['gana'] = final_total < 4
                             ft(bot, id_partido, hora, pais, liga, home, away, home_score, away_score) # noqa
                         resultados[id_partido]['seguimiento'].append(score)
                     else:
                         resultados[id_partido]['sigue'] = False
                         print(f'{id_partido} -> {m["liga"]} {home} vs {m["away"]} Hora: {hora} No encontrado') # noqa
-                        input('Continuar?')
+                        # input('Continuar?')
 
         lost = []
         complete = []
@@ -398,23 +401,21 @@ def seguimiento(path_file: str, filename: str, web, bot, botregs, matches, resul
         for id_partido, data in resultados.items():
             complete.append(data['termino'])
             if data['gana'] is not None:
-                if not data['gana']:
-                    lost.append(True)
+                lost.append(data['gana'])  # Add True if won, False if lost
             else:
                 _seguimiento.append(data['sigue'])
 
-        if len(lost) > 0:
-            if all(lost):
-                print('Todos los partidos han perdido -3.5')
+        # Only exit if ALL matches have been decided (gana is not None) AND ALL have lost
+        if len(lost) == len(resultados) and not any(lost):
+            print('Todos los partidos han perdido -3.5')
+            if web is not None:
                 web.close()
-                exit(0)
-                return
+            return
 
         if all(complete):
             print('Todos los partidos han terminado.')
             if web is not None:
                 web.close()
-            quit()
             return
         else:
             if any(_seguimiento):
@@ -424,14 +425,12 @@ def seguimiento(path_file: str, filename: str, web, bot, botregs, matches, resul
                 print('No hay partidos en seguimiento.')
                 if web is not None:
                     web.close()
-                quit()
                 return
 
     except KeyboardInterrupt:
         print('\nFin...')
         if web is not None:
             web.close()
-        quit()
 
     if web is not None:
         web.close()
@@ -454,6 +453,7 @@ if __name__ == '__main__':
         bot_regs = wks.get_all_values(returnas='matrix')
         bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
         seguimiento(path_file, filename, web, bot, bot_regs, matches)
+        close_console()
     else:
         logging.error(f'Seguimiento Friday Archivo {path_file} no encontrado')
         raise FileNotFoundError(f'Seguimiento Friday Archivo {path_file} no encontrado')

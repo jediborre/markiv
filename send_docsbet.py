@@ -15,7 +15,7 @@ from utils import busca_id_bot
 from dotenv import load_dotenv
 from utils import get_json_list
 from utils import prepare_paths
-from pulpo import predict_pulpo
+from pulpo import predict_pulpo_1
 from datetime import datetime, timedelta
 
 load_dotenv()
@@ -40,7 +40,7 @@ def process_match(bot_regs, bot, match):
         if not bot_reg:
             return
         resultado_pulpo_ = ""
-        prediccion_pulpo = predict_pulpo(bot_reg)
+        prediccion_pulpo = predict_pulpo_1(bot_reg)
         if prediccion_pulpo != "ERROR":
             resultado_pulpo, history_pred, odds_pred, prob_de_ganar = prediccion_pulpo
             match['apostar'] = True

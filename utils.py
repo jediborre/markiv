@@ -28,6 +28,28 @@ GSHEET_AUTH = os.getenv('GSHEET_AUTH', '')
 SPREADSHEET_NAME = os.getenv('SPREADSHEET_NAME', 'Viernes')
 
 
+def is_windows():
+    """Verifica si el sistema operativo es Windows."""
+    return platform.system() == 'Windows'
+
+
+def close_console():
+    """
+    Cierra la ventana de consola actual si el script se está ejecutando en una.
+    """
+    try:
+        if is_windows():
+            import win32gui
+            import win32con
+            console_window = ctypes.windll.kernel32.GetConsoleWindow()
+            if console_window != 0:
+                print("Cerrando ventana de consola...")
+                win32gui.PostMessage(console_window, win32con.WM_CLOSE, 0, 0)
+                os.system("exit")
+    except Exception as e:
+        print(f"Error al intentar cerrar la ventana de consola: {e}")
+
+
 def safe_float(value, default=np.nan):
     if value in ('-', '', None) or pd.isna(value):
         return default

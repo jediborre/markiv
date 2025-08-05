@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from utils import path
 from utils import gsheet
+from utils import busca_id_bot
 from utils import safe_float, safe_int
 
 # Configuraciones para TensorFlow y oneDNN
@@ -12,7 +13,6 @@ os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
 from tensorflow.keras.models import load_model # type: ignore # noqa
 
-model_dir = "modelos_prepartido"
 mes_map = {
     "ene": 1, "feb": 2, "mar": 3, "abr": 4, "may": 5,
     "jun": 6, "jul": 7, "ago": 8, "sep": 9, "oct": 10,
@@ -20,8 +20,9 @@ mes_map = {
 }
 
 
-def predict_pulpo(match_data=None):
-    global mes_map, model_dir
+def predict_pulpo_1(match_data=None):
+    global mes_map
+    model_dir = "modelos_1"
     if match_data is None:
         print("No se proporcionaron datos de partido.")
         return "ERROR"
@@ -167,7 +168,7 @@ def predict_pulpo(match_data=None):
             etiqueta_final = "APOSTAR"
     else:
         if resultado_real_gana is True:
-            etiqueta_final = "NO JUGO (Hubiera ganado)"
+            etiqueta_final = "NO JUGO"
         elif resultado_real_gana is False:
             etiqueta_final = "NOS SALVO"
         else:
@@ -219,50 +220,52 @@ def main():
 
     print(f"Partidos a probar (FT >= 4): {len(matches_a_probar)}")
     resultados = {
-        "GANA": 0, "PIERDE": 0, "NO JUGO (Hubiera ganado)": 0,
-        "NOS SALVO": 0, "DATOS INCOMPLETOS": 0, "ERROR": 0
+        "GANA": 0,
+        "ERROR": 0,
+        "PIERDE": 0,
+        "APOSTAR": 0,
+        "NO JUGO": 0,
+        "NO APOSTAR": 0,
+        "NOS SALVO": 0,
+        "DATOS INCOMPLETOS": 0
     }
 
-    csv_data = []
-    fecha = pd.to_datetime("today").strftime("%Y%m%d")
-    csv_filename = f'matches_{fecha}.csv'
+    # csv_data = []
+    # fecha = pd.to_datetime("today").strftime("%Y%m%d")
+    # csv_filename = f'matches_{fecha}.csv'
     for id_match in matches_a_probar:
-        # try:
-        resultado = predict_pulpo(id_match, regs=regs)
-        if resultado != "ERROR":
-            resultado, data = resultado
-            id_match, local,visitante, pais, liga, history_pred, odds_pred, prob_de_ganar, ft, resultado_real_gana = data # noqa
-            csv_data.append([
-                id_match, local, visitante, pais, liga,
-                history_pred, odds_pred, prob_de_ganar, ft, resultado_real_gana
-            ])
-            resultados[resultado] += 1
-        # except Exception as e:
-        #     print(f"Error fatal procesando partido {id_match}: {e}")
-        #     print(e)
-        #     resultados["ERROR"] += 1
-        #     continue
-    # Guardar resultados en CSV
-    if csv_data:
-        df_results = pd.DataFrame(csv_data, columns=[
-            "ID", "Local", "Visitante", "Pais", "Liga",
-            "Predicción Historia", "Predicción Odds", "Probabilidad de Ganar", "FT", "Resultado Real" # noqa
-        ])
-        df_results.to_csv(csv_filename, index=False)
-        print(f"Resultados guardados en {csv_filename}")
+        row = busca_id_bot(cleaned, id_match)
+        if row:
+            bot_reg = cleaned[row - 1]
+            if not bot_reg:
+                return
 
-    # --- Reporte Final ---
-    total_probados = len(matches_a_probar)
-    print("\n--- REPORTE DE BACKTESTING (SOBRE PARTIDOS QUE PERDIERON) ---")
-    print(f"Total de partidos probados: {total_probados}")
-    for resultado, count in resultados.items():
-        porcentaje = (count / total_probados) * 100 if total_probados > 0 else 0
-        print(f"  - {resultado:<25}: {count:4} ({porcentaje:6.2f}%)")
+            resultado, history, odds, prob = predict_pulpo_1(bot_reg)
+            if resultado != "ERROR":
+                resultados[resultado] += 1
 
-    # Efectividad del filtro: Qué porcentaje de las veces que no jugamos, nos salvamos de una pérdida. # noqa
-    total_no_jugados = resultados["NO JUGO (Hubiera ganado)"] + resultados["NOS SALVO"]
-    efectividad_filtro = (resultados["NOS SALVO"] / total_no_jugados) * 100 if total_no_jugados > 0 else 0 # noqa
-    print(f"\nEfectividad del filtro 'NO JUGAR': {efectividad_filtro:.2f}%")
+        # --- Reporte Final ---
+        total_probados = len(matches_a_probar)
+        print("\n--- REPORTE PULO 1 ---")
+        print(f"Total de partidos probados: {total_probados}")
+
+        ganados = resultados["GANA"]
+        perdidos = resultados["PIERDE"]
+        salvados = resultados["NOS SALVO"]
+        no_jugo = resultados["NO JUGO"]
+        apostar = resultados["APOSTAR"]
+        no_apostar = resultados["NO APOSTAR"]
+        total_jugados = ganados + perdidos
+        efectividad_real = (ganados) / total_jugados * 100 if total_jugados > 0 else 0
+
+        print(
+            f"- GANA: {ganados} ({efectividad_real:.2f}%)\n"
+            f"- PERDIDOS: {perdidos} ({perdidos / total_jugados * 100 if total_jugados > 0 else 0:.2f}%)\n" # noqa
+            f"- DESCARTADOS: {no_jugo} ({no_jugo / total_probados * 100:.2f}%)\n"
+            f"- SALVO: {salvados} ({salvados / total_probados * 100:.2f}%)\n"
+            f"- NO APOSTAR: {no_apostar} ({no_apostar / total_probados * 100:.2f}%)\n"
+            f"- APOSTAR: {apostar} ({apostar / total_probados * 100:.2f}%)"
+        )
 
 
 if __name__ == "__main__":
