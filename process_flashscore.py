@@ -79,6 +79,9 @@ def main(path_matches: str, overwrite: bool = False):
                 match['ambos'] = momios['odds_ambos']
                 match['goles'] = momios['odds_goles']
                 match['handicap'] = momios['odds_handicap']
+                # pprint.pprint(momios) # noqa
+                # input('Presiona Enter para continuar...')
+
                 if momios['OK']:
                     msj = get_match_ok(match)
                     logging.info(msj + '\n')

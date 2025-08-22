@@ -592,7 +592,7 @@ def click_OK_cookies_btn(web, retries=0):
 
 def click_momios_btn(name, web, debug=False):
     found = False
-    btn_momios = web.CLASS('wcl-tab_y-fEC', True)
+    btn_momios = web.CLASS('wcl-tab_GS7ig', True)
     if len(btn_momios) > 0:
         for btn in btn_momios:
             texto = btn.text().lower()
@@ -622,6 +622,8 @@ def click_momios_btn(name, web, debug=False):
                     break
         if not found:
             print('Boton no encontrado:', name)
+    else:
+        print('\nBoton de Momios no encontrado', btn_momios)
     return found
 
 
