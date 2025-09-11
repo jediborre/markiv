@@ -53,6 +53,7 @@ def main(hoy=False, overwrite=False):
         url = url_matches_tomorrow
 
     fecha = date.strftime('%Y%m%d')
+    fecha_hum = date.strftime('%d %m %Y')
     path_page_matches = path(path_html, f'{fecha}_matches.html') # noqa
 
     web = Web(multiples=True)
@@ -84,7 +85,7 @@ def main(hoy=False, overwrite=False):
 
     cron_matches(path_matches)
 
-    msj = f'Partidos {fecha}: {n_matches}-{len(matches)}'
+    msj = f'Partidos {fecha_hum}\n{n_matches}-{len(matches)}'
     bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
     for chat_id in TELEGRAM_CHAT_ID:
         send_text(

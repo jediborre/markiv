@@ -46,6 +46,12 @@ def remueve_anuncios(web):
     if web.EXIST_CLASS('wcl-button_5-cn0'):
         web.CLASS('wcl-button_5-cn0').click()
 
+    btn_close_name = 'wcl-close_Ohlz6'
+    if web.EXIST_CLASS(btn_close_name):
+        btn_close = web.CLASS(btn_close_name)
+        btn_close.click()
+        web.wait(1)
+
 
 def get_marcador_ft(web, debug=False):
     goles_fallos = [
