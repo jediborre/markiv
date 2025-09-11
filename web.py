@@ -11,6 +11,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import WebDriverException
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import SessionNotCreatedException
@@ -237,9 +238,30 @@ class Web:
         )
 
     def wait_Class(self, CLASS, secs):
-        WebDriverWait(self.driver, secs).until(
-            EC.presence_of_element_located((By.CLASS_NAME, CLASS))
-        )
+        try:
+            WebDriverWait(self.driver, secs).until(
+                EC.presence_of_element_located((By.CLASS_NAME, CLASS))
+            )
+            return True
+        except TimeoutException:
+            self.log(f"Timeout waiting for class '{CLASS}' after {secs} seconds")
+            return False
+
+    def wait_Class_safe(self, CLASS, secs, fallback_wait=3):
+        """
+        Safe version of wait_Class that handles timeouts gracefully
+        Returns True if element found, False if timeout
+        """
+        try:
+            WebDriverWait(self.driver, secs).until(
+                EC.presence_of_element_located((By.CLASS_NAME, CLASS))
+            )
+            return True
+        except TimeoutException:
+            self.log(f"Timeout waiting for class '{CLASS}' after {secs} seconds, "
+                     f"falling back to {fallback_wait}s wait")
+            self.wait(fallback_wait)
+            return False
 
     def log(self, message):
         logging.info(f'WEB: {message}')

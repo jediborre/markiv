@@ -522,7 +522,12 @@ def get_team_matches(path_html, filename, dt, home, away, liga, web, overwrite=F
             os.remove(html_path)
 
     if not os.path.exists(html_path):
-        web.wait_Class('h2h__section', 20)
+        # wcl-tab_GS7ig
+        # Try to wait for the h2h section with timeout handling
+        click_h2h_btn('h2h', web)
+        if not web.wait_Class_safe('h2h__section', 20, 3):
+            print("Warning: Could not find 'h2h__section' element, continuing anyway")
+
         result = parse_team_matches(web.source(), dt, 'vs')
         if result['vs_nmatches'] > 3:
             try:
@@ -588,6 +593,44 @@ def click_OK_cookies_btn(web, retries=0):
             click_OK_cookies_btn(web, retries + 1)
         else:
             print('MAX RETRIES COOKIES')
+
+
+def click_h2h_btn(name, web, debug=False):
+    found = False
+    # puede q haya botones iguales, hay que revisar que el boton diga H2H
+    btn_h2h = web.CLASS('wcl-tab_GS7ig', True)
+    if len(btn_h2h) > 0:
+        for btn in btn_h2h:
+            texto = btn.text().lower()
+            if type(name) is list:
+                if debug:
+                    print(f'BOTON: {texto} in "{name}" -> {any([x in texto for x in name])}') # noqa
+                if any([x in texto for x in name]):
+                    btn.scroll_top()
+                    btn.click()
+                    web.wait(1)
+                    if debug:
+                        logging.info(f'{texto} → Click')
+                    btn.click()
+                    web.wait(random.randint(1, 3))
+                    found = True
+                    break
+            elif type(name) is str:
+                if debug:
+                    print(f'BOTON: {texto} == "{name}" -> {texto == name}')
+                if texto == name:
+                    btn.scroll_top()
+                    btn.click()
+                    if debug:
+                        logging.info(f'{texto} → Click')
+                    web.wait(random.randint(1, 3))
+                    found = True
+                    break
+        if not found:
+            print('Boton no encontrado:', name)
+    else:
+        print('\nBoton de Momios no encontrado', btn_h2h)
+    return found
 
 
 def click_momios_btn(name, web, debug=False):
