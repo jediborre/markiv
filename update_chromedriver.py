@@ -260,6 +260,71 @@ def copy_to_chocolatey_bin(source_path: str):
         )
 
 
+def get_user_version_choice():
+    """
+    Pregunta al usuario qué versión de ChromeDriver quiere descargar.
+    Ofrece opciones: detectar automáticamente, especificar manualmente,
+    o usar argumento de línea de comandos.
+    """
+    print("\n=== ACTUALIZACIÓN DE CHROMEDRIVER ===")
+    print("¿Qué versión de ChromeDriver quieres descargar?")
+    print("1. Detectar automáticamente la versión de Chrome instalada")
+    print("2. Especificar manualmente la versión de Chrome")
+    print("3. Usar versión proporcionada como argumento de línea de comandos")
+
+    while True:
+        try:
+            choice = input("\nSelecciona una opción (1, 2 o 3): ").strip()
+
+            if choice == "1":
+                print("Detectando automáticamente la versión de Chrome...")
+                detected_version = get_installed_chrome_version()
+                if detected_version:
+                    confirm = input(
+                        f"¿Confirmas usar la versión detectada "
+                        f"{detected_version}? (s/n): "
+                    ).strip().lower()
+                    if confirm in ['s', 'si', 'sí', 'y', 'yes']:
+                        return detected_version
+                    else:
+                        continue
+                else:
+                    print(
+                        "No se pudo detectar la versión de Chrome. "
+                        "Intenta otra opción."
+                    )
+                    continue
+
+            elif choice == "2":
+                while True:
+                    version = input(
+                        "Ingresa la versión de Chrome "
+                        "(ej: 123.0.6312.122): "
+                    ).strip()
+                    if version and re.match(r'^\d+\.\d+\.\d+\.\d+$', version):
+                        return version
+                    else:
+                        print("Formato inválido. Usa el formato: 123.0.6312.122")
+
+            elif choice == "3":
+                if len(sys.argv) > 1:
+                    version = sys.argv[1]
+                    print(f"Usando versión del argumento: {version}")
+                    return version
+                else:
+                    print("No se proporcionó ningún argumento de línea de comandos.")
+                    continue
+
+            else:
+                print("Opción inválida. Por favor, selecciona 1, 2 o 3.")
+
+        except KeyboardInterrupt:
+            print("\n\nProceso cancelado por el usuario.")
+            sys.exit(0)
+        except Exception as e:
+            print(f"Error: {e}")
+
+
 def main():
     """
     Función principal para orquestar la actualización de chromedriver.
@@ -270,11 +335,13 @@ def main():
         print(
             f"Versión de Chrome proporcionada como argumento: {chrome_version_param}" # noqa
         )
+        # Preguntar al usuario si quiere usar esta versión o elegir otra opción
+        chrome_version = get_user_version_choice()
     else:
         print(
-            "No se proporcionó la versión de Chrome. "
-            "Intentando detectar la versión instalada..."
+            "No se proporcionó la versión de Chrome como argumento."
         )
+        chrome_version = get_user_version_choice()
 
     # Directorio temporal para descargas y extracción
     # Ubicado en el directorio temporal del sistema.
@@ -300,17 +367,6 @@ def main():
     os.makedirs(temp_dir, exist_ok=True)
 
     try:
-        if chrome_version_param:
-            chrome_version = chrome_version_param
-        else:
-            chrome_version = get_installed_chrome_version()
-            if not chrome_version:
-                raise Exception(
-                    "No se pudo detectar la versión de Google Chrome instalada. " # noqa
-                    "Por favor, especifica la versión como argumento "
-                    "(ej: python script.py 123.0.6312.122)."
-                )
-
         download_url = get_chromedriver_download_url(chrome_version)
         extracted_chromedriver_path = download_and_extract_chromedriver(
             download_url, temp_dir
