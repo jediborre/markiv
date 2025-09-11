@@ -1,5 +1,6 @@
 # cd C:\Users\Robot\Documents\markiv\;.venv\Scripts\python.exe update_chromedriver.py 139.0.7258.68 # noqa
-# cd C:\Users\Robot\Documents\markiv\;.venv\Scripts\python.exe update_chromedriver.py 140.0.7339.82
+# cd C:\Users\Robot\Documents\markiv\;.venv\Scripts\python.exe update_chromedriver.py 140.0.7339.82 # noqa
+# cd C:\Users\Robot\Documents\markiv\;.venv\Scripts\
 # -*- coding: utf-8 -*-
 import os
 import sys
