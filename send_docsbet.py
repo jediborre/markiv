@@ -39,6 +39,8 @@ def process_match(bot_regs, bot, match):
         bot_reg = bot_regs[row - 1]
         if not bot_reg:
             return
+
+        # Pulpo 1.0
         resultado_pulpo_ = ""
         prediccion_pulpo = predict_pulpo_1(bot_reg)
         if prediccion_pulpo != "ERROR":
@@ -48,6 +50,9 @@ def process_match(bot_regs, bot, match):
             match['pulpo_odds'] = odds_pred
             match['pulpo_history'] = history_pred
             resultado_pulpo_ = f"{resultado_pulpo} H:{history_pred:.5f} O:{odds_pred:.5f} P:{prob_de_ganar:.4f}" # noqa
+
+        # Pulpo 1.9
+
         home = bot_reg[3]
         away = bot_reg[4]
         apuesta = bot_reg[6]

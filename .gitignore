@@ -20,3 +20,4 @@ chromedriver.exe
 *.html
 *.crx
 /modelos_prepartido
+/modelo_19/test_decisions.csv

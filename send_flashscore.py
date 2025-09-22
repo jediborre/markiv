@@ -5,6 +5,7 @@ import logging # noqa
 import pprint # noqa
 import telebot
 import argparse
+
 from utils import path
 from utils import gsheet
 from utils import wakeup
@@ -33,6 +34,7 @@ parser.add_argument('file', type=str, help='Archivo de Partidos Flashscore')
 parser.add_argument('--cron', action='store_true', help="Programar")
 
 cron = True
+MIN_ESPERA_SHEETS = os.getenv('ESPERA_SHEETS', '12')
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID').split(',')
 
@@ -216,8 +218,8 @@ def write_sheet_row(wks, row, match):
 
 
 def send_matches(path_matches: str):
-    global cron
-    min = 6  # Espera para Volver a consultar resultado OK o no
+    global cron, MIN_ESPERA_SHEETS
+    min = int(MIN_ESPERA_SHEETS)
     filename = basename(path_matches)
     filename_fechahora = basename(path_matches, True)
     dt_filename = datetime.strptime(filename_fechahora, "%Y%m%d%H%M")
