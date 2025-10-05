@@ -70,10 +70,14 @@ def process_match(bot_regs, bot, match):
         apuesta = 'VIERNES: ' + bot_reg[6] if bot_reg[6] else ''
 
         # resultado = bot_reg[5]
-        # bet_viernes es True si apuesta no empieza con "(Solo X)" y no es vacío
+        # bet_viernes es True si:
+        # - apuesta no es vacío
+        # - NO empieza con "(Solo X)"
+        # - NO contiene "NO hay data"
         bet_viernes = (
             apuesta != ''
-            and not apuesta.startswith('(Solo X)')
+            and not apuesta.startswith('VIERNES: (Solo X)')
+            and 'NO hay data' not in apuesta
         )
         bet_pulpo = resultado_pulpo['bet_decision'] == 'BET'
         apostar = bet_viernes or bet_pulpo
