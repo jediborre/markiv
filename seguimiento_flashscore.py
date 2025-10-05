@@ -14,6 +14,7 @@ from utils import busca_id_bot
 from utils import get_json_dict
 from utils import path, pathexist
 from utils import prepare_paths_ok
+from pulpo import predict_match_by_id
 
 # https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json
 
@@ -241,15 +242,15 @@ def inicio(bot, id_partido, hora, minuto, pais, liga, home, away, home_score, aw
 
 
 def pierde(bot, id_partido, hora, minuto, pais, liga, home, away, home_score, away_score, quien): # noqa
-    print(f'{id_partido} {hora} | {minuto} | {pais} {liga} | {home} vs {away} {home_score} - {away_score} GOL PIERDE') # noqa
+    print(f'{id_partido} {hora} | {minuto} | {pais} {liga} | {home} vs {away} {home_score} - {away_score} ⚽ GOL PIERDE ❌') # noqa
     markup = None
     # markup = types.InlineKeyboardMarkup()
     # if link:
     #     link_boton = types.InlineKeyboardButton('Apostar', url=link) # noqa
     #     markup.add(link_boton)
     msj = [
-        'PIERDE -3.5',
-        f'GOL {minuto} {quien}',
+        '🔴 PIERDE -3.5',
+        f'⚽ GOL {minuto} {quien}',
         f'{home} - {away} | ',
         f'{home_score} - {away_score}',
     ]
@@ -262,15 +263,32 @@ def pierde(bot, id_partido, hora, minuto, pais, liga, home, away, home_score, aw
         )
 
 
-def gol(bot, id_partido, hora, minuto, pais, liga, home, away, home_score, away_score, quien): # noqa
-    print(f'{id_partido} {hora} | {minuto} | {pais} {liga} | {home} vs {away} {home_score} - {away_score} GOL') # noqa
+def gol(bot, id_partido, hora, minuto, pais, liga, home, away, home_score, away_score, quien, link=None, total_goles_previo=0): # noqa
+    print(f'{id_partido} {hora} | {minuto} | {pais} {liga} | {home} vs {away} {home_score} - {away_score} ⚽ GOL') # noqa
     markup = None
-    # markup = types.InlineKeyboardMarkup()
-    # if link:
-    #     link_boton = types.InlineKeyboardButton('Apostar', url=link) # noqa
-    #     markup.add(link_boton)
+
+    # Si el gol es antes del minuto 35 y hay link, agregar botón
+    try:
+        minuto_num = int(minuto.replace("'", "").replace("+", "").split(":")[0])
+        if minuto_num < 35 and link:
+            markup = telebot.types.InlineKeyboardMarkup()
+            link_boton = telebot.types.InlineKeyboardButton('Partido', url=link)
+            markup.add(link_boton)
+    except (ValueError, AttributeError):
+        pass  # Si no se puede parsear el minuto, continuar sin botón
+
+    # Verificar con el modelo si es apostable (solo para el primer gol)
+    apostable_msg = ''
+    if total_goles_previo == 0:  # Es el primer gol
+        try:
+            resultado_pulpo = predict_match_by_id(match_id=id_partido)
+            if resultado_pulpo and resultado_pulpo['bet_decision'] == 'BET':
+                apostable_msg = f"\n✅ PULPO APOSTAR {resultado_pulpo['bet_window']}"
+        except Exception as e:
+            print(f"Error al verificar apostabilidad: {e}")
+
     msj = [
-        f'GOL {minuto} {quien} {home_score} - {away_score}',
+        f'⚽ GOL {minuto} {quien} {home_score} - {away_score}{apostable_msg}',
     ]
     for chat_id in TELEGRAM_CHAT_ID:
         send_text(
@@ -285,7 +303,7 @@ def roja(bot, id_partido, hora, minuto, pais, liga, home, away, home_score, away
     print(
         f"{id_partido} {hora} |"
         f"{minuto} | {pais} {liga} | "
-        f"{home} vs {away} {home_score} - {away_score} ROJA"
+        f"{home} vs {away} {home_score} - {away_score} 🔴 ROJA"
     )
     markup = None
     # markup = types.InlineKeyboardMarkup()
@@ -293,7 +311,26 @@ def roja(bot, id_partido, hora, minuto, pais, liga, home, away, home_score, away
     #     link_boton = types.InlineKeyboardButton('Apostar', url=link) # noqa
     #     markup.add(link_boton)
     msj = [
-        f'ROJA {minuto} {quien} {home_score} - {away_score}',
+        f'🔴 ROJA {minuto} {quien} {home_score} - {away_score}',
+    ]
+    for chat_id in TELEGRAM_CHAT_ID:
+        send_text(
+            bot,
+            chat_id,
+            '\n'.join(msj),
+            markup
+        )
+
+
+def gol_anulado(bot, id_partido, hora, minuto, pais, liga, home, away, home_score, away_score, quien): # noqa
+    print(
+        f"{id_partido} {hora} |"
+        f"{minuto} | {pais} {liga} | "
+        f"{home} vs {away} {home_score} - {away_score} ❌⚽ GOL ANULADO"
+    )
+    markup = None
+    msj = [
+        f'❌⚽ GOL ANULADO {minuto} {quien} {home_score} - {away_score}',
     ]
     for chat_id in TELEGRAM_CHAT_ID:
         send_text(
@@ -332,6 +369,7 @@ def seguimiento(path_file: str, filename: str, web, bot, botregs, matches, resul
                         "away": away,
                         "hora": hora,
                         "pais": pais,
+                        "url": m.get("url", ""),
                         "home_score": 0,
                         "away_score": 0,
                         "red_card_home": False,
@@ -358,12 +396,35 @@ def seguimiento(path_file: str, filename: str, web, bot, botregs, matches, resul
                                 inicio(bot, id_partido, hora, minuto, pais, liga, home, away, home_score, away_score, quien) # noqa
                             else:
                                 score = home_score + away_score
-                                if resultados[id_partido]['home_score'] != home_score:
+                                prev_home = resultados[id_partido]['home_score']
+                                prev_away = resultados[id_partido]['away_score']
+                                prev_score = prev_home + prev_away
+
+                                # Detectar quién anotó o a quién le anularon
+                                if prev_home != home_score:
                                     quien = home
-                                if away_score != resultados[id_partido]['away_score']:
+                                if away_score != prev_away:
                                     quien = away
-                                if type(score) is int and score < 4:
-                                    gol(bot, id_partido, hora, minuto, pais, liga, home, away, home_score, away_score, quien) # noqa
+
+                                # Verificar si el marcador disminuyó (gol anulado)
+                                score_decreased = (
+                                    type(score) is int
+                                    and type(prev_score) is int
+                                    and score < prev_score
+                                )
+                                if score_decreased:
+                                    gol_anulado(
+                                        bot, id_partido, hora, minuto, pais, liga,
+                                        home, away, home_score, away_score, quien
+                                    )
+                                # Gol normal (marcador aumentó)
+                                elif type(score) is int and score < 4:
+                                    match_url = resultados[id_partido].get('url')
+                                    gol(
+                                        bot, id_partido, hora, minuto, pais, liga,
+                                        home, away, home_score, away_score, quien,
+                                        match_url, prev_score
+                                    )
                                 else:
                                     if type(score) is str:
                                         print(f'{id_partido} {hora} | {minuto} | {pais} {liga} | {home} vs {away} AUN NO COMIENZA') # noqa
@@ -407,13 +468,13 @@ def seguimiento(path_file: str, filename: str, web, bot, botregs, matches, resul
 
         # Only exit if ALL matches have been decided (gana is not None) AND ALL have lost
         if len(lost) == len(resultados) and not any(lost):
-            print('Todos los partidos han perdido -3.5')
+            print('Todos los partidos han perdido -3.5 ❌')
             if web is not None:
                 web.close()
             return
 
         if all(complete):
-            print('Todos los partidos han terminado.')
+            print('Todos los partidos han terminado. ✅')
             if web is not None:
                 web.close()
             return
