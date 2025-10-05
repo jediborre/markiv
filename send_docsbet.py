@@ -1,5 +1,6 @@
 import os
 import pytz
+import pprint
 import telebot
 import logging
 import argparse
@@ -15,7 +16,7 @@ from utils import busca_id_bot
 from dotenv import load_dotenv
 from utils import get_json_list
 from utils import prepare_paths
-from pulpo import predict_pulpo_1
+from pulpo import predict_match_by_id
 from datetime import datetime, timedelta
 
 load_dotenv()
@@ -40,47 +41,70 @@ def process_match(bot_regs, bot, match):
         if not bot_reg:
             return
 
-        # Pulpo 1.0
-        resultado_pulpo_ = ""
-        prediccion_pulpo = predict_pulpo_1(bot_reg)
-        if prediccion_pulpo != "ERROR":
-            resultado_pulpo, history_pred, odds_pred, prob_de_ganar = prediccion_pulpo
-            match['apostar'] = True
-            match['pulpo'] = prob_de_ganar
-            match['pulpo_odds'] = odds_pred
-            match['pulpo_history'] = history_pred
-            resultado_pulpo_ = f"{resultado_pulpo} H:{history_pred:.5f} O:{odds_pred:.5f} P:{prob_de_ganar:.4f}" # noqa
-
         # Pulpo 1.9
+        # {
+        #     "match_id": str,
+        #     "bet_decision": "BET" o "NO BET",
+        #     "bet_window": "< min X" o "-",
+        #     "minutes_to_bet": [5, 10, 15, ...],
+        #     "match_info": {
+        #         "local": str,
+        #         "visitante": str,
+        #         "liga": str,
+        #         "pais": str,
+        #         "fecha": str,
+        #         "hora": str
+        #     },
+        #     "odds": {
+        #         "under_3_5": float,
+        #         "btts_yes": float,
+        #         "btts_no": float
+        #     }
+        # }
+        resultado_pulpo = predict_match_by_id(
+            match_id=id
+        )
 
         home = bot_reg[3]
         away = bot_reg[4]
-        apuesta = bot_reg[6]
+        apuesta = 'VIERNES: ' + bot_reg[6] if bot_reg[6] else ''
+
         # resultado = bot_reg[5]
-        apostar = 'APOSTAR' == resultado_pulpo
-        msj = get_match_ok(match, apuesta, resultado_pulpo_)
+        bet_viernes = apuesta.startswith("Base 100.00%: -3.5 goles")
+        bet_pulpo = resultado_pulpo['bet_decision'] == 'BET'
+        apostar = bet_viernes or bet_pulpo
+        resultado_pulpo_ = f'PULPO: APUESTA +3.5 {resultado_pulpo["bet_window"]}' if bet_pulpo else '' # noqa
+        o15 = match['goles']['odds']['1.5']['decimal'][0]
+        o25 = match['goles']['odds']['2.5']['decimal'][0]
+        o35 = match['goles']['odds']['3.5']['decimal'][0]
+        u35 = match['goles']['odds']['3.5']['decimal'][1]
+        momios_ = f'O1.5→{o15}\nO2.5→{o25}\nO3.5→{o35} U3.5→{u35}' # noqa
+        msj = get_match_ok(match, apuesta, resultado_pulpo_ + '\n\n' + momios_)
         logging.info(f'{id} -> {msj}')
         markup = types.InlineKeyboardMarkup()
         if link:
             link_boton = types.InlineKeyboardButton('Partido', url=link) # noqa
             markup.add(link_boton)
-        for chat_id in TELEGRAM_CHAT_ID:
-            send_text(
-                bot,
-                chat_id,
-                msj,
-                markup
-            )
         if apostar:
+            for chat_id in TELEGRAM_CHAT_ID:
+                send_text(
+                    bot,
+                    chat_id,
+                    msj,
+                    markup
+                )
             match['apostar'] = True
             match['viernes'] = apuesta
+            match['pulpo'] = resultado_pulpo
             pass
         else:
+            match['apostar'] = False
             logging.info(f'{id} -> {home} - {away}, NO {apuesta}') # noqa
         return match
     else:
-        logging.info(f'{id} No encontrado')
-        return
+        match['apostar'] = False
+        logging.info(f'{id} No encontrado\n')
+        return match
 
 
 def telegram_ok_matches(matches):
@@ -98,6 +122,7 @@ def telegram_ok_matches(matches):
             hora = match['hora'] if 'hora' in match else hora
             fecha = match['fecha'] if 'fecha' in match else fecha
             _match = process_match(bot_regs, bot, match)
+            # pprint.pprint(_match)
             if _match['apostar']:
                 _matches.append(_match)
 
@@ -148,4 +173,4 @@ if __name__ == '__main__':
         exit(1)
 
     matches = get_json_list(path_file)
-    telegram_ok_matches(matches, filename)
+    telegram_ok_matches(matches)
