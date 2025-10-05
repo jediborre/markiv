@@ -1,6 +1,6 @@
 import os
 import pytz
-import pprint
+import pprint # noqa
 import telebot
 import logging
 import argparse
@@ -70,7 +70,11 @@ def process_match(bot_regs, bot, match):
         apuesta = 'VIERNES: ' + bot_reg[6] if bot_reg[6] else ''
 
         # resultado = bot_reg[5]
-        bet_viernes = apuesta.startswith("Base 100.00%: -3.5 goles")
+        # bet_viernes es True si apuesta no empieza con "(Solo X)" y no es vacío
+        bet_viernes = (
+            apuesta != ''
+            and not apuesta.startswith('(Solo X)')
+        )
         bet_pulpo = resultado_pulpo['bet_decision'] == 'BET'
         apostar = bet_viernes or bet_pulpo
         resultado_pulpo_ = f'PULPO: APUESTA +3.5 {resultado_pulpo["bet_window"]}' if bet_pulpo else '' # noqa

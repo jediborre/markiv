@@ -267,6 +267,12 @@ def hybrid_decision_live(
 # --- Carga de modelo ---
 def load_model_artifacts(model_dir: str) -> Dict:
     """Carga todos los artefactos del modelo entrenado"""
+    # Si model_dir es una ruta relativa, la convierte a absoluta
+    # basándose en la ubicación de este archivo pulpo.py
+    if not os.path.isabs(model_dir):
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        model_dir = os.path.join(script_dir, model_dir)
+
     artifacts = {}
 
     artifacts["model"] = joblib.load(
