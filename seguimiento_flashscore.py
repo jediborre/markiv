@@ -359,7 +359,7 @@ def gol_anulado(bot, id_partido, hora, minuto, pais, liga, home, away, home_scor
 def no_viable_pulpo(bot, id_partido, hora, minuto, pais, liga, home, away, max_minuto): # noqa
     print(
         f"{id_partido} {hora} | {minuto} | {pais} {liga} | "
-        f"{home} vs {away} ⏰ NO VIABLE PULPO (max: {max_minuto}')"
+        f"{home} vs {away} ⏰ ❌NO APOSTAR 🐙 PULPO (max: {max_minuto}')"
     )
     markup = None
     msj = [
