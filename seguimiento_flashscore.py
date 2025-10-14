@@ -207,15 +207,21 @@ def ft(bot, id_partido, hora, pais, liga, home, away, home_score, away_score, li
         markup.add(link_boton)
 
     ft = home_score + away_score
-    gana = ''
-    if ft < 4:
-        gana = 'GANA'
+
+    # Lógica diferente para PULPO vs apuestas normales
+    if es_pulpo:
+        # PULPO apuesta OVER 3.5 (más de 3.5 goles = GANA)
+        gana = '✅ GANA' if ft >= 4 else '❌ PIERDE'
+        tipo_apuesta = '+3.5'
     else:
-        gana = 'PIERDE'
+        # Apuesta normal es UNDER 3.5 (menos de 4 goles = GANA)
+        gana = '✅ GANA' if ft < 4 else '❌ PIERDE'
+        tipo_apuesta = '-3.5'
 
     pulpo_tag = ' 🐙 PULPO' if es_pulpo else ''
     msj = [
-        f'✅ {gana} -3.5{pulpo_tag} | {home} - {away} | {home_score} - {away_score}',
+        f' {gana} {tipo_apuesta}{pulpo_tag} | '
+        f'{home} - {away} | {home_score} - {away_score}',
     ]
     for chat_id in TELEGRAM_CHAT_ID:
         send_text(
@@ -255,9 +261,15 @@ def pierde(bot, id_partido, hora, minuto, pais, liga, home, away, home_score, aw
         link_boton = telebot.types.InlineKeyboardButton('Partido', url=link)
         markup.add(link_boton)
 
+    # Lógica diferente para PULPO vs apuestas normales
+    if es_pulpo:
+        tipo_apuesta = '+3.5'  # PULPO apuesta OVER 3.5
+    else:
+        tipo_apuesta = '-3.5'  # Apuesta normal es UNDER 3.5
+
     pulpo_tag = ' 🐙 PULPO' if es_pulpo else ''
     msj = [
-        f'🔴 PIERDE -3.5{pulpo_tag}',
+        f'🔴 PIERDE {tipo_apuesta}{pulpo_tag}',
         f'⚽ GOL {minuto} {quien}',
         f'{home} - {away} | ',
         f'{home_score} - {away_score}',
@@ -277,26 +289,27 @@ def gol(bot, id_partido, hora, minuto, pais, liga, home, away, home_score, away_
 
     # Si el gol es antes del minuto 35 y hay link, agregar botón
     minuto_num = None
-    try:
-        minuto_num = int(minuto.replace("'", "").replace("+", "").split(":")[0])
-        if minuto_num < 35 and link:
-            markup = telebot.types.InlineKeyboardMarkup()
-            link_boton = telebot.types.InlineKeyboardButton('Partido', url=link)
-            markup.add(link_boton)
-    except (ValueError, AttributeError):
-        pass  # Si no se puede parsear el minuto, continuar sin botón
+    if minuto != 'FT':  # No procesar si es tiempo final
+        try:
+            minuto_num = int(minuto.replace("'", "").replace("+", "").split(":")[0])
+            if minuto_num < 35 and link:
+                markup = telebot.types.InlineKeyboardMarkup()
+                link_boton = telebot.types.InlineKeyboardButton('Partido', url=link)
+                markup.add(link_boton)
+        except (ValueError, AttributeError):
+            pass  # Si no se puede parsear el minuto, continuar sin botón
 
-    # Verificar con PULPO si el gol está en la ventana viable
-    apostable_msg = ''
-    en_ventana_pulpo = False
-    if max_minuto_pulpo is not None and minuto_num is not None:
-        en_ventana_pulpo = minuto_num <= max_minuto_pulpo
+        # Verificar con PULPO si el gol está en la ventana viable
+        apostable_msg = ''
+        en_ventana_pulpo = False
+        if max_minuto_pulpo is not None and minuto_num is not None and minuto_num != 'FT': # noqa
+            en_ventana_pulpo = minuto_num <= max_minuto_pulpo
 
-    # Solo mostrar mensaje PULPO si es primer gol O si está en ventana viable
-    # Usar datos de memoria en lugar de llamar al modelo nuevamente
-    if (total_goles_previo == 0 or en_ventana_pulpo) and pulpo_data:
-        if pulpo_data.get('bet_decision') == 'BET':
-            apostable_msg = f"\n✅ 🐙 APOSTAR {pulpo_data['bet_window']}"
+        if (total_goles_previo == 0 or en_ventana_pulpo) and pulpo_data:
+            if pulpo_data.get('bet_decision') == 'BET':
+                apostable_msg = f"\n✅ 🐙 APOSTAR {pulpo_data['bet_window']}"
+    else:
+        apostable_msg = ''  # No mostrar mensaje PULPO si es FT
 
     pulpo_tag = ' 🐙 PULPO' if es_pulpo else ''
     msj = [
@@ -363,9 +376,9 @@ def no_viable_pulpo(bot, id_partido, hora, minuto, pais, liga, home, away, max_m
     )
     markup = None
     msj = [
-        '⏰ NO VIABLE PULPO',
+        '⏰ NO APOSTAR 🐙 PULPO',
         f'{home} - {away}',
-        f'Minuto actual: {minuto} > Último minuto viable: {max_minuto}\'',
+        f'Minuto actual: {minuto} > Último minuto: {max_minuto}\'',
     ]
     for chat_id in TELEGRAM_CHAT_ID:
         send_text(
@@ -389,6 +402,7 @@ def seguimiento(path_file: str, filename: str, web, bot, bot_regs, matches, resu
             hora = m["hora"]
             liga = m["liga"]
             pais = m["pais"]
+
             hora = m["hora"]
             row = busca_id_bot(bot_regs, id_partido)
             if row:
@@ -401,6 +415,7 @@ def seguimiento(path_file: str, filename: str, web, bot, bot_regs, matches, resu
                     try:
                         # Intentar obtener predicción PULPO para este partido
                         pulpo_data = predict_match_by_id(match_id=id_partido)
+                        # pprint.pprint(pulpo_data)  # noqa
                         if pulpo_data and pulpo_data.get('bet_decision') == 'BET':
                             minutes_to_bet = pulpo_data.get('minutes_to_bet', [])
                             if minutes_to_bet:
@@ -408,7 +423,7 @@ def seguimiento(path_file: str, filename: str, web, bot, bot_regs, matches, resu
                                 bet_window = pulpo_data["bet_window"]
                                 print(
                                     f'🐙 PULPO: {id_partido} | {home} vs {away} |'
-                                    f' BET {bet_window} | Max minuto: {max_minuto_pulpo}'
+                                    f' BET {bet_window}'
                                 )
                             else:
                                 # Si BET pero no hay minutes_to_bet, no es viable
@@ -436,19 +451,24 @@ def seguimiento(path_file: str, filename: str, web, bot, bot_regs, matches, resu
                         "sigue": True,
                         "minuto": None,
                         "seguimiento": [],
-                        "pulpo_viable": pulpo_data is not None,
+                        "pulpo_candidato": pulpo_data is not None,  # Tiene potencial
+                        "pulpo_viable": False,  # Se activa solo si 1er gol < 35
                         "max_minuto_pulpo": max_minuto_pulpo,
                         "pulpo_data": pulpo_data  # Guardamos toda la respuesta
                     }
-                if resultados[id_partido]['sigue']:
+
+                    # print('pulpo_viable:', resultados[id_partido]["pulpo_viable"])
+                    # input('Enter para continuar...')
+
+                if resultados[id_partido]["sigue"]:
                     score = get_score(m, _matches)
                     if score:
                         home_score, away_score, red_card_home, red_card_away, minuto = score # noqa
-                        if  resultados[id_partido]['red_card_home'] != red_card_home or resultados[id_partido]['red_card_away'] != red_card_away: # noqa
-                            resultados[id_partido]['red_card_home'] = red_card_home
-                            resultados[id_partido]['red_card_away'] = red_card_away
+                        if  resultados[id_partido]["red_card_home"] != red_card_home or resultados[id_partido]["red_card_away"] != red_card_away: # noqa
+                            resultados[id_partido]["red_card_home"] = red_card_home
+                            resultados[id_partido]["red_card_away"] = red_card_away
                             quien = home if red_card_home else away
-                            es_pulpo = resultados[id_partido].get('pulpo_viable', False)
+                            es_pulpo = resultados[id_partido].get("pulpo_viable", False)
                             roja(
                                 bot,
                                 id_partido, hora, minuto,
@@ -457,9 +477,9 @@ def seguimiento(path_file: str, filename: str, web, bot, bot_regs, matches, resu
                                 quien, es_pulpo
                             ) # noqa
 
-                        if home_score != resultados[id_partido]['home_score'] or away_score != resultados[id_partido]['away_score']: # noqa
+                        if home_score != resultados[id_partido]["home_score"] or away_score != resultados[id_partido]["away_score"]: # noqa
                             quien = ''
-                            if resultados[id_partido]['home_score'] == '-':
+                            if resultados[id_partido]["home_score"] == '-':
                                 inicio(
                                     bot,
                                     id_partido, hora, minuto,
@@ -497,14 +517,57 @@ def seguimiento(path_file: str, filename: str, web, bot, bot_regs, matches, resu
                                     )
                                 # Gol normal (marcador aumentó)
                                 elif type(score) is int and score < 4:
+                                    # Activar/desactivar PULPO en el primer gol
+                                    if prev_score == 0:  # Es el primer gol
+                                        es_candidato = resultados[id_partido].get(
+                                            'pulpo_candidato', False
+                                        )
+                                        if es_candidato:
+                                            try:
+                                                minuto_num = int(
+                                                    minuto.replace("'", "")
+                                                    .replace("+", "")
+                                                    .split(":")[0]
+                                                )
+                                                if minuto_num < 35:
+                                                    # Activar PULPO
+                                                    res = resultados[id_partido]
+                                                    res['pulpo_viable'] = True
+                                                    print(
+                                                        f'✅ PULPO ACTIVADO: '
+                                                        f'1er gol min {minuto_num}'
+                                                    )
+                                                else:
+                                                    # Desactivar PULPO
+                                                    res = resultados[id_partido]
+                                                    res['pulpo_viable'] = False
+                                                    res['pulpo_candidato'] = False
+                                                    print(
+                                                        f'❌ PULPO DESCARTADO: '
+                                                        f'1er gol min {minuto_num}'
+                                                    )
+                                            except (ValueError, AttributeError):
+                                                # Si no se puede parsear
+                                                res = resultados[id_partido]
+                                                res['pulpo_viable'] = False
+                                                res['pulpo_candidato'] = False
+
                                     match_url = resultados[id_partido].get('url')
-                                    pulpo_data = resultados[id_partido].get('pulpo_data')
+                                    pulpo_data = resultados[id_partido].get(
+                                        'pulpo_data'
+                                    )
+                                    max_min_pulpo = resultados[id_partido].get(
+                                        'max_minuto_pulpo'
+                                    )
+                                    es_pulpo = resultados[id_partido].get(
+                                        'pulpo_viable', False
+                                    )
                                     gol(
                                         bot, id_partido, hora, minuto,
                                         pais, liga, home, away,
                                         home_score, away_score, quien,
                                         match_url, prev_score,
-                                        max_minuto_pulpo, es_pulpo, pulpo_data
+                                        max_min_pulpo, es_pulpo, pulpo_data
                                     )
                                 else:
                                     if type(score) is str:
@@ -529,7 +592,6 @@ def seguimiento(path_file: str, filename: str, web, bot, bot_regs, matches, resu
                             if type(score) is str:
                                 print(f'{id_partido} {hora} | {minuto} | {pais} {liga} | {home} vs {away} AUN NO COMIENZA') # noqa
                             else:
-                                # Verificar si excede el minuto máximo viable
                                 max_min_pulpo = resultados[id_partido].get(
                                     'max_minuto_pulpo'
                                 )
@@ -539,7 +601,7 @@ def seguimiento(path_file: str, filename: str, web, bot, bot_regs, matches, resu
                                             "'", ""
                                         ).replace("+", "")
                                         minuto_num = int(minuto_clean.split(":")[0])
-                                        if minuto_num > max_min_pulpo:
+                                        if minuto_num > max_min_pulpo and score < 1:
                                             resultados[id_partido]['sigue'] = False
                                             no_viable_pulpo(
                                                 bot, id_partido, hora, minuto, pais, liga,
