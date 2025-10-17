@@ -283,6 +283,37 @@ def pierde(bot, id_partido, hora, minuto, pais, liga, home, away, home_score, aw
         )
 
 
+def gana(bot, id_partido, hora, minuto, pais, liga, home, away, home_score, away_score, quien, link=None, es_pulpo=False): # noqa
+    print(f'{id_partido} {hora} | {minuto} | {pais} {liga} | {home} vs {away} {home_score} - {away_score} ⚽ GOL GANA ✅') # noqa
+    markup = None
+
+    # Agregar botón con link del partido
+    if link:
+        markup = telebot.types.InlineKeyboardMarkup()
+        link_boton = telebot.types.InlineKeyboardButton('Partido', url=link)
+        markup.add(link_boton)
+
+    # Lógica diferente para PULPO vs apuestas normales
+    if es_pulpo:
+        tipo_apuesta = '+3.5'  # PULPO apuesta OVER 3.5
+    else:
+        tipo_apuesta = '-3.5'  # Apuesta normal es UNDER 3.5
+
+    pulpo_tag = ' 🐙 PULPO' if es_pulpo else ''
+    msj = [
+        f'✅ GANA {tipo_apuesta}{pulpo_tag}',
+        f'⚽ GOL {minuto} {quien}',
+        f'{home} - {away} | ',
+        f'{home_score} - {away_score}',
+    ]
+    for chat_id in TELEGRAM_CHAT_ID:
+        send_text(
+            bot,
+            chat_id,
+            '\n'.join(msj),
+            markup
+        )
+
 def gol(bot, id_partido, hora, minuto, pais, liga, home, away, home_score, away_score, quien, link=None, total_goles_previo=0, max_minuto_pulpo=None, es_pulpo=False, pulpo_data=None): # noqa
     print(f'{id_partido} {hora} | {minuto} | {pais} {liga} | {home} vs {away} {home_score} - {away_score} ⚽ GOL') # noqa
     markup = None
@@ -580,12 +611,20 @@ def seguimiento(path_file: str, filename: str, web, bot, bot_regs, matches, resu
                                         es_pulpo = resultados[id_partido].get(
                                             'pulpo_viable', False
                                         )
-                                        pierde(
-                                            bot, id_partido, hora, minuto,
-                                            pais, liga, home, away,
-                                            home_score, away_score, quien,
-                                            match_url, es_pulpo
-                                        )
+                                        if not es_pulpo:
+                                            pierde(
+                                                bot, id_partido, hora, minuto,
+                                                pais, liga, home, away,
+                                                home_score, away_score, quien,
+                                                match_url, es_pulpo
+                                            )
+                                        else:
+                                            gana(
+                                                bot, id_partido, hora, minuto,
+                                                pais, liga, home, away,
+                                                home_score, away_score, quien,
+                                                match_url, es_pulpo
+                                            )
 
                         else:
                             score = home_score + away_score
