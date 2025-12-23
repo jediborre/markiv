@@ -15,6 +15,7 @@ from utils import get_json_dict
 from utils import path, pathexist
 from utils import prepare_paths_ok
 from pulpo import predict_match_by_id
+from selenium.common.exceptions import TimeoutException
 
 # https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json
 
@@ -26,6 +27,9 @@ TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID').split(',')
 
 path_result, path_ok = prepare_paths_ok()
+
+# Variable global para Google Sheet
+WKS = None
 
 parser = argparse.ArgumentParser(description="Solicita partidos de hoy o mañana de flashscore") # noqa
 parser.add_argument('file', type=str, help='Archivo de Partidos Flashscore')
@@ -40,16 +44,115 @@ def eliminar_publicidad(web: Web):
         print('Sticky footer no encontrado, continuando...')
 
 
-def get_current_scores(web):
+def kill_chrome_process(web):
+    """
+    Mata solo el proceso de Chrome asociado a este driver específico.
+    No afecta otras instancias de Chrome en el sistema.
+    """
+    try:
+        has_service = hasattr(web.driver, 'service')
+        has_process = has_service and web.driver.service.process
+
+        if has_process:
+            chrome_pid = web.driver.service.process.pid
+            print(f'Matando proceso Chrome PID: {chrome_pid}')
+            import psutil
+            try:
+                parent = psutil.Process(chrome_pid)
+                # Matar el proceso y sus hijos
+                for child in parent.children(recursive=True):
+                    child.kill()
+                parent.kill()
+            except psutil.NoSuchProcess:
+                print('Proceso ya no existe')
+        else:
+            # Fallback: intentar quit normal
+            web.quit()
+    except Exception as quit_error:
+        print(f'Error al cerrar Chrome: {quit_error}')
+
+
+def restart_web_driver(web):
+    """
+    Reinicia el driver de Chrome después de un fallo.
+
+    Args:
+        web: Instancia actual de Web (será cerrada)
+
+    Returns:
+        Web: Nueva instancia de Web
+    """
+    print('Forzando cierre y reinicio del navegador...')
+    kill_chrome_process(web)
+    time.sleep(5)
+    print('Reiniciando driver...')
+    new_web = Web(multiples=True)
+    time.sleep(3)
+    return new_web
+
+
+def recover_web_driver(web):
+    """
+    Intenta recuperar el driver cuando no responde.
+    Primero intenta refresh, si falla reinicia completamente.
+
+    Args:
+        web: Instancia de Web que puede estar colgada
+
+    Returns:
+        Web: Instancia recuperada o nueva
+    """
+    try:
+        # Verificar si el driver sigue vivo
+        _ = web.driver.title
+        print('Driver activo, refrescando página...')
+        web.driver.refresh()
+        time.sleep(5)
+        return web
+    except Exception as driver_error:
+        print(f'Driver no responde: {str(driver_error)[:100]}')
+        return restart_web_driver(web)
+
+
+def get_current_scores(web, max_retries=3):
+    """
+    Obtiene los scores actuales con reintentos automáticos.
+
+    Args:
+        web: Instancia de Web
+        max_retries: Número máximo de reintentos
+
+    Returns:
+        dict: Diccionario con matches o vacío si falla
+    """
     if pathexist('partidos_beta.htm'):
         html = open('partidos_beta.htm', 'r', encoding='utf-8').read()
     else: # noqa
-        web.open(url_matches_today)
-        web.wait_ID('main', 5)
-        eliminar_publicidad(web)
-
-        html = web.source()
-        # open('partidos_beta.htm', 'w', encoding='utf-8').write(html)
+        html = None
+        for attempt in range(max_retries):
+            try:
+                # print(f'Intento {attempt + 1}/{max_retries} de cargar flashscore...')
+                web.open(url_matches_today)
+                web.wait_ID('main', 10)  # Aumentado a 10 segundos
+                eliminar_publicidad(web)
+                html = web.source()
+                # open('partidos_beta.htm', 'w', encoding='utf-8').write(html)
+                # print('✓ Página cargada exitosamente')
+                break
+            except TimeoutException as e:
+                print(f'⚠ Timeout en intento {attempt + 1}: {str(e)[:100]}')
+                if attempt < max_retries - 1:
+                    print('Esperando 10 segundos antes de reintentar...')
+                    time.sleep(10)
+                    web = recover_web_driver(web)
+                else:
+                    print('❌ Máximo de reintentos alcanzado')
+                    return {}
+            except Exception as e:
+                print(f'⚠ Error inesperado: {str(e)[:100]}')
+                if attempt == max_retries - 1:
+                    return {}
+                time.sleep(5)
 
     if not html:
         print('No se pudo obtener el HTML de la página.')
@@ -174,9 +277,20 @@ def get_score(m, _matches):
         if record:
             home_score, away_score = record['score'].split(':') if record else (None, None) # noqa
             _home_score, _away_score = home_score, away_score
-            home_score = int(home_score.strip()) if home_score != '-' else 0
-            away_score = int(away_score.strip()) if away_score != '-' else 0
-            red_card_home = record.get('home_red_card', False)  # Added
+            # Extract numeric part only (e.g., '2pen.' -> 2, '1' -> 1, '-' -> 0)
+            home_score_str = home_score.strip()
+            away_score_str = away_score.strip()
+            if home_score_str != '-':
+                # Extract only digits from the score (handles cases like '2pen.')
+                home_score = int(''.join(c for c in home_score_str if c.isdigit()))
+            else:
+                home_score = 0
+            if away_score_str != '-':
+                # Extract only digits from the score (handles cases like '2pen.')
+                away_score = int(''.join(c for c in away_score_str if c.isdigit()))
+            else:
+                away_score = 0
+            red_card_home = record.get('home_red_card', False)
             red_card_away = record.get('away_red_card', False)
             record['hora'] == 'Aplazado'
             minuto = record['hora'] if ':' not in record['hora'] else None # noqa
@@ -357,6 +471,7 @@ def gol(bot, id_partido, hora, minuto, pais, liga, home, away, home_score, away_
 
 
 def roja(bot, id_partido, hora, minuto, pais, liga, home, away, home_score, away_score, quien, es_pulpo=False): # noqa
+    global WKS
     print(
         f"{id_partido} {hora} |"
         f"{minuto} | {pais} {liga} | "
@@ -420,11 +535,43 @@ def no_viable_pulpo(bot, id_partido, hora, minuto, pais, liga, home, away, max_m
         )
 
 
-def seguimiento(path_file: str, filename: str, web, bot, bot_regs, matches, resultados=None): # noqa
+def seguimiento(path_file: str, filename: str, web, bot, bot_regs, matches, resultados=None, retry_count=0, max_retries=5): # noqa
+    """
+    Función de seguimiento con límite de reintentos.
+
+    Args:
+        retry_count: Contador de reintentos (uso interno)
+        max_retries: Número máximo de reintentos permitidos
+    """
     global TELEGRAM_CHAT_ID
+
+    # Verificar límite de reintentos recursivos
+    if retry_count >= max_retries:
+        print(f'⚠ ADVERTENCIA: Alcanzado límite de {max_retries} reintentos recursivos.')
+        print('Deteniendo seguimiento para evitar bucle infinito.')
+        if web is not None:
+            web.close()
+        return
+
     if resultados is None:
         resultados = {}
-    _matches = get_current_scores(web)
+
+    # Intentar obtener scores con manejo de errores
+    try:
+        _matches = get_current_scores(web)
+    except Exception as e:
+        print(f'❌ Error al obtener scores: {str(e)[:200]}')
+        print(
+            f'Reintentando en 30 segundos...'
+            f' (intento {retry_count + 1}/{max_retries})'
+        )
+        time.sleep(30)
+        # Reintentar con contador incrementado
+        seguimiento(
+            path_file, filename, web, bot, bot_regs, matches,
+            resultados, retry_count + 1, max_retries
+        )
+        return
     try:
         for m in matches:
             id_partido = m["id"]
@@ -506,7 +653,16 @@ def seguimiento(path_file: str, filename: str, web, bot, bot_regs, matches, resu
                                 pais, liga, home, away,
                                 home_score, away_score,
                                 quien, es_pulpo
-                            ) # noqa
+                            )
+
+                            if WKS:
+                                try:
+                                    if red_card_home:
+                                        WKS.update_value(f'AO{row}', minuto)
+                                    if red_card_away:
+                                        WKS.update_value(f'AP{row}', minuto)
+                                except Exception as e: # noqa
+                                    pass
 
                         if home_score != resultados[id_partido]["home_score"] or away_score != resultados[id_partido]["away_score"]: # noqa
                             quien = ''
@@ -701,7 +857,11 @@ def seguimiento(path_file: str, filename: str, web, bot, bot_regs, matches, resu
         else:
             if any(_seguimiento):
                 time.sleep(60)  # Espera 1 minuto antes de volver a verificar
-                seguimiento(path_file, filename, web, bot, bot_regs, matches, resultados) # noqa
+                # Reset retry_count en llamada recursiva normal (no por error)
+                seguimiento(
+                    path_file, filename, web, bot, bot_regs, matches,
+                    resultados, 0, max_retries
+                )
             else:
                 print('No hay partidos en seguimiento.')
                 if web is not None:
@@ -730,8 +890,8 @@ if __name__ == '__main__':
         else:
             web = None
         matches = get_json_dict(path_file)
-        wks = gsheet('Bot')
-        bot_regs = wks.get_all_values(returnas='matrix')
+        WKS = gsheet('Bot')
+        bot_regs = WKS.get_all_values(returnas='matrix')
         bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
         seguimiento(path_file, filename, web, bot, bot_regs, matches)
         if web is not None:

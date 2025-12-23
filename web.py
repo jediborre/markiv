@@ -167,8 +167,12 @@ class Web:
                 # self.log(' → OK ')
             # else:
             #     self.log(f' → ERROR \n{self.driver.current_url}\n{url}')
+        except TimeoutException as e:
+            self.log(f'WEB open URL: {url} Error: timeout: {str(e)[:100]}')
+            raise e  # Re-lanzar para que se maneje en get_current_scores
         except WebDriverException as e:
             self.log(f'WEB open URL: {url} Error: {e.msg}')
+            raise e
 
     def open_chrome(self):
         CHROME_PATH = os.getenv('CHROME_PATH')
@@ -203,7 +207,16 @@ class Web:
         chrome_options.add_argument('--log-level=3')
         chrome_options.add_argument('--no-sandbox')
         chrome_options.add_argument('--disable-dev-shm-usage')
+        chrome_options.add_argument('--disable-gpu')
+        chrome_options.add_argument('--disable-software-rasterizer')
+        chrome_options.add_argument('--disable-extensions-except=uBlockLite')
         chrome_options.add_experimental_option("excludeSwitches", ["enable-logging"]) # noqa
+        # Prefs para mejorar estabilidad
+        chrome_options.add_experimental_option('prefs', {
+            'profile.default_content_setting_values.notifications': 2,
+            # Deshabilitar imágenes para cargar más rápido
+            'profile.managed_default_content_settings.images': 2,
+        })
         #     chrome_options.add_extension(adblockplus)
         # chrome_options.debugger_address = 'localhost:9222'
         # chrome_options.add_argument('--disable-extensions')
@@ -219,6 +232,11 @@ class Web:
             # self.open_chrome()
             self.driver = webdriver.Chrome(options=chrome_options)
             self.driver.maximize_window()
+
+            # Configurar timeouts para evitar esperas infinitas
+            self.driver.set_page_load_timeout(60)  # Máximo 60 segundos para cargar página
+            self.driver.set_script_timeout(30)     # Máximo 30 segundos para scripts
+
         except SessionNotCreatedException as e:
             logging.info(e.msg)
             sys.exit(0)
@@ -233,9 +251,17 @@ class Web:
         time.sleep(secs)
 
     def wait_ID(self, ID, secs):
-        WebDriverWait(self.driver, secs).until(
-            EC.presence_of_element_located((By.ID, ID))
-        )
+        """
+        Espera a que un elemento con ID aparezca.
+        Lanza TimeoutException si no aparece.
+        """
+        try:
+            WebDriverWait(self.driver, secs).until(
+                EC.presence_of_element_located((By.ID, ID))
+            )
+        except TimeoutException as e:
+            self.log(f"Timeout waiting for ID '{ID}' after {secs} seconds")
+            raise e
 
     def wait_Class(self, CLASS, secs):
         try:
