@@ -676,7 +676,7 @@ def click_momios_btn(name, web, debug=False):
 def parse_team_matches(html, dt, team, team_name='', home='', away='', liga='', debug=False): # noqa
     soup = BeautifulSoup(html, 'html.parser')
     div_h2h = soup.find('div', class_='h2h') # noqa
-    sections = div_h2h.find_all('div', class_='h2h__section')
+    sections = div_h2h.find_all('div', class_='h2h__section') if div_h2h else [] # noqa
 
     tmp_matches_home = sections[0].find('div', class_='rows') if len(sections) > 0 and sections[0] else None # noqa
     tmp_matches_away = sections[1].find('div', class_='rows') if len(sections) > 0 and sections[1] else None # noqa
@@ -933,8 +933,14 @@ def parse_odds_ambos(html):
     odds_row = soup.find_all('div', class_='ui-table__row')
     if odds_row:
         for row in odds_row:
-            prematchLogo = row.find('img', class_='prematchLogo')
-            casa_apuesta = prematchLogo['title'].lower() if prematchLogo and 'title' in prematchLogo.attrs else '' # noqa
+            # New structure: bookmaker name is in <img alt="1xBet">
+            bookmaker_logo = row.find('img', class_='wcl-logoImage_tPlnM')
+            if bookmaker_logo:
+                casa_apuesta = bookmaker_logo.get('alt', '').lower()
+            else:
+                # Fallback to old structure
+                prematchLogo = row.find('img', class_='prematchLogo')
+                casa_apuesta = prematchLogo['title'].lower() if prematchLogo and 'title' in prematchLogo.attrs else ''
             odds = [span.text for span in row.find_all('span') if span.text]
             if casa_apuesta == '1xbet':
                 odds_american = [decimal_american(odd) for odd in odds]
@@ -981,14 +987,22 @@ def parse_odds_1x2(html):
     soup = BeautifulSoup(html, 'html.parser')
     odds_row = soup.find_all('div', class_='ui-table__row')
     if odds_row:
+        # print('1x2', odds_row)
         for row in odds_row:
-            prematchLogo = row.find('img', class_='prematchLogo')
-            casa_apuesta = prematchLogo['title'].lower() if prematchLogo and 'title' in prematchLogo.attrs else '' # noqa
+            # New structure: bookmaker name is in <a title="1xBet"> or <img alt="1xBet">
+            bookmaker_logo = row.find('img', class_='wcl-logoImage_tPlnM')
+            if bookmaker_logo:
+                casa_apuesta = bookmaker_logo.get('alt', '').lower()
+            else:
+                # Fallback to old structure
+                prematchLogo = row.find('img', class_='prematchLogo')
+                casa_apuesta = prematchLogo['title'].lower() if prematchLogo and 'title' in prematchLogo.attrs else ''
             odds = [
                 span.text
                 for span in row.find_all('span')
                 if span.text.strip() and span.text.strip() != '-'
             ]
+            # print(bookmaker_logo, casa_apuesta, odds)
             if casa_apuesta == '1xbet' and len(odds) == 3:
                 odds_american = [decimal_american(odd) for odd in odds]
                 return {
@@ -1035,8 +1049,14 @@ def parse_odds_goles(html):
     if odds_row:
         casas = []
         for row in odds_row:
-            prematchLogo = row.find('img', class_='prematchLogo')
-            casa_apuesta = prematchLogo['title'].lower() if prematchLogo and 'title' in prematchLogo.attrs else '' # noqa
+            # New structure: bookmaker name is in <img alt="1xBet">
+            bookmaker_logo = row.find('img', class_='wcl-logoImage_tPlnM')
+            if bookmaker_logo:
+                casa_apuesta = bookmaker_logo.get('alt', '').lower()
+            else:
+                # Fallback to old structure
+                prematchLogo = row.find('img', class_='prematchLogo')
+                casa_apuesta = prematchLogo['title'].lower() if prematchLogo and 'title' in prematchLogo.attrs else ''
             if casa_apuesta not in casas:
                 casas.append(casa_apuesta)
             odds = [
@@ -1119,8 +1139,14 @@ def parse_handicap(html):
     if odds_row:
         descartados = []
         for row in odds_row:
-            prematchLogo = row.find('img', class_='prematchLogo')
-            casa_apuesta = prematchLogo['title'].lower() if prematchLogo and 'title' in prematchLogo.attrs else '' # noqa
+            # New structure: bookmaker name is in <img alt="1xBet">
+            bookmaker_logo = row.find('img', class_='wcl-logoImage_tPlnM')
+            if bookmaker_logo:
+                casa_apuesta = bookmaker_logo.get('alt', '').lower()
+            else:
+                # Fallback to old structure
+                prematchLogo = row.find('img', class_='prematchLogo')
+                casa_apuesta = prematchLogo['title'].lower() if prematchLogo and 'title' in prematchLogo.attrs else ''
             odds = [
                 span.text
                 for span in row.find_all('span')
