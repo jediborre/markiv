@@ -2,6 +2,7 @@ import re
 import os
 import sys
 import json
+import time
 import base64
 import pprint # noqa
 import logging
@@ -485,20 +486,37 @@ def save_match(filename, match):
         json.dump(matches_result, f, indent=4)
 
 
-def send_text(telegram_bot, chat_id, text, markup=None):
+def send_text(telegram_bot, chat_id, text, markup=None, retries=3, delay=5):
+    from requests.exceptions import ReadTimeout
     if len(text) <= 4096:
-        telegram_bot.send_message(
-            chat_id=chat_id,
-            text=text,
-            reply_markup=markup
-        )
+        for attempt in range(retries):
+            try:
+                telegram_bot.send_message(
+                    chat_id=chat_id,
+                    text=text,
+                    reply_markup=markup
+                )
+                break
+            except ReadTimeout:
+                if attempt < retries - 1:
+                    time.sleep(delay)
+                else:
+                    raise
     else:
         parts = [text[i:i + 4096] for i in range(0, len(text), 4096)]
         for part in parts:
-            telegram_bot.send_message(
-                chat_id=chat_id,
-                text=part
-            )
+            for attempt in range(retries):
+                try:
+                    telegram_bot.send_message(
+                        chat_id=chat_id,
+                        text=part
+                    )
+                    break
+                except ReadTimeout:
+                    if attempt < retries - 1:
+                        time.sleep(delay)
+                    else:
+                        raise
 
 
 def decimal_americano(momio_decimal):
