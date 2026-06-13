@@ -30,7 +30,7 @@ def get_rango2(rango):
 def gen_pais_liga():
     result = {}
     wks = gsheet('Ligas')
-    ligas = wks.get_all_values(returnas='matrix')
+    ligas = wks.get_all_values()
     for n, liga in enumerate(ligas):
         if n > 0:
             if all([x == '' for x in liga]):
@@ -48,7 +48,7 @@ def gen_pais_liga():
 def get_bot():
     result = []
     wks = gsheet('Bot')
-    data = wks.get_all_values(returnas='matrix')
+    data = wks.get_all_values()
     for n, row in enumerate(data):
         if n > 1:
             if all([x == '' for x in row]):

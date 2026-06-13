@@ -9,7 +9,7 @@ from parse import click_OK_cookies_btn
 def main():
     wks = gsheet('Bot')
     hay_resultados = False
-    bot_regs = wks.get_all_values(returnas='matrix')
+    bot_regs = wks.get_all_values()
     for value in bot_regs:
         id = value[0]
         ft = value[42]
@@ -46,11 +46,11 @@ def main():
                 finalizado = True
             elif status == 'aplazado':
                 print(r, id, pais, liga, hora, home, away, 'Aplazado', '-', '-') # noqa
-                wks.update_value(f'AK{r}', '-')
-                wks.update_value(f'AL{r}', '-')
-                wks.update_value(f'AM{r}', '-')
-                wks.update_value(f'AN{r}', '-')
-                wks.update_value(f'AQ{r}', '-')
+                wks.update_acell(f'AK{r}', '-')
+                wks.update_acell(f'AL{r}', '-')
+                wks.update_acell(f'AM{r}', '-')
+                wks.update_acell(f'AN{r}', '-')
+                wks.update_acell(f'AQ{r}', '-')
             else:
                 print(r, id, pais, liga, hora, home, away, 'En Juego', '-', '-') # noqa
             if finalizado:
@@ -58,13 +58,13 @@ def main():
                 total_goles = marcador['ft']
                 sheet = marcador['sheet']
                 gol1, gol2, gol3, gol4, rojahome, rojas_away = sheet
-                wks.update_value(f'AK{r}', gol1)
-                wks.update_value(f'AL{r}', gol2)
-                wks.update_value(f'AM{r}', gol3)
-                wks.update_value(f'AN{r}', gol4)
-                wks.update_value(f'AO{r}', rojahome)
-                wks.update_value(f'AP{r}', rojas_away)
-                wks.update_value(f'AQ{r}', total_goles)
+                wks.update_acell(f'AK{r}', gol1)
+                wks.update_acell(f'AL{r}', gol2)
+                wks.update_acell(f'AM{r}', gol3)
+                wks.update_acell(f'AN{r}', gol4)
+                wks.update_acell(f'AO{r}', rojahome)
+                wks.update_acell(f'AP{r}', rojas_away)
+                wks.update_acell(f'AQ{r}', total_goles)
                 print(r, id, pais, liga, hora, home, away, 'Finalizado', gol1, gol2, gol3, gol4, total_goles) # noqa
 
 

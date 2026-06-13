@@ -444,7 +444,7 @@ if __name__ == '__main__':
             web = None
         matches = get_json_dict(path_file)
         wks = gsheet('Bot')
-        bot_regs = wks.get_all_values(returnas='matrix')
+        bot_regs = wks.get_all_values()
         bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
         seguimiento(path_file, filename, web, bot, bot_regs, matches)
     else:

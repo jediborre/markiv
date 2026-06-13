@@ -152,27 +152,58 @@ class Web:
                 print(f"Error fetching proxies from {url}: {e}")
             return []
 
-    def open(self, url):
+    def open(self, url, retries=3, delay=2):
+        """
+        Open URL with retry logic and exponential backoff.
+        
+        Args:
+            url: URL to open
+            retries: Number of retry attempts (default: 3)
+            delay: Initial delay between retries in seconds (default: 2)
+        """
         if not self.multiples:
             if self.driver:
                 self.quit()
             self.start_browser()
 
-        try:
-            if self.debug:
-                self.log('opening: ' + url)
-            self.driver.get(url)
-            if self.driver.current_url == url:
-                pass
-                # self.log(' → OK ')
-            # else:
-            #     self.log(f' → ERROR \n{self.driver.current_url}\n{url}')
-        except TimeoutException as e:
-            self.log(f'WEB open URL: {url} Error: timeout: {str(e)[:100]}')
-            raise e  # Re-lanzar para que se maneje en get_current_scores
-        except WebDriverException as e:
-            self.log(f'WEB open URL: {url} Error: {e.msg}')
-            raise e
+        attempt = 0
+        last_exception = None
+        
+        while attempt < retries:
+            try:
+                if self.debug:
+                    self.log(f'opening (attempt {attempt + 1}/{retries}): {url}')
+                self.driver.get(url)
+                if self.driver.current_url == url:
+                    pass
+                    # self.log(' → OK ')
+                # else:
+                #     self.log(f' → ERROR \n{self.driver.current_url}\n{url}')
+                return  # Success, exit
+            except TimeoutException as e:
+                attempt += 1
+                last_exception = e
+                if attempt < retries:
+                    wait_time = delay * (2 ** (attempt - 1))  # Exponential backoff
+                    self.log(f'Timeout opening {url}. Retrying in {wait_time}s (attempt {attempt}/{retries})')
+                    time.sleep(wait_time)
+                else:
+                    self.log(f'WEB open URL: {url} Error: timeout after {retries} attempts: {str(e)[:100]}')
+                    raise e
+            except WebDriverException as e:
+                attempt += 1
+                last_exception = e
+                if attempt < retries:
+                    wait_time = delay * (2 ** (attempt - 1))
+                    self.log(f'WebDriver error opening {url}. Retrying in {wait_time}s (attempt {attempt}/{retries})')
+                    time.sleep(wait_time)
+                else:
+                    self.log(f'WEB open URL: {url} Error: {e.msg}')
+                    raise e
+        
+        # Should not reach here, but just in case
+        if last_exception:
+            raise last_exception
 
     def open_chrome(self):
         CHROME_PATH = os.getenv('CHROME_PATH')
@@ -234,8 +265,9 @@ class Web:
             self.driver.maximize_window()
 
             # Configurar timeouts para evitar esperas infinitas
-            self.driver.set_page_load_timeout(60)  # Máximo 60 segundos para cargar página
-            self.driver.set_script_timeout(30)     # Máximo 30 segundos para scripts
+            # Aumentado a 90 segundos para sitios más lentos
+            self.driver.set_page_load_timeout(90)
+            self.driver.set_script_timeout(30)
 
         except SessionNotCreatedException as e:
             logging.info(e.msg)

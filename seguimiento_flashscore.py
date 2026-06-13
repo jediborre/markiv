@@ -545,34 +545,36 @@ def seguimiento(path_file: str, filename: str, web, bot, bot_regs, matches, resu
     """
     global TELEGRAM_CHAT_ID
 
-    # Verificar límite de reintentos recursivos
-    if retry_count >= max_retries:
-        print(f'⚠ ADVERTENCIA: Alcanzado límite de {max_retries} reintentos recursivos.')
-        print('Deteniendo seguimiento para evitar bucle infinito.')
-        if web is not None:
-            web.close()
-        return
-
     if resultados is None:
         resultados = {}
 
-    # Intentar obtener scores con manejo de errores
-    try:
-        _matches = get_current_scores(web)
-    except Exception as e:
-        print(f'❌ Error al obtener scores: {str(e)[:200]}')
-        print(
-            f'Reintentando en 30 segundos...'
-            f' (intento {retry_count + 1}/{max_retries})'
-        )
-        time.sleep(30)
-        # Reintentar con contador incrementado
-        seguimiento(
-            path_file, filename, web, bot, bot_regs, matches,
-            resultados, retry_count + 1, max_retries
-        )
-        return
-    try:
+    error_count = 0
+
+    while True:
+        # Verificar límite de errores consecutivos
+        if error_count >= max_retries:
+            print(f'⚠ ADVERTENCIA: Alcanzado límite de {max_retries} errores consecutivos.')
+            print('Deteniendo seguimiento para evitar bucle infinito.')
+            if web is not None:
+                web.close()
+            return
+
+        # Intentar obtener scores con manejo de errores
+        try:
+            _matches = get_current_scores(web)
+        except Exception as e:
+            print(f'❌ Error al obtener scores: {str(e)[:200]}')
+            error_count += 1
+            print(
+                f'Reintentando en 30 segundos...'
+                f' (intento {error_count}/{max_retries})'
+            )
+            time.sleep(30)
+            continue
+
+        error_count = 0  # Reset al obtener scores exitosamente
+
+        try:
         for m in matches:
             id_partido = m["id"]
             home = m["home"]
@@ -658,9 +660,9 @@ def seguimiento(path_file: str, filename: str, web, bot, bot_regs, matches, resu
                             if WKS:
                                 try:
                                     if red_card_home:
-                                        WKS.update_value(f'AO{row}', minuto)
+                                        WKS.update_acell(f'AO{row}', minuto)
                                     if red_card_away:
-                                        WKS.update_value(f'AP{row}', minuto)
+                                        WKS.update_acell(f'AP{row}', minuto)
                                 except Exception as e: # noqa
                                     pass
 
@@ -857,21 +859,18 @@ def seguimiento(path_file: str, filename: str, web, bot, bot_regs, matches, resu
         else:
             if any(_seguimiento):
                 time.sleep(60)  # Espera 1 minuto antes de volver a verificar
-                # Reset retry_count en llamada recursiva normal (no por error)
-                seguimiento(
-                    path_file, filename, web, bot, bot_regs, matches,
-                    resultados, 0, max_retries
-                )
+                continue  # Siguiente iteración del bucle while
             else:
                 print('No hay partidos en seguimiento.')
                 if web is not None:
                     web.close()
                 return
 
-    except KeyboardInterrupt:
-        print('\nFin...')
-        if web is not None:
-            web.close()
+        except KeyboardInterrupt:
+            print('\nFin...')
+            if web is not None:
+                web.close()
+            return
 
     if web is not None:
         web.close()
@@ -891,7 +890,7 @@ if __name__ == '__main__':
             web = None
         matches = get_json_dict(path_file)
         WKS = gsheet('Bot')
-        bot_regs = WKS.get_all_values(returnas='matrix')
+        bot_regs = WKS.get_all_values()
         bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
         seguimiento(path_file, filename, web, bot, bot_regs, matches)
         if web is not None:

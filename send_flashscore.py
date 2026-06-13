@@ -24,6 +24,7 @@ from send_docsbet import telegram_ok_matches
 from datetime import datetime, timedelta
 
 # https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json
+# python .\send_flashscore.py 202606052300.json --skip-wait
 
 load_dotenv()
 
@@ -32,24 +33,32 @@ path_result, path_cron, path_csv, path_json, path_html = prepare_paths('envio_fl
 parser = argparse.ArgumentParser(description="Envia Partidos Telegram, Sheets")
 parser.add_argument('file', type=str, help='Archivo de Partidos Flashscore')
 parser.add_argument('--cron', action='store_true', help="Programar")
+parser.add_argument('--skip-wait', action='store_true', help="Saltar espera de Docs")
 
 cron = True
-MIN_ESPERA_SHEETS = os.getenv('ESPERA_SHEETS', '12')
+MIN_ESPERA_SHEETS = os.getenv('ESPERA_SHEETS', '5')
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID').split(',')
 
 
+def clean_american_odds(odds):
+    """Quita el símbolo + de los momios americanos si lo tienen."""
+    if isinstance(odds, str) and odds.startswith('+'):
+        return odds[1:]
+    return odds
+
+
 def upsert_by_id(wks, record, key_col=1):
-    keys = wks.get_col(key_col, include_tailing_empty=True)
+    keys = wks.col_values(key_col)
     while keys and keys[-1] == "":
         keys.pop()
     try:
         r = keys.index(record[0]) + 1
-        wks.update_row(r, record)
+        wks.update([record], f'A{r}')
         return r
     except ValueError:
         r = len(keys) + 1
-        wks.update_row(r, record)
+        wks.update([record], f'A{r}')
         return r
 
 
@@ -91,16 +100,16 @@ def write_sheet_row(wks, row, match):
     vsft_4 = vs_matches[3]['ft'] if len(vs_matches) > 3 else ''
     vsft_5 = vs_matches[4]['ft'] if len(vs_matches) > 4 else ''
 
-    _1x2_h, _1x2_d, _1x2_a = match['1x2']['american']
+    _1x2_h, _1x2_d, _1x2_a = [clean_american_odds(x) for x in match['1x2']['american']]
     if len(match['ambos']['american']) == 2:
-        ambos_si, ambos_no = match['ambos']['american']
+        ambos_si, ambos_no = [clean_american_odds(x) for x in match['ambos']['american']]
     else:
-        ambos_si, _, ambos_no = match['ambos']['american']
+        ambos_si, _, ambos_no = [clean_american_odds(x) for x in match['ambos']['american']]
     handicap_h_1, handicap_a_1 = match['handicap']['odds']['0, -0.5']['decimal'] # noqa
     handicap_h_2, handicap_a_2 = match['handicap']['odds']['-1']['decimal']
     handicap_h_3, handicap_a_3 = match['handicap']['odds']['-2']['decimal'] if '-2' in match['handicap']['odds'] else ('', '') # noqa
-    gol_35_p, gol_35_m = match['goles']['odds']['3.5']['american']
-    gol_45_p, gol_45_m = match['goles']['odds']['4.5']['american'] if '4.5' in match['goles']['odds'] else ('', '') # noqa
+    gol_35_p, gol_35_m = [clean_american_odds(x) for x in match['goles']['odds']['3.5']['american']]
+    gol_45_p, gol_45_m = [clean_american_odds(x) for x in match['goles']['odds']['4.5']['american']] if '4.5' in match['goles']['odds'] else ('', '') # noqa
 
     reg = [
         match['id'],  # ID,
@@ -208,7 +217,7 @@ def write_sheet_row(wks, row, match):
     # wks.update_value(f'BT{row}', 'SI')
     print(f'GSHEET: {match['id']}')
     row = upsert_by_id(wks, reg)
-    wks.update_value(f'BT{row}', 'SI')
+    wks.update_acell(f'BT{row}', 'SI')
 
     return {
         'row': row,
@@ -217,7 +226,7 @@ def write_sheet_row(wks, row, match):
     }
 
 
-def send_matches(path_matches: str):
+def send_matches(path_matches: str, skip_wait: bool = False):
     global cron, MIN_ESPERA_SHEETS
     min = int(MIN_ESPERA_SHEETS)
     filename = basename(path_matches)
@@ -235,7 +244,7 @@ def send_matches(path_matches: str):
 
         wks = gsheet('Bot')
         bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
-        bot_regs = wks.get_all_values(returnas='matrix')
+        bot_regs = wks.get_all_values()
 
         matches_ = []
 
@@ -271,8 +280,9 @@ def send_matches(path_matches: str):
                 filename,
                 len(matches_)
             )
-            logging.info(f'Esperando Docs {min} min.')
-            time.sleep(60 * min)
+            if not skip_wait:
+                logging.info(f'Esperando Docs {min} min.')
+                time.sleep(60 * min)
             telegram_ok_matches(matches_)
         else:
             logging.info('No hay partidos para enviar')
@@ -305,4 +315,4 @@ if __name__ == '__main__':
         logging.info(f'Archivo {path_file} no existe')
         exit(1)
 
-    send_matches(path_file)
+    send_matches(path_file, skip_wait=args.skip_wait)

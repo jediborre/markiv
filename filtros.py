@@ -35,7 +35,7 @@ def get_filtro_ligas():
 def get_ligas_google_sheet():
     result = {}
     wks = gsheet('Ligas')
-    ligas = wks.get_all_values(returnas='matrix')
+    ligas = wks.get_all_values()
     for n, liga in enumerate(ligas):
         if n > 0:
             if all([x == '' for x in liga]):

@@ -7,6 +7,7 @@ from web import Web
 from fuzzywuzzy import fuzz
 from bs4 import BeautifulSoup
 from datetime import datetime
+from selenium.common.exceptions import TimeoutException
 
 from utils import path
 from utils import convert_dt
@@ -37,7 +38,7 @@ def remueve_anuncios(web):
     web.REMOVE_CLASS('lmc__bannerCont')
     web.REMOVE_CLASS('boxOverContentRevive')
     web.REMOVE_CLASS('container__bannerZone')
-    web.REMOVE_CLASS('prematchOddsBonus__bonus')
+    # web.REMOVE_CLASS('prematchOddsBonus__bonus')
     web.REMOVE_CLASS('zone__container')
     # web.REMOVE_CLASS('boxOverContent--detailModern')
     if web.EXIST_CLASS('wcl-button_5-cn0'):
@@ -208,7 +209,15 @@ def process_full_matches(matches_, dt, web, path_html, overwrite=False): # noqa
         ] = match
 
         resumen_link = link.replace('h2h/overall', 'resumen-del-partido')
-        web.open(resumen_link)
+        try:
+            web.open(resumen_link)
+        except TimeoutException as e:
+            logging.info(f'{TS}|{str_percent}|{partido_id}|{hora} {liga} : {home} - {away} TIMEOUT ON RESUMEN\n')
+            continue
+        except Exception as e:
+            logging.info(f'{TS}|{str_percent}|{partido_id}|{hora} {liga} : {home} - {away} ERROR: {str(e)[:100]}\n')
+            continue
+
         web.wait(1)
 
         if m == 0:
@@ -231,7 +240,15 @@ def process_full_matches(matches_, dt, web, path_html, overwrite=False): # noqa
 
             marcadores = get_marcador_ft(web)
 
-            web.open(link)
+            try:
+                web.open(link)
+            except TimeoutException as e:
+                logging.info(f'{TS}|{str_percent}|{partido_id}|{fecha} {hora} {liga} : {home} - {away} TIMEOUT ON LINK\n')
+                continue
+            except Exception as e:
+                logging.info(f'{TS}|{str_percent}|{partido_id}|{fecha} {hora} {liga} : {home} - {away} ERROR: {str(e)[:100]}\n')
+                continue
+
             web.wait(1)
 
             remueve_anuncios(web)
@@ -328,7 +345,15 @@ def process_matches(matches_, dt, web, path_json, path_html, path_result, overwr
             link
         ] = match
 
-        web.open(link)
+        try:
+            web.open(link)
+        except TimeoutException as e:
+            logging.info(f'{TS}|{str_percent}|{partido_id}|{hora} {liga} : {home} - {away} TIMEOUT LOADING PAGE\n')
+            continue
+        except Exception as e:
+            logging.info(f'{TS}|{str_percent}|{partido_id}|{hora} {liga} : {home} - {away} ERROR: {str(e)[:100]}\n')
+            continue
+
         web.wait(1)
 
         if m == 0:
@@ -724,7 +749,12 @@ def parse_team_section(matches, dt, team=None, team_name=None, liga=None, debug=
     result_matches = []
     # fecha_partido_actual = dt.strftime('%d.%m.%Y')
     for match in matches:
-        date = match.find('span', class_='h2h__date').text # noqa formato dd.mm.yyyy
+        date_el = match.find('span', class_='wclH2h__date') # antes h2h__date cambio a wclH2h__date el 5.06.2026
+        if date_el is None:
+            date_el = match.find('span', class_='h2h__date')
+        if date_el is None:
+            continue
+        date = next(date_el.strings).strip() # noqa formato dd.mm.yyyy (solo texto directo, ignora spans hijos)
         dd, mm, yy = date.split('.')
         dt_match = convert_dt(f'{yy}-{mm}-{dd}')
 
@@ -733,11 +763,13 @@ def parse_team_section(matches, dt, team=None, team_name=None, liga=None, debug=
         league_name = re.sub(r'\s*\([^)]*\)$', '', league_name)
         league_name = re.sub(r'\s+$', '', league_name)
 
-        home_team = match.find('span', class_='h2h__homeParticipant')
-        home_team_name = home_team.find('span', class_='h2h__participantInner').text # noqa
+        home_team = match.find(class_='h2h__homeParticipant')
+        home_name_el = home_team.find('span', class_='h2h__participantInner') or home_team.find('span', attrs={'data-testid': 'wcl-scores-simple-text-01'})
+        home_team_name = home_name_el.text # noqa
 
-        away_team = match.find('span', class_='h2h__awayParticipant')
-        away_team_name = away_team.find('span', class_='h2h__participantInner').text # noqa
+        away_team = match.find(class_='h2h__awayParticipant')
+        away_name_el = away_team.find('span', class_='h2h__participantInner') or away_team.find('span', attrs={'data-testid': 'wcl-scores-simple-text-01'})
+        away_team_name = away_name_el.text # noqa
 
         result_span = match.find('span', class_='h2h__result')
         scores = result_span.find_all('span')
@@ -749,8 +781,10 @@ def parse_team_section(matches, dt, team=None, team_name=None, liga=None, debug=
         if scores[0].text == '-':
             continue
 
-        home_FT = int(scores[0].text)
-        away_FT = int(scores[1].text)
+        home_FT = int(next(scores[0].strings))  # solo texto directo, ignora <sup> de penales
+        away_FT = int(next(scores[1].strings))
+
+        # print(f'{date} | {home_team_name} vs {away_team_name} - {league_name} - {home_FT}-{away_FT}') # noqa
 
         FT = home_FT + away_FT
 

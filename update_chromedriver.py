@@ -2,8 +2,9 @@
 # cd C:\Users\Robot\Documents\markiv\;.venv\Scripts\python.exe update_chromedriver.py 140.0.7339.82 # noqa
 # cd C:\Users\Robot\Documents\markiv\;.venv\Scripts\Activate.ps1;python;update_chromedriver.py 141.0.7390.54 # noqa
 # cd C:\Users\Robot\Documents\markiv\;.venv\Scripts\Activate.ps1;python;update_chromedriver.py 142.0.7444.61
-# C:\Users\Robot\Documents\markiv\.venv\Scripts\Activate.bat;python C:\Users\Robot\Documents\markiv\update_chromedriver.py 143.0.7499.42
+# C:\Users\Robot\Documents\markiv\.venv\Scripts\python.exe C:\Users\Robot\Documents\markiv\update_chromedriver.py 143.0.7499.42
 # 144.0.7559.96
+# 146.0.7680.165
 # -*- coding: utf-8 -*-
 import os
 import sys

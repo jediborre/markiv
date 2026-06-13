@@ -8,7 +8,7 @@ import pprint # noqa
 import logging
 import vertexai
 import platform
-import pygsheets
+import gspread
 import pywintypes
 if os.name == 'nt':
     import ctypes
@@ -118,7 +118,9 @@ class StreamHandlerNoNewLine(logging.StreamHandler):
 
 
 def gsheet(sheet_name):
+    """Acceder a Google Sheets usando credenciales de service account."""
     global SPREADSHEET_NAME, GSHEET_AUTH
+    
     if not GSHEET_AUTH:
         logging.error("Google Sheets authentication file not found.")
         return None
@@ -131,12 +133,16 @@ def gsheet(sheet_name):
         logging.error("Google Sheets sheet name not set.")
         return None
 
-    path_script = os.path.dirname(os.path.realpath(__file__))
-    service_file = path(path_script, GSHEET_AUTH)
-    gc = pygsheets.authorize(service_file=service_file)
-
-    spreadsheet = gc.open(SPREADSHEET_NAME)
-    return spreadsheet.worksheet_by_title(sheet_name)
+    try:
+        path_script = os.path.dirname(os.path.realpath(__file__))
+        service_file = path(path_script, GSHEET_AUTH)
+        gc = gspread.service_account(filename=service_file)
+        spreadsheet = gc.open(SPREADSHEET_NAME)
+        worksheet = spreadsheet.worksheet(sheet_name)
+        return worksheet
+    except Exception as e:
+        logging.error(f"Error accediendo a Google Sheets: {e}")
+        return None
 
 
 def get_jsons_folder(folder_path):
@@ -353,7 +359,7 @@ def decimal_american(odds_decimal):
         # raise ValueError("Decimal odds cannot be 1.0 (division by zero).")
 
     if odds_float >= 2.0:
-        return f"+{int((odds_float - 1) * 100)}"
+        return f"{int((odds_float - 1) * 100)}"
     else:
         return f"{int(round(-100 / (odds_float - 1) / 50) * 50)}"
 

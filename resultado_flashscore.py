@@ -35,7 +35,7 @@ def resultados(path_file: str, filename: str):
     matches = get_json_list(path_file)
     try:
         wks = gsheet('Bot')
-        bot_regs = wks.get_all_values(returnas='matrix')
+        bot_regs = wks.get_all_values()
         for n, m in enumerate(matches):
             id = m["id"]
             link = m["url"].replace('h2h/overall', 'resumen-del-partido')
@@ -61,11 +61,11 @@ def resultados(path_file: str, filename: str):
                 print(pais, liga, hora, home, away, row, 'Finalizado') # noqa
             elif status == 'aplazado':
                 print(pais, liga, hora, home, away, row, 'Aplazado', '-', '-') # noqa
-                wks.update_value(f'AK{row}', '-')
-                wks.update_value(f'AL{row}', '-')
-                wks.update_value(f'AM{row}', '-')
-                wks.update_value(f'AN{row}', '-')
-                wks.update_value(f'AQ{row}', '-')
+                wks.update_acell(f'AK{row}', '-')
+                wks.update_acell(f'AL{row}', '-')
+                wks.update_acell(f'AM{row}', '-')
+                wks.update_acell(f'AN{row}', '-')
+                wks.update_acell(f'AQ{row}', '-')
             else:
                 print(pais, liga, hora, home, away, row, 'En Juego', '-', '-') # noqa
             if finalizado:
@@ -73,13 +73,13 @@ def resultados(path_file: str, filename: str):
                 total_goles = marcador['ft']
                 sheet = marcador['sheet']
                 gol1, gol2, gol3, gol4, rojahome, rojas_away = sheet
-                wks.update_value(f'AK{row}', gol1)
-                wks.update_value(f'AL{row}', gol2)
-                wks.update_value(f'AM{row}', gol3)
-                wks.update_value(f'AN{row}', gol4)
-                wks.update_value(f'AO{row}', rojahome)
-                wks.update_value(f'AP{row}', rojas_away)
-                wks.update_value(f'AQ{row}', total_goles)
+                wks.update_acell(f'AK{row}', gol1)
+                wks.update_acell(f'AL{row}', gol2)
+                wks.update_acell(f'AM{row}', gol3)
+                wks.update_acell(f'AN{row}', gol4)
+                wks.update_acell(f'AO{row}', rojahome)
+                wks.update_acell(f'AP{row}', rojas_away)
+                wks.update_acell(f'AQ{row}', total_goles)
     except KeyboardInterrupt:
         print('\nFin...')
     web.close()

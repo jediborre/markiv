@@ -16,7 +16,6 @@ from utils import busca_id_bot
 from dotenv import load_dotenv
 from utils import get_json_list
 from utils import prepare_paths
-from pulpo import predict_match_by_id
 from datetime import datetime, timedelta
 
 load_dotenv()
@@ -61,9 +60,9 @@ def process_match(bot_regs, bot, match):
         #         "btts_no": float
         #     }
         # }
-        resultado_pulpo = predict_match_by_id(
-            match_id=id
-        )
+        # resultado_pulpo = predict_match_by_id(
+        #     match_id=id
+        # )
 
         home = bot_reg[3]
         away = bot_reg[4]
@@ -79,15 +78,16 @@ def process_match(bot_regs, bot, match):
             and not apuesta.startswith('VIERNES: (')
             and 'NO hay data' not in apuesta
         )
-        bet_pulpo = resultado_pulpo['bet_decision'] == 'BET'
-        apostar = bet_viernes or bet_pulpo
-        resultado_pulpo_ = f'PULPO: APUESTA +3.5 {resultado_pulpo["bet_window"]}' if bet_pulpo else '' # noqa
-        o15 = match['goles']['odds']['1.5']['decimal'][0]
-        o25 = match['goles']['odds']['2.5']['decimal'][0]
-        o35 = match['goles']['odds']['3.5']['decimal'][0]
+        # bet_pulpo = resultado_pulpo['bet_decision'] == 'BET'
+        apostar = bet_viernes  # or bet_pulpo
+        # resultado_pulpo_ = f'PULPO: APUESTA +3.5 {resultado_pulpo["bet_window"]}' if bet_pulpo else '' # noqa
+        # o15 = match['goles']['odds']['1.5']['decimal'][0]
+        # o25 = match['goles']['odds']['2.5']['decimal'][0]
+        # o35 = match['goles']['odds']['3.5']['decimal'][0]
         u35 = match['goles']['odds']['3.5']['decimal'][1]
-        momios_ = f'O1.5→{o15}\nO2.5→{o25}\nO3.5→{o35} U3.5→{u35}' # noqa
-        msj = get_match_ok(match, apuesta, resultado_pulpo_ + '\n\n' + momios_)
+        momios_ = f'U3.5→{u35}' # noqa
+        # msj = get_match_ok(match, apuesta, resultado_pulpo_ + '\n\n' + momios_)
+        msj = get_match_ok(match, apuesta, '\n\n' + momios_)
         logging.info(f'{id} -> {msj}')
         markup = types.InlineKeyboardMarkup()
         if link:
@@ -103,7 +103,7 @@ def process_match(bot_regs, bot, match):
                 )
             match['apostar'] = True
             match['viernes'] = apuesta
-            match['pulpo'] = resultado_pulpo
+            # match['pulpo'] = resultado_pulpo
             pass
         else:
             match['apostar'] = False
@@ -120,7 +120,7 @@ def telegram_ok_matches(matches):
         print(f'Telegram Matches [{len(matches)}]')
 
         wks = gsheet('Bot')
-        bot_regs = wks.get_all_values(returnas='matrix')
+        bot_regs = wks.get_all_values()
         bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 
         hora = ''

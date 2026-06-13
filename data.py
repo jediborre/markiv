@@ -42,7 +42,7 @@ def get_data():
     wks = gsheet('Bot')
     if not wks:
         raise ValueError("Worksheet 'Bot' not found.")
-    data = wks.get_all_values(returnas='matrix')
+    data = wks.get_all_values()
     result = []
     for row in data[3:]:
         if all([x == '' for x in row]):

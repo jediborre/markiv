@@ -27,7 +27,7 @@ path_result, path_cron, path_csv, path_json, path_html = prepare_paths('scrape_p
 def get_past_links(wks=None):
     if wks is None:
         return []
-    rows = wks.get_all_values(returnas='matrix')
+    rows = wks.get_all_values()
 
     result = []
     for n, row in enumerate(rows):
@@ -112,7 +112,7 @@ def main(links=None):
         save_matches(path_file, matches, True)
 
         if not links:
-            wks_wayback.update_value(f'C{n}', 'si')
+            wks_wayback.update_acell(f'C{n}', 'si')
 
     web.close()
 

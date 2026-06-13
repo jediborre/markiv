@@ -5,7 +5,7 @@ import pprint # noqa
 
 
 def get_last_row(worksheet, col="A"):
-    cells = worksheet.get_col(1, include_tailing_empty=False)
+    cells = worksheet.col_values(1)
     return len(cells) + 1
 
 
@@ -15,7 +15,7 @@ def update_formula(wks, cell, target_row, source_row=3):
     formula = wks.cell(source_cell).formula
     pattern = r'([A-Z]+)(\d+)'
     updated_formula = re.sub(pattern, lambda match: f"{match.group(1)}{int(match.group(2)) - source_row + target_row}", formula)  # noqa
-    wks.update_value(target_cell, updated_formula)
+    wks.update_acell(target_cell, updated_formula)
     return wks.cell(target_cell).value
 
 
@@ -153,7 +153,7 @@ def write_sheet_match(wks, match):
     ]
     # pprint.pprint(reg)
     row = get_last_row(wks)
-    wks.update_row(row, reg)
+    wks.update([reg], f'A{row}')
     update_formula(wks, 'AJ', row)  # dif
     update_formula(wks, 'AY', row)  # home_35
     update_formula(wks, 'AZ', row)  # away_35
