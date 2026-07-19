@@ -772,7 +772,12 @@ def parse_team_section(matches, dt, team=None, team_name=None, liga=None, debug=
         away_team_name = away_name_el.text # noqa
 
         result_span = match.find('span', class_='h2h__result')
+        if result_span is None:
+            continue
+
         scores = result_span.find_all('span')
+        if not scores or len(scores) < 2:
+            continue
 
         es_partido_anterior = dt_match < dt
         if not es_partido_anterior:
@@ -871,6 +876,8 @@ def status_partido(web):
             return 'finalizado'
         elif 'aplazado' in resultado:
             return 'aplazado'
+        elif 'srf' in resultado or 'sólo resultado final' in resultado:
+            return 'srf'
         else:
             return ''
     except AttributeError:
@@ -878,17 +885,53 @@ def status_partido(web):
         return ''
 
 
-def get_momios(path_html, filename, web, overwrite=False): # noqa
-    btn_momios = click_momios_btn('momios', web)
-    if not btn_momios:
-        return {
-            'OK': False,
-            'odds_1x2': {'OK': False, 'msj': 'No evaluado'},
-            'odds_goles': {'OK': False, 'msj': 'No evaluado'},
-            'odds_ambos': {'OK': False, 'msj': 'No evaluado'},
-            'odds_handicap': {'OK': False, 'msj': 'No evaluado'},
-        }
+def get_odds_from_soup(soup, bookmaker='1xbet', expected_min=1):
+    odds_contents = soup.find_all('div', class_='wclOddsContent')
+    if not odds_contents:
+        odds_contents = soup.find_all('div', class_='ui-table__row')
+        if odds_contents:
+            for row in odds_contents:
+                bookmaker_logo = row.find('img', class_='wcl-logoImage_tPlnM')
+                if bookmaker_logo:
+                    casa_apuesta = bookmaker_logo.get('alt', '').lower()
+                else:
+                    prematchLogo = row.find('img', class_='prematchLogo')
+                    casa_apuesta = prematchLogo['title'].lower() if prematchLogo and 'title' in prematchLogo.attrs else ''
+                odds = [span.text for span in row.find_all('span') if span.text.strip() and span.text.strip() != '-']
+                if casa_apuesta == bookmaker and len(odds) >= expected_min:
+                    return casa_apuesta, odds
+            return None, None
 
+    for content in odds_contents:
+        bookmaker_el = content.find('div', class_=lambda c: c and 'wcl-bookmakerTextName' in c)
+        if not bookmaker_el:
+            continue
+        name_el = bookmaker_el.find('span')
+        if not name_el:
+            continue
+        casa_apuesta = name_el.text.strip().lower()
+
+        odds_row = content.find('div', class_='wclOddsRow')
+        if not odds_row:
+            continue
+
+        cells = odds_row.find_all('button', class_=lambda c: c and 'wcl-oddsCell' in c)
+        odds = []
+        for cell in cells:
+            value_el = cell.find('span', class_=lambda c: c and 'wcl-oddsValue' in c)
+            if value_el:
+                val = value_el.text.strip()
+                if val and val != '-':
+                    odds.append(val)
+
+        if casa_apuesta == bookmaker and len(odds) >= expected_min:
+            return casa_apuesta, odds
+
+    return None, None
+
+
+
+def get_momios(path_html, filename, web, overwrite=False): # noqa
     momios_1x2 = get1x2(path_html, filename, web, overwrite) # noqa
     if not momios_1x2['OK']:
         return {
@@ -910,27 +953,12 @@ def get_momios(path_html, filename, web, overwrite=False): # noqa
         }
 
     momios_ambos = getAmbos(path_html, filename, web, overwrite) # noqa
-    if not momios_ambos['OK']:
-        return {
-            'OK': False,
-            'odds_1x2': momios_1x2,
-            'odds_ambos': momios_ambos,
-            'odds_goles': momios_goles,
-            'odds_handicap': {'OK': False, 'msj': 'No evaluado'},
-        }
-
     momios_handicap = getHandicap(path_html, filename, web, overwrite) # noqa
     if not momios_handicap['OK']:
-        return {
-            'OK': False,
-            'odds_1x2': momios_1x2,
-            'odds_goles': momios_goles,
-            'odds_ambos': momios_ambos,
-            'odds_handicap': momios_handicap,
-        }
+        pass
 
     return {
-        'OK': momios_ambos['OK'] and momios_goles['OK'] and momios_1x2['OK'],
+        'OK': momios_goles['OK'] and momios_1x2['OK'],
         'odds_1x2': momios_1x2,
         'odds_goles': momios_goles,
         'odds_ambos': momios_ambos,
@@ -947,8 +975,9 @@ def getAmbos(path_html, filename, web, overwrite=False):
             os.remove(html_path)
 
     if not os.path.exists(html_path):
-        # logging.info(f'{nom} → {filename} ')
-        click_momios_btn('ambos equipos marcarán', web)
+        found = click_momios_btn('ambos equipos marcarán', web)
+        if not found:
+            found = click_momios_btn(['ambos equipos', 'both teams to score', 'btts'], web)
         web.save(html_path)
     else:
         logging.info(f'{nom} ← CACHE | ')
@@ -964,27 +993,15 @@ def getAmbos(path_html, filename, web, overwrite=False):
 
 def parse_odds_ambos(html):
     soup = BeautifulSoup(html, 'html.parser')
-    odds_row = soup.find_all('div', class_='ui-table__row')
-    if odds_row:
-        for row in odds_row:
-            # New structure: bookmaker name is in <img alt="1xBet">
-            bookmaker_logo = row.find('img', class_='wcl-logoImage_tPlnM')
-            if bookmaker_logo:
-                casa_apuesta = bookmaker_logo.get('alt', '').lower()
-            else:
-                # Fallback to old structure
-                prematchLogo = row.find('img', class_='prematchLogo')
-                casa_apuesta = prematchLogo['title'].lower() if prematchLogo and 'title' in prematchLogo.attrs else ''
-            odds = [span.text for span in row.find_all('span') if span.text]
-            if casa_apuesta == '1xbet':
-                odds_american = [decimal_american(odd) for odd in odds]
-                return {
-                    'OK': True,
-                    'casa': casa_apuesta,
-                    'decimal': odds,
-                    'american': odds_american
-                }
-    # logging.info('Fallo → Ambos 1xBet')
+    casa, odds = get_odds_from_soup(soup, '1xbet', 2)
+    if casa and odds and len(odds) >= 2:
+        odds_american = [decimal_american(o) for o in odds]
+        return {
+            'OK': True,
+            'casa': casa,
+            'decimal': odds,
+            'american': odds_american
+        }
     return {
         'OK': False,
         'msj': 'No hay 1xBet'
@@ -1019,33 +1036,15 @@ def get1x2(path_html, filename, web, overwrite=False):
 
 def parse_odds_1x2(html):
     soup = BeautifulSoup(html, 'html.parser')
-    odds_row = soup.find_all('div', class_='ui-table__row')
-    if odds_row:
-        # print('1x2', odds_row)
-        for row in odds_row:
-            # New structure: bookmaker name is in <a title="1xBet"> or <img alt="1xBet">
-            bookmaker_logo = row.find('img', class_='wcl-logoImage_tPlnM')
-            if bookmaker_logo:
-                casa_apuesta = bookmaker_logo.get('alt', '').lower()
-            else:
-                # Fallback to old structure
-                prematchLogo = row.find('img', class_='prematchLogo')
-                casa_apuesta = prematchLogo['title'].lower() if prematchLogo and 'title' in prematchLogo.attrs else ''
-            odds = [
-                span.text
-                for span in row.find_all('span')
-                if span.text.strip() and span.text.strip() != '-'
-            ]
-            # print(bookmaker_logo, casa_apuesta, odds)
-            if casa_apuesta == '1xbet' and len(odds) == 3:
-                odds_american = [decimal_american(odd) for odd in odds]
-                return {
-                    'OK': True,
-                    'casa': casa_apuesta,
-                    'decimal': odds,
-                    'american': odds_american
-                }
-    # logging.info('Fallo → 1x2 1xbet')
+    casa, odds = get_odds_from_soup(soup, '1xbet', 3)
+    if casa and odds and len(odds) == 3:
+        odds_american = [decimal_american(o) for o in odds]
+        return {
+            'OK': True,
+            'casa': casa,
+            'decimal': odds,
+            'american': odds_american
+        }
     return {
         'OK': False,
         'msj': 'No hay 1xbet'
@@ -1076,38 +1075,129 @@ def getmGoles(path_html, filename, web, overwrite=False):
         return {'OK': False}
 
 
+def get_odds_with_label_from_soup(soup, bookmaker='1xbet'):
+    result = {}
+    odds_contents = soup.find_all('div', class_='wclOddsContent')
+    if not odds_contents:
+        return result
+
+    for content in odds_contents:
+        bookmaker_el = content.find('div', class_=lambda c: c and 'wcl-bookmakerTextName' in c)
+        if not bookmaker_el:
+            continue
+        name_el = bookmaker_el.find('span')
+        if not name_el:
+            continue
+        casa = name_el.text.strip().lower()
+        if casa != bookmaker:
+            continue
+
+        label_cell = content.find('div', class_=lambda c: c and 'wcl-texted_hICSD' in c)
+        if not label_cell:
+            continue
+        label_value_el = label_cell.find('span', class_=lambda c: c and 'wcl-oddsValue' in c)
+        if not label_value_el:
+            continue
+        label = label_value_el.text.strip()
+        if not label:
+            continue
+
+        odds_row = content.find('div', class_='wclOddsRow')
+        if not odds_row:
+            continue
+
+        cells = odds_row.find_all('button', class_=lambda c: c and 'wcl-oddsCell' in c)
+        odds = []
+        for cell in cells:
+            value_el = cell.find('span', class_=lambda c: c and 'wcl-oddsValue' in c)
+            if value_el:
+                val = value_el.text.strip()
+                if val and val != '-':
+                    odds.append(val)
+
+        if len(odds) >= 2:
+            result[label] = odds
+
+    return result
+
+
 def parse_odds_goles(html):
     result = {}
+    casas = []
     soup = BeautifulSoup(html, 'html.parser')
-    odds_row = soup.find_all('div', class_='ui-table__row')
-    if odds_row:
-        casas = []
-        for row in odds_row:
-            # New structure: bookmaker name is in <img alt="1xBet">
-            bookmaker_logo = row.find('img', class_='wcl-logoImage_tPlnM')
-            if bookmaker_logo:
-                casa_apuesta = bookmaker_logo.get('alt', '').lower()
-            else:
-                # Fallback to old structure
-                prematchLogo = row.find('img', class_='prematchLogo')
-                casa_apuesta = prematchLogo['title'].lower() if prematchLogo and 'title' in prematchLogo.attrs else ''
-            if casa_apuesta not in casas:
-                casas.append(casa_apuesta)
-            odds = [
-                span.text
-                for span in row.find_all('span')
-                if span.text.strip() and span.text.strip() != '-'
-            ]
-            # print(odds)
-            if casa_apuesta == '1xbet' and len(odds) == 3:
-                goals = odds[0]
-                odds_decimal = odds[1:]
-                odds_american = [decimal_american(odd) for odd in odds_decimal] # noqa
-                result[goals] = {
-                    'casa': casa_apuesta,
-                    'decimal': odds_decimal,
-                    'american': odds_american
-                }
+
+    # Try over/under structure first
+    over_under = get_odds_with_label_from_soup(soup, '1xbet')
+    if over_under:
+        casas = ['1xbet']
+        for goals, odds in over_under.items():
+            odds_american = [decimal_american(o) for o in odds]
+            result[goals] = {
+                'casa': '1xbet',
+                'decimal': odds,
+                'american': odds_american
+            }
+
+    # Fallback to old structure
+    if not result:
+        odds_contents = soup.find_all('div', class_='wclOddsContent')
+        if odds_contents:
+            for content in odds_contents:
+                bookmaker_el = content.find('div', class_=lambda c: c and 'wcl-bookmakerTextName' in c)
+                if not bookmaker_el:
+                    continue
+                name_el = bookmaker_el.find('span')
+                if not name_el:
+                    continue
+                casa = name_el.text.strip().lower()
+                odds_row = content.find('div', class_='wclOddsRow')
+                if not odds_row:
+                    continue
+                cells = odds_row.find_all('button', class_=lambda c: c and 'wcl-oddsCell' in c)
+                odds = []
+                for cell in cells:
+                    value_el = cell.find('span', class_=lambda c: c and 'wcl-oddsValue' in c)
+                    if value_el:
+                        val = value_el.text.strip()
+                        if val and val != '-':
+                            odds.append(val)
+                if casa == '1xbet' and len(odds) == 3:
+                    goals = odds[0]
+                    odds_decimal = odds[1:]
+                    odds_american = [decimal_american(o) for o in odds_decimal]
+                    result[goals] = {
+                        'casa': casa,
+                        'decimal': odds_decimal,
+                        'american': odds_american
+                    }
+
+    if not result:
+        odds_row = soup.find_all('div', class_='ui-table__row')
+        if odds_row:
+            casas = []
+            for row in odds_row:
+                bookmaker_logo = row.find('img', class_='wcl-logoImage_tPlnM')
+                if bookmaker_logo:
+                    casa_apuesta = bookmaker_logo.get('alt', '').lower()
+                else:
+                    prematchLogo = row.find('img', class_='prematchLogo')
+                    casa_apuesta = prematchLogo['title'].lower() if prematchLogo and 'title' in prematchLogo.attrs else ''
+                if casa_apuesta not in casas:
+                    casas.append(casa_apuesta)
+                odds = [
+                    span.text
+                    for span in row.find_all('span')
+                    if span.text.strip() and span.text.strip() != '-'
+                ]
+                if casa_apuesta == '1xbet' and len(odds) == 3:
+                    goals = odds[0]
+                    odds_decimal = odds[1:]
+                    odds_american = [decimal_american(odd) for odd in odds_decimal]
+                    result[goals] = {
+                        'casa': casa_apuesta,
+                        'decimal': odds_decimal,
+                        'american': odds_american
+                    }
 
     if len(result) > 0:
         if '3.5' not in result:
@@ -1169,37 +1259,48 @@ def getHandicap(path_html, filename, web, overwrite=False):
 def parse_handicap(html):
     result = {}
     soup = BeautifulSoup(html, 'html.parser')
-    odds_row = soup.find_all('div', class_='ui-table__row')
-    if odds_row:
-        descartados = []
-        for row in odds_row:
-            # New structure: bookmaker name is in <img alt="1xBet">
-            bookmaker_logo = row.find('img', class_='wcl-logoImage_tPlnM')
-            if bookmaker_logo:
-                casa_apuesta = bookmaker_logo.get('alt', '').lower()
-            else:
-                # Fallback to old structure
-                prematchLogo = row.find('img', class_='prematchLogo')
-                casa_apuesta = prematchLogo['title'].lower() if prematchLogo and 'title' in prematchLogo.attrs else ''
-            odds = [
-                span.text
-                for span in row.find_all('span')
-                if span.text.strip() and span.text.strip() != '-'
-            ]
-            handicap = odds[0]
-            if casa_apuesta in ['1xbet', 'bet365'] and len(odds) == 3:
-                odds_decimal = odds[1:]
-                odds_american = [decimal_american(odd) for odd in odds_decimal] # noqa
-                result[handicap] = {
-                    'casa': casa_apuesta,
-                    'decimal': odds_decimal,
+
+    # Try new structure first
+    for bk in ['1xbet', 'bet365']:
+        labeled = get_odds_with_label_from_soup(soup, bk)
+        if labeled:
+            for label, odds in labeled.items():
+                odds_american = [decimal_american(o) for o in odds]
+                result[label] = {
+                    'casa': bk,
+                    'decimal': odds,
                     'american': odds_american
                 }
-            else:
-                descartados.append(
-                    f"{casa_apuesta} → '{handicap}'"
-                )
-                pass
+
+    # Fallback to old structure
+    if not result:
+        odds_row = soup.find_all('div', class_='ui-table__row')
+        if odds_row:
+            descartados = []
+            for row in odds_row:
+                bookmaker_logo = row.find('img', class_='wcl-logoImage_tPlnM')
+                if bookmaker_logo:
+                    casa_apuesta = bookmaker_logo.get('alt', '').lower()
+                else:
+                    prematchLogo = row.find('img', class_='prematchLogo')
+                    casa_apuesta = prematchLogo['title'].lower() if prematchLogo and 'title' in prematchLogo.attrs else ''
+                odds = [
+                    span.text
+                    for span in row.find_all('span')
+                    if span.text.strip() and span.text.strip() != '-'
+                ]
+                handicap = odds[0]
+                if casa_apuesta in ['1xbet', 'bet365'] and len(odds) == 3:
+                    odds_decimal = odds[1:]
+                    odds_american = [decimal_american(odd) for odd in odds_decimal]
+                    result[handicap] = {
+                        'casa': casa_apuesta,
+                        'decimal': odds_decimal,
+                        'american': odds_american
+                    }
+                else:
+                    descartados.append(f"{casa_apuesta} → '{handicap}'")
+
     # HandiCap Asiatico -0/-0.5 (OBLIGATORIO)
     # HandiCap Asiatico -1 (OBLIGATORIO)
     # HandiCap Asiatico -2 (OPCIONAL)

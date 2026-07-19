@@ -711,7 +711,7 @@ def get_match_error(match: dict):
     status = match['status'] if 'status' in match else ''
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     _1x2, _ambos, _goles, _handicap = 'NO', 'NO', 'NO', 'NO'
-    if status != 'aplazado':
+    if status not in ('aplazado', 'srf'):
         _1x2 = 'OK' if match['1x2']['OK'] else match['1x2']['msj'] if 'msj' in match['1x2'] else 'NO' # noqa
         _ambos = 'OK' if match['ambos']['OK'] else match['ambos']['msj'] if 'msj' in match['ambos'] else 'NO' # noqa
         _goles = 'OK' if match['goles']['OK'] else match['goles']['msj'] if 'msj' in match['goles'] else 'NO' # noqa
@@ -730,13 +730,15 @@ HANDICAP: {_handicap}
 {home} v {away}'''
     if status == '':
         msj += momios
+    if status == 'srf':
+        msj += '\nSolo resultado final, se omite'
     return msj
 
 
 def get_match_error_short(match: dict):
     status = match['status'] if 'status' in match else ''
     _1x2, _ambos, _goles, _handicap = 'NO', 'NO', 'NO', 'NO'
-    if status != 'aplazado':
+    if status not in ('aplazado', 'srf'):
         _1x2 = 'OK' if match['1x2']['OK'] else match['1x2']['msj'] if 'msj' in match['1x2'] else 'NO' # noqa
         _ambos = 'OK' if match['ambos']['OK'] else match['ambos']['msj'] if 'msj' in match['ambos'] else 'NO' # noqa
         _goles = 'OK' if match['goles']['OK'] else match['goles']['msj'] if 'msj' in match['goles'] else 'NO' # noqa

@@ -575,296 +575,296 @@ def seguimiento(path_file: str, filename: str, web, bot, bot_regs, matches, resu
         error_count = 0  # Reset al obtener scores exitosamente
 
         try:
-        for m in matches:
-            id_partido = m["id"]
-            home = m["home"]
-            away = m["away"]
-            hora = m["hora"]
-            liga = m["liga"]
-            pais = m["pais"]
+            for m in matches:
+                id_partido = m["id"]
+                home = m["home"]
+                away = m["away"]
+                hora = m["hora"]
+                liga = m["liga"]
+                pais = m["pais"]
 
-            hora = m["hora"]
-            row = busca_id_bot(bot_regs, id_partido)
-            if row:
-                bot_reg = bot_regs[row - 1] # noqa
+                hora = m["hora"]
+                row = busca_id_bot(bot_regs, id_partido)
+                if row:
+                    bot_reg = bot_regs[row - 1] # noqa
 
-                if id_partido not in resultados:
-                    # Verificar viabilidad de PULPO antes del inicio
-                    pulpo_data = None
-                    max_minuto_pulpo = None
-                    try:
-                        # Intentar obtener predicción PULPO para este partido
-                        pulpo_data = predict_match_by_id(match_id=id_partido)
-                        # pprint.pprint(pulpo_data)  # noqa
-                        if pulpo_data and pulpo_data.get('bet_decision') == 'BET':
-                            minutes_to_bet = pulpo_data.get('minutes_to_bet', [])
-                            if minutes_to_bet:
-                                max_minuto_pulpo = max(minutes_to_bet)
-                                bet_window = pulpo_data["bet_window"]
-                                print(
-                                    f'🐙 PULPO: {id_partido} | {home} vs {away} |'
-                                    f' BET {bet_window}'
-                                )
-                            else:
-                                # Si BET pero no hay minutes_to_bet, no es viable
-                                pulpo_data = None
-                        else:
-                            # Si no es BET, no guardamos los datos
-                            pulpo_data = None
-                    except Exception as e:
-                        print(f'Error al obtener PULPO para {id_partido}: {e}')
+                    if id_partido not in resultados:
+                        # Verificar viabilidad de PULPO antes del inicio
                         pulpo_data = None
+                        max_minuto_pulpo = None
+                        try:
+                            # Intentar obtener predicción PULPO para este partido
+                            pulpo_data = predict_match_by_id(match_id=id_partido)
+                            # pprint.pprint(pulpo_data)  # noqa
+                            if pulpo_data and pulpo_data.get('bet_decision') == 'BET':
+                                minutes_to_bet = pulpo_data.get('minutes_to_bet', [])
+                                if minutes_to_bet:
+                                    max_minuto_pulpo = max(minutes_to_bet)
+                                    bet_window = pulpo_data["bet_window"]
+                                    print(
+                                        f'🐙 PULPO: {id_partido} | {home} vs {away} |'
+                                        f' BET {bet_window}'
+                                    )
+                                else:
+                                    # Si BET pero no hay minutes_to_bet, no es viable
+                                    pulpo_data = None
+                            else:
+                                # Si no es BET, no guardamos los datos
+                                pulpo_data = None
+                        except Exception as e:
+                            print(f'Error al obtener PULPO para {id_partido}: {e}')
+                            pulpo_data = None
 
-                    resultados[id_partido] = {
-                        "liga": liga,
-                        "home": home,
-                        "away": away,
-                        "hora": hora,
-                        "pais": pais,
-                        "url": m.get("url", ""),
-                        "home_score": 0,
-                        "away_score": 0,
-                        "red_card_home": False,
-                        "red_card_away": False,
-                        "termino": False,
-                        "gana": None,
-                        "sigue": True,
-                        "minuto": None,
-                        "seguimiento": [],
-                        "pulpo_candidato": pulpo_data is not None,  # Tiene potencial
-                        "pulpo_viable": False,  # Se activa solo si 1er gol < 35
-                        "max_minuto_pulpo": max_minuto_pulpo,
-                        "pulpo_data": pulpo_data  # Guardamos toda la respuesta
-                    }
+                        resultados[id_partido] = {
+                            "liga": liga,
+                            "home": home,
+                            "away": away,
+                            "hora": hora,
+                            "pais": pais,
+                            "url": m.get("url", ""),
+                            "home_score": 0,
+                            "away_score": 0,
+                            "red_card_home": False,
+                            "red_card_away": False,
+                            "termino": False,
+                            "gana": None,
+                            "sigue": True,
+                            "minuto": None,
+                            "seguimiento": [],
+                            "pulpo_candidato": pulpo_data is not None,  # Tiene potencial
+                            "pulpo_viable": False,  # Se activa solo si 1er gol < 35
+                            "max_minuto_pulpo": max_minuto_pulpo,
+                            "pulpo_data": pulpo_data  # Guardamos toda la respuesta
+                        }
 
-                    # print('pulpo_viable:', resultados[id_partido]["pulpo_viable"])
-                    # input('Enter para continuar...')
+                        # print('pulpo_viable:', resultados[id_partido]["pulpo_viable"])
+                        # input('Enter para continuar...')
 
-                if resultados[id_partido]["sigue"]:
-                    score = get_score(m, _matches)
-                    if score:
-                        home_score, away_score, red_card_home, red_card_away, minuto = score # noqa
-                        if  resultados[id_partido]["red_card_home"] != red_card_home or resultados[id_partido]["red_card_away"] != red_card_away: # noqa
-                            resultados[id_partido]["red_card_home"] = red_card_home
-                            resultados[id_partido]["red_card_away"] = red_card_away
-                            quien = home if red_card_home else away
-                            es_pulpo = resultados[id_partido].get("pulpo_viable", False)
-                            roja(
-                                bot,
-                                id_partido, hora, minuto,
-                                pais, liga, home, away,
-                                home_score, away_score,
-                                quien, es_pulpo
-                            )
-
-                            if WKS:
-                                try:
-                                    if red_card_home:
-                                        WKS.update_acell(f'AO{row}', minuto)
-                                    if red_card_away:
-                                        WKS.update_acell(f'AP{row}', minuto)
-                                except Exception as e: # noqa
-                                    pass
-
-                        if home_score != resultados[id_partido]["home_score"] or away_score != resultados[id_partido]["away_score"]: # noqa
-                            quien = ''
-                            if resultados[id_partido]["home_score"] == '-':
-                                inicio(
+                    if resultados[id_partido]["sigue"]:
+                        score = get_score(m, _matches)
+                        if score:
+                            home_score, away_score, red_card_home, red_card_away, minuto = score # noqa
+                            if  resultados[id_partido]["red_card_home"] != red_card_home or resultados[id_partido]["red_card_away"] != red_card_away: # noqa
+                                resultados[id_partido]["red_card_home"] = red_card_home
+                                resultados[id_partido]["red_card_away"] = red_card_away
+                                quien = home if red_card_home else away
+                                es_pulpo = resultados[id_partido].get("pulpo_viable", False)
+                                roja(
                                     bot,
                                     id_partido, hora, minuto,
                                     pais, liga, home, away,
                                     home_score, away_score,
-                                    quien
-                                ) # noqa
-                            else:
-                                score = home_score + away_score
-                                prev_home = resultados[id_partido]['home_score']
-                                prev_away = resultados[id_partido]['away_score']
-                                prev_score = prev_home + prev_away
-
-                                # Detectar quién anotó o a quién le anularon
-                                if prev_home != home_score:
-                                    quien = home
-                                if away_score != prev_away:
-                                    quien = away
-
-                                # Verificar si el marcador disminuyó (gol anulado)
-                                score_decreased = (
-                                    type(score) is int
-                                    and type(prev_score) is int
-                                    and score < prev_score
+                                    quien, es_pulpo
                                 )
-                                es_pulpo = resultados[id_partido].get(
-                                    'pulpo_viable', False
-                                )
-                                if score_decreased:
-                                    gol_anulado(
-                                        bot, id_partido, hora, minuto,
+
+                                if WKS:
+                                    try:
+                                        if red_card_home:
+                                            WKS.update_acell(f'AO{row}', minuto)
+                                        if red_card_away:
+                                            WKS.update_acell(f'AP{row}', minuto)
+                                    except Exception as e: # noqa
+                                        pass
+
+                            if home_score != resultados[id_partido]["home_score"] or away_score != resultados[id_partido]["away_score"]: # noqa
+                                quien = ''
+                                if resultados[id_partido]["home_score"] == '-':
+                                    inicio(
+                                        bot,
+                                        id_partido, hora, minuto,
                                         pais, liga, home, away,
-                                        home_score, away_score, quien,
-                                        es_pulpo
-                                    )
-                                # Gol normal (marcador aumentó)
-                                elif type(score) is int and score < 4:
-                                    # Activar/desactivar PULPO en el primer gol
-                                    if prev_score == 0:  # Es el primer gol
-                                        es_candidato = resultados[id_partido].get(
-                                            'pulpo_candidato', False
-                                        )
-                                        if es_candidato:
-                                            try:
-                                                minuto_num = int(
-                                                    minuto.replace("'", "")
-                                                    .replace("+", "")
-                                                    .split(":")[0]
-                                                )
-                                                if minuto_num < 35:
-                                                    # Activar PULPO
-                                                    res = resultados[id_partido]
-                                                    res['pulpo_viable'] = True
-                                                    print(
-                                                        f'✅ PULPO ACTIVADO: '
-                                                        f'1er gol min {minuto_num}'
-                                                    )
-                                                else:
-                                                    # Desactivar PULPO
-                                                    res = resultados[id_partido]
-                                                    res['pulpo_viable'] = False
-                                                    res['pulpo_candidato'] = False
-                                                    print(
-                                                        f'❌ PULPO DESCARTADO: '
-                                                        f'1er gol min {minuto_num}'
-                                                    )
-                                            except (ValueError, AttributeError):
-                                                # Si no se puede parsear
-                                                res = resultados[id_partido]
-                                                res['pulpo_viable'] = False
-                                                res['pulpo_candidato'] = False
+                                        home_score, away_score,
+                                        quien
+                                    ) # noqa
+                                else:
+                                    score = home_score + away_score
+                                    prev_home = resultados[id_partido]['home_score']
+                                    prev_away = resultados[id_partido]['away_score']
+                                    prev_score = prev_home + prev_away
 
-                                    match_url = resultados[id_partido].get('url')
-                                    pulpo_data = resultados[id_partido].get(
-                                        'pulpo_data'
-                                    )
-                                    max_min_pulpo = resultados[id_partido].get(
-                                        'max_minuto_pulpo'
+                                    # Detectar quién anotó o a quién le anularon
+                                    if prev_home != home_score:
+                                        quien = home
+                                    if away_score != prev_away:
+                                        quien = away
+
+                                    # Verificar si el marcador disminuyó (gol anulado)
+                                    score_decreased = (
+                                        type(score) is int
+                                        and type(prev_score) is int
+                                        and score < prev_score
                                     )
                                     es_pulpo = resultados[id_partido].get(
                                         'pulpo_viable', False
                                     )
-                                    gol(
-                                        bot, id_partido, hora, minuto,
-                                        pais, liga, home, away,
-                                        home_score, away_score, quien,
-                                        match_url, prev_score,
-                                        max_min_pulpo, es_pulpo, pulpo_data
-                                    )
-                                else:
-                                    if type(score) is str:
-                                        print(f'{id_partido} {hora} | {minuto} | {pais} {liga} | {home} vs {away} AUN NO COMIENZA') # noqa
-                                    else:
-                                        # Evaluar con >3 goles para apuestas de PULPO
-                                        resultados[id_partido]['gana'] = False
-                                        resultados[id_partido]['sigue'] = False
+                                    if score_decreased:
+                                        gol_anulado(
+                                            bot, id_partido, hora, minuto,
+                                            pais, liga, home, away,
+                                            home_score, away_score, quien,
+                                            es_pulpo
+                                        )
+                                    # Gol normal (marcador aumentó)
+                                    elif type(score) is int and score < 4:
+                                        # Activar/desactivar PULPO en el primer gol
+                                        if prev_score == 0:  # Es el primer gol
+                                            es_candidato = resultados[id_partido].get(
+                                                'pulpo_candidato', False
+                                            )
+                                            if es_candidato:
+                                                try:
+                                                    minuto_num = int(
+                                                        minuto.replace("'", "")
+                                                        .replace("+", "")
+                                                        .split(":")[0]
+                                                    )
+                                                    if minuto_num < 35:
+                                                        # Activar PULPO
+                                                        res = resultados[id_partido]
+                                                        res['pulpo_viable'] = True
+                                                        print(
+                                                            f'✅ PULPO ACTIVADO: '
+                                                            f'1er gol min {minuto_num}'
+                                                        )
+                                                    else:
+                                                        # Desactivar PULPO
+                                                        res = resultados[id_partido]
+                                                        res['pulpo_viable'] = False
+                                                        res['pulpo_candidato'] = False
+                                                        print(
+                                                            f'❌ PULPO DESCARTADO: '
+                                                            f'1er gol min {minuto_num}'
+                                                        )
+                                                except (ValueError, AttributeError):
+                                                    # Si no se puede parsear
+                                                    res = resultados[id_partido]
+                                                    res['pulpo_viable'] = False
+                                                    res['pulpo_candidato'] = False
+
                                         match_url = resultados[id_partido].get('url')
+                                        pulpo_data = resultados[id_partido].get(
+                                            'pulpo_data'
+                                        )
+                                        max_min_pulpo = resultados[id_partido].get(
+                                            'max_minuto_pulpo'
+                                        )
                                         es_pulpo = resultados[id_partido].get(
                                             'pulpo_viable', False
                                         )
-                                        if not es_pulpo:
-                                            pierde(
-                                                bot, id_partido, hora, minuto,
-                                                pais, liga, home, away,
-                                                home_score, away_score, quien,
-                                                match_url, es_pulpo
-                                            )
+                                        gol(
+                                            bot, id_partido, hora, minuto,
+                                            pais, liga, home, away,
+                                            home_score, away_score, quien,
+                                            match_url, prev_score,
+                                            max_min_pulpo, es_pulpo, pulpo_data
+                                        )
+                                    else:
+                                        if type(score) is str:
+                                            print(f'{id_partido} {hora} | {minuto} | {pais} {liga} | {home} vs {away} AUN NO COMIENZA') # noqa
                                         else:
-                                            gana(
-                                                bot, id_partido, hora, minuto,
-                                                pais, liga, home, away,
-                                                home_score, away_score, quien,
-                                                match_url, es_pulpo
-                                            )
-
-                        else:
-                            score = home_score + away_score
-                            if type(score) is str:
-                                print(f'{id_partido} {hora} | {minuto} | {pais} {liga} | {home} vs {away} AUN NO COMIENZA') # noqa
-                            else:
-                                max_min_pulpo = resultados[id_partido].get(
-                                    'max_minuto_pulpo'
-                                )
-                                if max_min_pulpo is not None:
-                                    try:
-                                        minuto_clean = minuto.replace(
-                                            "'", ""
-                                        ).replace("+", "")
-                                        minuto_num = int(minuto_clean.split(":")[0])
-                                        if minuto_num > max_min_pulpo and score < 1:
+                                            # Evaluar con >3 goles para apuestas de PULPO
+                                            resultados[id_partido]['gana'] = False
                                             resultados[id_partido]['sigue'] = False
-                                            no_viable_pulpo(
-                                                bot, id_partido, hora, minuto, pais, liga,
-                                                home, away, max_min_pulpo
+                                            match_url = resultados[id_partido].get('url')
+                                            es_pulpo = resultados[id_partido].get(
+                                                'pulpo_viable', False
                                             )
-                                            continue
-                                    except (ValueError, AttributeError):
-                                        pass
+                                            if not es_pulpo:
+                                                pierde(
+                                                    bot, id_partido, hora, minuto,
+                                                    pais, liga, home, away,
+                                                    home_score, away_score, quien,
+                                                    match_url, es_pulpo
+                                                )
+                                            else:
+                                                gana(
+                                                    bot, id_partido, hora, minuto,
+                                                    pais, liga, home, away,
+                                                    home_score, away_score, quien,
+                                                    match_url, es_pulpo
+                                                )
 
-                                print(f'{id_partido} {hora} | {minuto} | {pais} {liga} | {home} vs {m["away"]} {home_score} - {away_score}') # noqa
+                            else:
+                                score = home_score + away_score
+                                if type(score) is str:
+                                    print(f'{id_partido} {hora} | {minuto} | {pais} {liga} | {home} vs {away} AUN NO COMIENZA') # noqa
+                                else:
+                                    max_min_pulpo = resultados[id_partido].get(
+                                        'max_minuto_pulpo'
+                                    )
+                                    if max_min_pulpo is not None:
+                                        try:
+                                            minuto_clean = minuto.replace(
+                                                "'", ""
+                                            ).replace("+", "")
+                                            minuto_num = int(minuto_clean.split(":")[0])
+                                            if minuto_num > max_min_pulpo and score < 1:
+                                                resultados[id_partido]['sigue'] = False
+                                                no_viable_pulpo(
+                                                    bot, id_partido, hora, minuto, pais, liga,
+                                                    home, away, max_min_pulpo
+                                                )
+                                                continue
+                                        except (ValueError, AttributeError):
+                                            pass
 
-                        resultados[id_partido]['minuto'] = minuto
-                        resultados[id_partido]['home_score'] = home_score
-                        resultados[id_partido]['away_score'] = away_score
-                        if minuto == 'FT':
+                                    print(f'{id_partido} {hora} | {minuto} | {pais} {liga} | {home} vs {m["away"]} {home_score} - {away_score}') # noqa
+
+                            resultados[id_partido]['minuto'] = minuto
+                            resultados[id_partido]['home_score'] = home_score
+                            resultados[id_partido]['away_score'] = away_score
+                            if minuto == 'FT':
+                                resultados[id_partido]['sigue'] = False
+                                resultados[id_partido]['termino'] = True
+                                # Set gana based on final score
+                                final_total = home_score + away_score
+                                resultados[id_partido]['gana'] = final_total < 4
+                                match_url = resultados[id_partido].get('url')
+                                es_pulpo = resultados[id_partido].get(
+                                    'pulpo_viable', False
+                                )
+                                ft(
+                                    bot, id_partido, hora, pais, liga,
+                                    home, away, home_score, away_score,
+                                    match_url, es_pulpo
+                                )
+                            resultados[id_partido]['seguimiento'].append(score)
+                        else:
                             resultados[id_partido]['sigue'] = False
-                            resultados[id_partido]['termino'] = True
-                            # Set gana based on final score
-                            final_total = home_score + away_score
-                            resultados[id_partido]['gana'] = final_total < 4
-                            match_url = resultados[id_partido].get('url')
-                            es_pulpo = resultados[id_partido].get(
-                                'pulpo_viable', False
-                            )
-                            ft(
-                                bot, id_partido, hora, pais, liga,
-                                home, away, home_score, away_score,
-                                match_url, es_pulpo
-                            )
-                        resultados[id_partido]['seguimiento'].append(score)
-                    else:
-                        resultados[id_partido]['sigue'] = False
-                        print(f'{id_partido} -> {m["liga"]} {home} vs {m["away"]} Hora: {hora} No encontrado') # noqa
-                        # input('Continuar?')
+                            print(f'{id_partido} -> {m["liga"]} {home} vs {m["away"]} Hora: {hora} No encontrado') # noqa
+                            # input('Continuar?')
 
-        lost = []
-        complete = []
-        _seguimiento = []
-        for id_partido, data in resultados.items():
-            complete.append(data['termino'])
-            if data['gana'] is not None:
-                lost.append(data['gana'])  # Add True if won, False if lost
-            else:
-                _seguimiento.append(data['sigue'])
+            lost = []
+            complete = []
+            _seguimiento = []
+            for id_partido, data in resultados.items():
+                complete.append(data['termino'])
+                if data['gana'] is not None:
+                    lost.append(data['gana'])  # Add True if won, False if lost
+                else:
+                    _seguimiento.append(data['sigue'])
 
-        # Only exit if ALL matches have been decided (gana is not None) AND ALL have lost
-        if len(lost) == len(resultados) and not any(lost):
-            print('Todos los partidos han perdido -3.5 ❌')
-            if web is not None:
-                web.close()
-            return
-
-        if all(complete):
-            print('Todos los partidos han terminado. ✅')
-            if web is not None:
-                web.close()
-            return
-        else:
-            if any(_seguimiento):
-                time.sleep(60)  # Espera 1 minuto antes de volver a verificar
-                continue  # Siguiente iteración del bucle while
-            else:
-                print('No hay partidos en seguimiento.')
+            # Only exit if ALL matches have been decided (gana is not None) AND ALL have lost
+            if len(lost) == len(resultados) and not any(lost):
+                print('Todos los partidos han perdido -3.5 ❌')
                 if web is not None:
                     web.close()
                 return
+
+            if all(complete):
+                print('Todos los partidos han terminado. ✅')
+                if web is not None:
+                    web.close()
+                return
+            else:
+                if any(_seguimiento):
+                    time.sleep(60)  # Espera 1 minuto antes de volver a verificar
+                    continue  # Siguiente iteración del bucle while
+                else:
+                    print('No hay partidos en seguimiento.')
+                    if web is not None:
+                        web.close()
+                    return
 
         except KeyboardInterrupt:
             print('\nFin...')

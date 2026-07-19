@@ -1,4 +1,5 @@
 import os
+import time
 import logging # noqa
 import argparse
 import pprint # noqa
@@ -32,6 +33,8 @@ def main(path_matches: str, overwrite: bool = False):
     web = Web(multiples=True)
     result = []
     matches = get_json_list(path_matches)
+    total = len(matches)
+    print(f'[*] Partidos a revisar: {total}')
     try:
         for n, match in enumerate(matches):
             link = match['url']
@@ -65,6 +68,10 @@ def main(path_matches: str, overwrite: bool = False):
                 web.open(link)
                 web.wait(3)
                 remueve_anuncios(web)
+            if status == 'srf':
+                msj = get_match_error(match)
+                logging.info(msj + '\n')
+                continue
             if status in ['aplazado']:
                 msj = get_match_error(match)
                 # logging.info(msj + '\nAplazado\n')
@@ -90,6 +97,8 @@ def main(path_matches: str, overwrite: bool = False):
                     msj = get_match_error(match)
                     logging.info(msj + '\n')
         web.close()
+        print('[*] Esperando 5 segundos...')
+        time.sleep(5)
         if len(result) > 0:
             filename_date = filename[:8]
             path_result_date = path(path_result, filename_date)

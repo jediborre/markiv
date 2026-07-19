@@ -42,9 +42,19 @@ TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID').split(',')
 
 
 def clean_american_odds(odds):
-    """Quita el símbolo + de los momios americanos si lo tienen."""
-    if isinstance(odds, str) and odds.startswith('+'):
-        return odds[1:]
+    """Quita el símbolo +, comillas simples/dobles y convierte a número si es posible."""
+    if isinstance(odds, str):
+        # Quitar comillas simples y dobles
+        odds = odds.strip("'\"")
+        if odds.startswith('+'):
+            odds = odds[1:]
+        try:
+            # Intentar convertir a float si tiene punto decimal, sino a int
+            if '.' in odds:
+                return float(odds)
+            return int(odds)
+        except ValueError:
+            return odds
     return odds
 
 
@@ -105,9 +115,9 @@ def write_sheet_row(wks, row, match):
         ambos_si, ambos_no = [clean_american_odds(x) for x in match['ambos']['american']]
     else:
         ambos_si, _, ambos_no = [clean_american_odds(x) for x in match['ambos']['american']]
-    handicap_h_1, handicap_a_1 = match['handicap']['odds']['0, -0.5']['decimal'] # noqa
-    handicap_h_2, handicap_a_2 = match['handicap']['odds']['-1']['decimal']
-    handicap_h_3, handicap_a_3 = match['handicap']['odds']['-2']['decimal'] if '-2' in match['handicap']['odds'] else ('', '') # noqa
+    handicap_h_1, handicap_a_1 = [clean_american_odds(x) for x in match['handicap']['odds']['0, -0.5']['decimal']] # noqa
+    handicap_h_2, handicap_a_2 = [clean_american_odds(x) for x in match['handicap']['odds']['-1']['decimal']]
+    handicap_h_3, handicap_a_3 = [clean_american_odds(x) for x in match['handicap']['odds']['-2']['decimal']] if '-2' in match['handicap']['odds'] else ('', '') # noqa
     gol_35_p, gol_35_m = [clean_american_odds(x) for x in match['goles']['odds']['3.5']['american']]
     gol_45_p, gol_45_m = [clean_american_odds(x) for x in match['goles']['odds']['4.5']['american']] if '4.5' in match['goles']['odds'] else ('', '') # noqa
 
@@ -294,14 +304,6 @@ def send_matches(path_matches: str, skip_wait: bool = False):
 
 
 def process_match(wks, bot, match: dict, bot_regs):
-    id = match['id']
-    hay_docs = busca_id_bot(bot_regs, id)
-    if not hay_docs:
-        row = get_last_row(wks)
-        write_sheet_row(wks, row, match)
-    else:
-        print(f'{id} Ya se encuentra en la hoja')
-
     return match
 
 
