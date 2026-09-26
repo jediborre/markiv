@@ -275,11 +275,15 @@ def get_score(m, _matches):
         # }] # noqa
         record = next((match for match in _matches[liga] if match['home'] == home and match['away'] == away), None) # noqa
         if record:
-            home_score, away_score = record['score'].split(':') if record else (None, None) # noqa
-            _home_score, _away_score = home_score, away_score
-            # Extract numeric part only (e.g., '2pen.' -> 2, '1' -> 1, '-' -> 0)
-            home_score_str = home_score.strip()
-            away_score_str = away_score.strip()
+            raw_score = (record['score'] or '').replace('\xa0', ' ').strip()
+            # Flashscore ahora usa '-' como separador del marcador (antes ':'): '2-1'
+            score_parts = raw_score.split('-')
+            if len(score_parts) == 2 and any(c.isdigit() for c in score_parts[0]) and any(c.isdigit() for c in score_parts[1]): # noqa
+                home_score_str, away_score_str = score_parts[0].strip(), score_parts[1].strip()
+            else:
+                # Sin marcador / aplazado: lugar reservado '-'
+                home_score_str, away_score_str = '-', '-'
+            _home_score, _away_score = home_score_str, away_score_str
             if home_score_str != '-':
                 # Extract only digits from the score (handles cases like '2pen.')
                 home_score = int(''.join(c for c in home_score_str if c.isdigit()))

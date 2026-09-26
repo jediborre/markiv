@@ -133,16 +133,26 @@ def gsheet(sheet_name):
         logging.error("Google Sheets sheet name not set.")
         return None
 
-    try:
-        path_script = os.path.dirname(os.path.realpath(__file__))
-        service_file = path(path_script, GSHEET_AUTH)
-        gc = gspread.service_account(filename=service_file)
-        spreadsheet = gc.open(SPREADSHEET_NAME)
-        worksheet = spreadsheet.worksheet(sheet_name)
-        return worksheet
-    except Exception as e:
-        logging.error(f"Error accediendo a Google Sheets: {e}")
-        return None
+    retries = 5
+    delay = 10
+    for attempt in range(retries):
+        try:
+            path_script = os.path.dirname(os.path.realpath(__file__))
+            service_file = path(path_script, GSHEET_AUTH)
+            gc = gspread.service_account(filename=service_file)
+            spreadsheet = gc.open(SPREADSHEET_NAME)
+            worksheet = spreadsheet.worksheet(sheet_name)
+            return worksheet
+        except Exception as e:
+            if attempt < retries - 1:
+                logging.warning(
+                    f"Error accediendo a Google Sheets "
+                    f"(intento {attempt + 1}/{retries}): {e}"
+                )
+                time.sleep(delay)
+            else:
+                logging.error(f"Error accediendo a Google Sheets: {e}")
+                return None
 
 
 def get_jsons_folder(folder_path):

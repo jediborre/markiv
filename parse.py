@@ -764,12 +764,17 @@ def parse_team_section(matches, dt, team=None, team_name=None, liga=None, debug=
         league_name = re.sub(r'\s+$', '', league_name)
 
         home_team = match.find(class_='h2h__homeParticipant')
-        home_name_el = home_team.find('span', class_='h2h__participantInner') or home_team.find('span', attrs={'data-testid': 'wcl-scores-simple-text-01'})
-        home_team_name = home_name_el.text # noqa
-
         away_team = match.find(class_='h2h__awayParticipant')
-        away_name_el = away_team.find('span', class_='h2h__participantInner') or away_team.find('span', attrs={'data-testid': 'wcl-scores-simple-text-01'})
-        away_team_name = away_name_el.text # noqa
+        if home_team is None or away_team is None:
+            continue
+
+        home_name_el = home_team.find('span', class_='h2h__participantInner') or home_team.find('span', attrs={'data-testid': 'wcl-simple-text-01'}) or home_team.find('span', attrs={'data-testid': 'wcl-scores-simple-text-01'})
+        away_name_el = away_team.find('span', class_='h2h__participantInner') or away_team.find('span', attrs={'data-testid': 'wcl-simple-text-01'}) or away_team.find('span', attrs={'data-testid': 'wcl-scores-simple-text-01'})
+        if home_name_el is None or away_name_el is None:
+            continue
+
+        home_team_name = home_name_el.get_text(strip=True) # noqa
+        away_team_name = away_name_el.get_text(strip=True) # noqa
 
         result_span = match.find('span', class_='h2h__result')
         if result_span is None:
@@ -1259,6 +1264,7 @@ def getHandicap(path_html, filename, web, overwrite=False):
 def parse_handicap(html):
     result = {}
     soup = BeautifulSoup(html, 'html.parser')
+    descartados = []
 
     # Try new structure first
     for bk in ['1xbet', 'bet365']:
@@ -1276,7 +1282,6 @@ def parse_handicap(html):
     if not result:
         odds_row = soup.find_all('div', class_='ui-table__row')
         if odds_row:
-            descartados = []
             for row in odds_row:
                 bookmaker_logo = row.find('img', class_='wcl-logoImage_tPlnM')
                 if bookmaker_logo:
