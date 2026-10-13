@@ -14,6 +14,12 @@
 
 La documentación detallada del proceso y los formatos de datos vive en `docs/flujo-proyecto.md` y `docs/schema.md`. Actualízala cuando cambie el flujo o el schema.
 
+## Pruebas y pruebas de concepto
+
+- Crear todas las pruebas nuevas, prototipos y pruebas de concepto dentro de `tmp/pruebas/` para mantenerlas separadas del código de producción.
+- Usar `tmp/pruebas/` como espacio de trabajo único; no ponerlas en `tmp/json/`, `tmp/html/` ni `tmp/csv/`, que son cachés/datos de ejecución del proyecto.
+- No sobrescribir ni limpiar archivos existentes en `tmp/` que no pertenezcan a la prueba actual.
+
 ## Regla de cambios Git
 
 - Cada cambio solicitado debe quedar en un commit con un mensaje breve en español que resuma la modificación.
