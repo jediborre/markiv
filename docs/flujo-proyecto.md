@@ -155,3 +155,7 @@ Para revisar la preparación de un día, validar que exista `result/<AAAAMMDD>.j
 Si existe calendario pero no hay tarea ODDS, revisar horas parseables, si el partido no empezó ya dentro de la última hora, errores de `wakeup/create_task` o permisos del Programador. Si ODDS se ejecutó pero no notificó, revisar el log de envío, el JSON aceptado, el ID duplicado en `Bot`, la columna G y las variables de entorno.
 
 La tarea diaria **New Matches** no repite ni reconstruye necesariamente el día si se lanza después del inicio de alguno de sus partidos: el scheduler omite los triggers ODDS cuya hora ya pasó, y `cron_matches` descarta horas calculadas anteriores al momento de scrapeo.
+
+### Limpieza de tareas dinámicas completadas
+
+`limpiar_tareas_exitosas.bat` eleva permisos si hace falta, instala la tarea diaria **MarkIV Limpieza diaria** para las 00:00 bajo `SYSTEM` y ejecuta también una limpieza inmediata. `limpiar_tareas_exitosas.ps1` solo examina tareas puntuales `ODDS HHMM N`, `Resultado HHMM N` y `SEG HHMM N` cuyas acciones ejecuten los scripts de este proyecto. Elimina una tarea únicamente si ya corrió, su último resultado es `0`, no tiene próxima ejecución futura y no está activa. Conserva las tareas con errores, las que no han corrido aún y las que están pendientes para una siguiente fecha. El detalle queda en `logs/limpiar_tareas_exitosas.log`; las tareas recurrentes como **New Matches** y las demás tareas no pertenecientes a Mark IV se excluyen.

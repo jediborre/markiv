@@ -9,6 +9,7 @@
 - `send_flashscore.py` agrega partidos nuevos a la pestaña `Bot` de Google Sheets, evita duplicados por ID y delega el aviso prepartido a `send_docsbet.py`.
 - `send_docsbet.process_match` manda un pick solo si la columna G contiene una apuesta válida. No notificar cuando esté vacía, contenga `NO hay data` o contenga `(Solo X) Sin datos para evaluar - ❓ Sin registros suficientes` (la comparación de esta última frase debe ser insensible a mayúsculas/minúsculas).
 - Los picks notificados pasan a `seguimiento_flashscore.py`, programado cinco minutos antes del inicio, para avisos live y resultado. El flujo auxiliar PULPO puede etiquetar eventos pero no debe mandar recomendaciones de `APOSTAR` ni `NO APOSTAR` a Telegram.
+- `limpiar_tareas_exitosas.bat` instala y ejecuta una limpieza diaria a las 00:00: elimina tareas dinámicas ODDS/Resultado/SEG de este proyecto solo si terminaron con resultado `0`; conservar las fallidas, activas y pendientes.
 - `send_docsbet.py` usa Google Sheets y Telegram; no asumir una publicación en Google Docs.
 
 La documentación detallada del proceso y los formatos de datos vive en `docs/flujo-proyecto.md` y `docs/schema.md`. Actualízala cuando cambie el flujo o el schema.
