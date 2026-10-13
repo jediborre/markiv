@@ -312,6 +312,49 @@ bwin (`2`), Betway (`26`), Ladbrokes (`28`), Skybet (`74`), entre otras.
 > trata cualquier 401/403/418 como denegación.
 
 
+### 4.5 Idioma: arquitectura híbrida para preservar el español
+
+**Problema.** El scraping actual usa `flashscore.com.mx`, donde equipos, ligas, países e
+incidentes vienen **en español**. Los feeds del host de la app (`global.lsapp.eu/12602/...`)
+responden en **inglés** e ignoran `Accept-Language` y parámetros `lang` (verificado). El idioma
+lo determina el **project ID**, no un header. Migrar a ese host cambiaría todos los nombres a
+inglés y rompería los filtros de liga ("amistoso", "copa", "femenino"...), el fuzzy-matching de
+H2H y las etiquetas de incidentes.
+
+**Clave: las cuotas no necesitan español.** La respuesta de `ope2` contiene solo números
+(precios) y nombres de casa (1xBet, Unibet); no incluye nombres de equipo ni liga. Por tanto el
+idioma es irrelevante para las cuotas.
+
+**Solución: dos hosts, misma capa de IDs.** El host viejo que el proyecto ya usa
+(`global.flashscore.ninja/201`, `x-fsign: SW9D1eZo`) responde **en español** y sirve todos los
+datos con nombres; el GraphQL de cuotas (proyecto internacional) sirve los precios. Ambos usan
+el **mismo namespace de IDs de evento**: verificado que 12 IDs tomados del calendario español
+devuelven cuotas 1xBet en el GraphQL (12/12).
+
+| Dato | Fuente | Idioma |
+|---|---|---|
+| Calendario `f_1_...` (equipos, liga, país) | `ninja/201` | **Español** |
+| H2H e historiales `df_hh_1_<id>` | `ninja/201` | **Español** |
+| Incidentes `df_sui_1_<id>` (`Gol`, `Tarjeta roja`, `Penal señalado`) | `ninja/201` | **Español** |
+| Estado/marcador `dc_1_<id>` (`DA`/`DE`/`DF`) | `ninja/201` | numérico |
+| Cuotas 1x2 y Over/Under 3.5 (`bookmakerId=417`) | GraphQL `ope2` (`lsapp.eu`) | solo números |
+
+Notas verificadas:
+
+- El host `ninja/201` **sí** da calendario, H2H e incidentes en español
+  (`Etiopía F`, `Guinea Ecuatorial`, `República Checa`, `Gol`, `Tarjeta amarilla`).
+- Pero el feed de cuotas `df_od` de `ninja/201` está **vacío** (1 byte): ese host no publica
+  cuotas. Por eso las cuotas se toman del GraphQL y no del feed español.
+- El `dc_1_` de `ninja/201` trae `DA`/`DE`/`DF` (estado/marcador) pero **no** `EA`/`EB`/`EE`
+  (nombres); esos nombres ya vienen del calendario y del H2H en español, así que no hace falta.
+- Las rojas se etiquetan `Tarjeta roja` en este feed y `parse.py` ya las detecta en español
+  (compara `'tarjeta roja'` en minúsculas), por lo que el parser actual es compatible.
+
+**Conclusión:** migrar a feeds/GraphQL **no** cambia el idioma de los datos que usa la lógica
+del proyecto. Calendario, H2H e incidentes se quedan en el host español `ninja/201` (solo se
+cambia de Selenium a feed), y solo las cuotas salen del GraphQL, que es a-idioma. No se pierde
+compatibilidad con filtros, fuzzy-matching ni con la columna G de Google Sheets.
+
 ## 5. Feed de H2H: una sola petición reemplaza el scrapeo por pestañas
 
 `df_hh_1_<event_id>` devuelve **todo** el bloque de historiales en un solo request (~48–56 KB,
@@ -328,15 +371,17 @@ del local, del visitante y enfrentamientos directos.
 
 ## 6. Mapa de sustitución recomendado (motor directo vs Selenium actual)
 
-| Necesidad del flujo actual | Fuente hoy (Selenium/HTML) | Motor directo propuesto | Estado |
-|---|---|---|---|
-| Calendario del día / mañana | `m.flashscore.com.mx/?d=1` + DOM | `f_1_<off>_<tz>_cs_1_0` (1 request, ~350 partidos) | Verificado |
-| Estado/marcador partido | HTML + `dc_1_` (feed viejo) | `dc_1_<id>` en `lsapp.eu` (más campos) | Verificado |
-| Historiales 5+5 y H2H | Pestañas H2H + "mostrar más" | `df_hh_1_<id>` (1 request) | Verificado |
-| Incidentes gol/penal/roja | `df_sui_1_` (feed viejo) | `df_sui_1_<id>` en `lsapp.eu` | Verificado |
-| Cuotas 1x2 / U3.5 / ambos / handicap | Pestañas de mercados | GraphQL `odds/pq_graphql?` `_hash=ope2` (`findPrematchOddsForBookmaker`) | **Verificado** |
-| Cuotas de **1xBet** específicamente | Pestañas de mercados (sitio) | GraphQL `ope2` con `bookmakerId=417` (`X-GeoIP: MX`) | **Verificado** |
-| Búsqueda / autocomplete | — | `search-service.livesport.services/pq_graphql?` | No probado |
+Los datos con nombres (calendario, H2H, incidentes) se toman del **host español `ninja/201`**
+para preservar el idioma; las cuotas, del **GraphQL** (a-idioma). Ver sección 4.5.
+
+| Necesidad del flujo actual | Fuente hoy (Selenium/HTML) | Motor directo | Host | Estado |
+|---|---|---|---|---|
+| Calendario del día / mañana | `m.flashscore.com.mx/?d=1` + DOM | `f_1_<off>_<tz>_cs_1_0` (1 request, ~330 partidos, **español**) | `ninja/201` | Verificado |
+| Estado/marcador partido | HTML + `dc_1_` | `dc_1_<id>` (`DA`/`DE`/`DF`) | `ninja/201` | Verificado |
+| Historiales 5+5 y H2H | Pestañas H2H + "mostrar más" | `df_hh_1_<id>` (1 request, **español**) | `ninja/201` | Verificado |
+| Incidentes gol/penal/roja | `df_sui_1_` | `df_sui_1_<id>` (`Gol`, `Tarjeta roja`) | `ninja/201` | Verificado |
+| Cuotas 1x2 / U3.5 / ambos / handicap | Pestañas de mercados | GraphQL `ope2` (`findPrematchOddsForBookmaker`) | GraphQL `lsapp.eu` | Verificado |
+| Cuotas de **1xBet** | Pestañas de mercados (sitio) | GraphQL `ope2` con `bookmakerId=417` (`X-GeoIP: MX`) | GraphQL `lsapp.eu` | Verificado |
 
 ### Impacto estimado
 
@@ -372,11 +417,11 @@ del local, del visitante y enfrentamientos directos.
 
 | Fase | Fuente directa | Estado |
 |---|---|---|
-| Calendario/descubrimiento | `f_1_<off>_<tz>_cs_1_0` | Verificado |
-| Estado/marcador | `dc_1_<id>` | Verificado |
-| Historiales 5+5 y H2H | `df_hh_1_<id>` | Verificado |
-| Incidentes (goles/minuto, rojas) | `df_sui_1_<id>` | Verificado |
-| Cuotas 1x2 y Over/Under 3.5 (incl. **1xBet `417**`) | GraphQL `ope2` | Verificado |
+| Calendario/descubrimiento (español) | `f_1_<off>_<tz>_cs_1_0` en `ninja/201` | Verificado |
+| Estado/marcador | `dc_1_<id>` en `ninja/201` | Verificado |
+| Historiales 5+5 y H2H (español) | `df_hh_1_<id>` en `ninja/201` | Verificado |
+| Incidentes (goles/minuto, rojas) (español) | `df_sui_1_<id>` en `ninja/201` | Verificado |
+| Cuotas 1x2 y Over/Under 3.5 (incl. **1xBet** `417`) | GraphQL `ope2` (a-idioma) | Verificado |
 
 Con ello se elimina toda la infraestructura de navegador: `web.py`, arranque de Chrome (~5 s por
 ejecución), petición de proxies públicos y el re-scrapeo del calendario completo cada minuto en
@@ -386,7 +431,9 @@ el seguimiento.
 
 1. **Adaptador de feeds** (`feeds_flashscore.py`) que exponga las funciones del dominio
    (`get_fixtures`, `get_status`, `get_h2h`, `get_incidents`, `get_odds`) sobre los endpoints
-   verificados, dejando el schema legado JSON como adaptador de salida.
+   verificados, dejando el schema legado JSON como adaptador de salida. Los getters con nombres
+   (fixtures, h2h, incidents) apuntan al host español `ninja/201`; `get_odds` apunta al GraphQL.
+   Ver arquitectura híbrida en 4.5 (los IDs son compatibles entre ambos hosts).
 2. **Calendario + H2H + estado**: migrar `scrape_flashcore.py` y `parse.get_team_matches` al
    feed directo; comparar campo a campo (mismos IDs, horas, estados, 5+5 y >3 H2H).
 3. **Cuotas**: adaptar `get_momios` a `ope2` con `bookmakerId=417` (`X-GeoIP: MX`), pidiendo
