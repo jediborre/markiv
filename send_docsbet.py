@@ -29,6 +29,16 @@ parser.add_argument('--cron', action='store_true', help="Programar")
 cron = True
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID').split(',')
+APUESTA_SIN_REGISTROS = '(solo x) sin datos para evaluar - ❓ sin registros suficientes'
+
+
+def tiene_apuesta_valida(apuesta: str) -> bool:
+    apuesta = apuesta.strip()
+    return (
+        apuesta != ''
+        and 'NO hay data' not in apuesta
+        and APUESTA_SIN_REGISTROS not in apuesta.lower()
+    )
 
 
 def process_match(bot_regs, bot, match):
@@ -66,16 +76,14 @@ def process_match(bot_regs, bot, match):
 
         home = bot_reg[3]
         away = bot_reg[4]
-        apuesta = 'VIERNES: ' + bot_reg[6] if bot_reg[6] else ''
+        texto_apuesta = bot_reg[6].strip()
+        apuesta = 'VIERNES: ' + texto_apuesta if texto_apuesta else ''
 
         # resultado = bot_reg[5]
         # bet_viernes es True si:
         # - apuesta no es vacío
         # - NO contiene "NO hay data"
-        bet_viernes = (
-            apuesta != ''
-            and 'NO hay data' not in apuesta
-        )
+        bet_viernes = tiene_apuesta_valida(apuesta)
         # bet_pulpo = resultado_pulpo['bet_decision'] == 'BET'
         apostar = bet_viernes  # or bet_pulpo
         # resultado_pulpo_ = f'PULPO: APUESTA +3.5 {resultado_pulpo["bet_window"]}' if bet_pulpo else '' # noqa
