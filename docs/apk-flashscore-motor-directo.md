@@ -196,21 +196,104 @@ exige 1x2 completo de **1xBet** y Under 3.5 americano en `[-700, -450]`. Por tan
 
 - **Sí** se puede sustituir por este motor: calendario, estado/marcador, incidentes, H2H,
   historiales y estadísticas (todo lo que hoy consume Selenium).
-- **No** se puede sustituir todavía la vía de cuotas de 1xBet con `df_od`. Para eso existe
-  el GraphQL dedicado de cuotas (`global.ds.lsapp.eu/odds/pq_graphql?`).
+- `df_od` **no** sirve para las cuotas del filtro (sin 1xBet y con un subconjunto de casas).
+- **Sí** existe una vía de cuotas completa y verificada: el GraphQL dedicado
+  `global.ds.lsapp.eu/odds/pq_graphql?`, resuelto en la sección 4.4. Entrega 1x2 y Over/Under
+  con la línea 3.5 para 24 casas, pero **tampoco incluye 1xBet** (ver 4.4).
 
-### 4.4 El GraphQL de cuotas requiere parámetros internos
+### 4.4 GraphQL de cuotas: resuelto (funciona sin navegador)
 
-Los endpoints GraphQL responden pero rechazan peticiones genéricas:
+El endpoint **`https://global.ds.lsapp.eu/odds/pq_graphql?`** es el motor real de cuotas de
+la app y **sí se puede invocar directamente**. No es GraphQL de texto: es un esquema de
+**queries persistidas** identificadas por un hash corto.
 
-- `POST` → **418** `Unsupported method for router and for url /pq_graphql`.
-- `GET` (query en la URL o como parámetro) → **400** `Bad Request` (varnish/Guru Meditation).
+**Mecanismo (reconstruido de `oe/e.java`, `ao0/a.java`, `ou0/a.java`):**
 
-La URL termina en `pq_graphql?`, lo que indica que la app añade parámetros de sesión después
-del signo de interrogación. Estos parámetros y el orden/construcción de la query GraphQL
-están en el código ofuscado de red y **no se reproducieron** en esta fase. Obtener cuotas de
-1xBet por esta vía exige reverse-engineering adicional del cliente (headers de sesión,
-parámetros de proyecto, posible PoW/firma) y sujeta a verificación legal.
+- El cliente Apollo compone **GET** con la URL base (que ya termina en `?`) y añade los
+  parámetros: `_hash=<codigo>` + cada variable serializada como `clave=valor`.
+  (`oe/e.java`: `mapB = {"_hash": code}`; luego `?_hash=...&eventId=...&bookmakerId=...`.)
+- El código corto sale de una tabla `sha256(query) -> codigo`; la app solo conoce los códigos,
+  no el texto de la query. El servidor los resuelve server-side.
+- Headers requeridos (interceptor en `n1/m.java` y `hz0/a.java`):
+  `X-Fsign: SW9D1eZo`, `X-Platform: android`, `X-Package: eu.livesport.FlashScore_com`,
+  `X-Version: <versionName>`, `X-GeoIP: <pais>`.
+- Existen dos servicios: el general `global.ds.lsapp.eu/pq_graphql?` (bloqueado en el borde,
+  devuelve 400 de Varnish para cualquier parámetro) y el de cuotas
+  `global.ds.lsapp.eu/odds/pq_graphql?`, que **sí responde**.
+
+**Registro de operaciones de cuotas (`ou0/a.java`, 37 ops).** Las relevantes:
+
+| Constante | Código | Query |
+|---|---|---|
+| `ODDS2_PREMATCH` | `ope2` | `findPrematchOddsForBookmaker` |
+| `ODDS2_LIVE` | `ole2` | odds en vivo |
+| `ODDS2_PREMATCH_BETTING_TYPE_MENU` | `pobtm` | `getPrematchOddsBettingTypeMenu` (catálogo de mercados/casas) |
+| `LEAGUE_DETAIL_FIXTURES_ODDS` | `lpfpo` | cuotas de fixtures de liga |
+| `LEAGUE_DETAIL_RESULTS_ODDS` | `lprpo` | cuotas de resultados de liga |
+| `LEAGUE_DETAIL_SINGLE_EVENT_ODDS` | `lpsepo` | cuotas de un evento de liga |
+| `DETAIL_SUMMARY_ODDS_STATS` | `dsos2` | estadísticas de cuotas |
+| `DETAIL_LINEUPS` / `DETAIL_MISSING_PLAYERS` | `dli2` / `dmp2` | alineaciones / bajas |
+
+**Llamada verificada (prepartido):**
+
+```text
+GET https://global.ds.lsapp.eu/odds/pq_graphql?
+    ?_hash=ope2
+    &eventId=<id8>
+    &bookmakerId=<id>
+    &betType=HOME_DRAW_AWAY        (u OVER_UNDER, BOTH_TEAMS_TO_SCORE, DOUBLE_CHANCE, CORRECT_SCORE)
+    &betScope=FULL_TIME
+Headers: X-Fsign, X-Platform=android, X-Package, X-Version, X-GeoIP, Accept: application/json
+```
+
+`ope2` acepta también `eventParticipantId` (opcional). Variables tomadas de la clase de
+operación `u41/tx.java` (`OddsPrematchOnEvent2Query`). `betType`/`betScope` se serializan como
+strings; los válidos observados son los enum `OddsType` (p. ej. `HOME_DRAW_AWAY`,
+`OVER_UNDER`, `BOTH_TEAMS_TO_SCORE`, `DOUBLE_CHANCE`, `CORRECT_SCORE`) con `betScope=FULL_TIME`
+(`FIRST_HALF`/`SECOND_HALF` no pasan el router). `bookmakerId=0` produce error 500; debe ser un
+ID real. El menú `pobtm` requiere `eventId`, `projectId=12602`, `geoIpCode` y
+`geoIpSubdivisionCode` (p. ej. `US`/`CA`).
+
+**Respuesta real (evento `SrHdsGhD`):**
+
+```json
+{"data":{"findPrematchOddsForBookmaker":{
+  "__typename":"EventOddsOverviewHomeDrawAway","bookmakerId":15,"type":"HOME_DRAW_AWAY",
+  "home":{"value":"1.95","opening":"1.57","active":true,"change":{"type":"UP","previous":"1.57"}},
+  "draw":{"value":"3.1","opening":"3.7","change":{"type":"DOWN","previous":"3.7"}},
+  "away":{"value":"3.4","opening":"4.75","change":{"type":"DOWN","previous":"4.75"}}}}}
+```
+
+Los valores coinciden **exactamente** con los del feed REST `df_od` (Unibet 1.54/3.85/4.4,
+William Hill 1.95/3.1/3.4), lo que confirma que ambas vías sirven los mismos datos.
+
+**Over/Under con líneas — la línea 3.5 que necesita el filtro** (`betType=OVER_UNDER`,
+`betScope=FULL_TIME`, bookmaker 5=Unibet):
+
+```text
+line 1.5   over=1.17  under=3.8
+line 2.5   over=1.62  under=2.02
+line 3.5   over=2.6   under=1.38
+```
+
+Cada `opportunities[]` trae `handicap.value` (la línea) y los precios `over`/`under`, más
+`opening` y `change`. El precio decimal es directamente el campo `decimal` del schema actual;
+convierte a americano con `utils.decimal_american` y aplica el rango `[-700, -450]` sobre el
+Under 3.5. **Este feed cubre el 1x2 completo y el Under 3.5 sin abrir navegador.**
+
+**Casas de apuestas disponibles.** El sondeo de `ope2` (HOME_DRAW_AWAY/FULL_TIME) responde para
+**24 IDs** en 1..119:
+`1, 2, 3, 5, 14, 15, 19, 21, 23, 27, 28, 33, 38, 43, 44, 45, 46, 49, 53, 58, 60, 71, 74, 76`.
+Por cruce con el feed REST `df_od`: **5=Unibet**, **15=William Hill**, **16=bet365** (existe en
+el sistema aunque no cotice en todos los partidos). El nombre de cada casa no está en el APK
+(viene de config remota); el menú `pobtm` solo lista las casas promocionadas por geografía
+(EE.UU.: Kalshi `1221`, Polymarket.usa `1267`). **1xBet no aparece** en el registro de cuotas
+ni en el feed REST; Flashscore no publica 1xBet dentro de su capa de datos de la app.
+
+> El acceso a este endpoint es interno, no una API pública: respeta términos de uso, límites y
+> trata cualquier 401/403/418 como denegación. Verificar también que las casas cotizadas
+> incluyan la que exige el criterio de aceptación antes de migrar.
+
 
 ## 5. Feed de H2H: una sola petición reemplaza el scrapeo por pestañas
 
@@ -234,7 +317,8 @@ del local, del visitante y enfrentamientos directos.
 | Estado/marcador partido | HTML + `dc_1_` (feed viejo) | `dc_1_<id>` en `lsapp.eu` (más campos) | Verificado |
 | Historiales 5+5 y H2H | Pestañas H2H + "mostrar más" | `df_hh_1_<id>` (1 request) | Verificado |
 | Incidentes gol/penal/roja | `df_sui_1_` (feed viejo) | `df_sui_1_<id>` en `lsapp.eu` | Verificado |
-| Cuotas 1x2 / U3.5 / ambos / handicap de **1xBet** | Pestañas de mercados | `df_od_1_<id>` **no sirve** (sin 1xBet); requiere `ds/odds/pq_graphql?` | Bloqueado |
+| Cuotas 1x2 / U3.5 / ambos / handicap | Pestañas de mercados | GraphQL `odds/pq_graphql?` `_hash=ope2` (`findPrematchOddsForBookmaker`) | **Verificado** |
+| Cuotas de **1xBet** específicamente | Pestañas de mercados (sitio) | No publicadas por Flashscore en su capa de datos (ni `df_od` ni GraphQL) | Sin fuente directa |
 | Búsqueda / autocomplete | — | `search-service.livesport.services/pq_graphql?` | No probado |
 
 ### Impacto estimado
@@ -243,8 +327,11 @@ del local, del visitante y enfrentamientos directos.
   incidentes. Hoy `Web.__init__` además espera proxies públicos y 5 s de arranque por
   ejecución; `seguimiento_flashscore` re-descarga el calendario completo (~275 KB) cada
   minuto para seguir unos pocos IDs.
-- El cuello de botella restante sigue siendo 1xBet, que decide la aceptación. Hasta resolver
-  el GraphQL de cuotas, Selenium sigue siendo necesario para las pestañas de mercados.
+- Las cuotas prepartido (1x2 y Over/Under 3.5) **ya no requieren navegador**: el GraphQL
+  `ope2` las entrega estructuradas por casa. Lo que Flashscore **no** publica en esta capa es
+  1xBet, la casa que hoy exige el filtro; si el criterio se mantiene en 1xBet, esa casa sigue
+  necesitando la vía del sitio, o bien cambiar el filtro a una de las 24 casas disponibles
+  (p. ej. Unibet/William Hill) y re-calibrar el rango de aceptación.
 
 ## 7. Riesgos y límites
 
@@ -267,7 +354,16 @@ del local, del visitante y enfrentamientos directos.
 1. Bajo modo sombra (sin escritura en Sheets ni Telegram), migrar calendario, estado y H2H al
    host `global.lsapp.eu` manteniendo el schema legado como adaptador, y comparar campo a
    campo contra la salida actual (mismos IDs, horas, estados, 5+5 y >3 H2H).
-2. Como fase independiente, investigar el contrato de `global.ds.lsapp.eu/odds/pq_graphql?`
-   (parámetros de sesión, construcción de la query) para confirmar si expone 1xBet con la
-   línea Under 3.5; solo entonces retirar Selenium de las pestañas de mercados.
-3. Mantener como fuente de comparación y de respaldo el flujo actual hasta acreditar paridad.
+2. Implementar un adaptador de cuotas prematch sobre el GraphQL `ope2`
+   (`findPrematchOddsForBookmaker`): para cada candidato pedir `HOME_DRAW_AWAY` y `OVER_UNDER`
+   (`betScope=FULL_TIME`) por cada casa cotizada, mapear `decimal` y aplicar el filtro
+   Under 3.5 en `[-700, -450]`. Esto retira Selenium de las pestañas de mercados.
+3. **Decidir el criterio de la casa**: Flashscore no publica 1xBet en su capa de datos (ni en
+   `df_od` ni en el GraphQL). Hay dos caminos:
+   - Cambiar el filtro a una casa disponible (Unibet `5`, William Hill `15`, bet365 `16` u otra
+     de las 24) re-calibrando el rango de aceptación; o
+   - Mantener 1xBet y conservar Selenium únicamente para esa casa, tratándola como excepción.
+   Antes de decidir, medir en modo sombra la paridad de precios y la frecuencia con que cada
+   casa cotiza el Under 3.5 dentro del rango.
+4. Mantener como fuente de comparación y de respaldo el flujo actual hasta acreditar paridad
+   en inclusión/exclusión, IDs, estados y decidedor de picks.

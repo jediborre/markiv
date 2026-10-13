@@ -8,7 +8,7 @@ La documentación describe lo que hace el código presente en el repositorio. La
 
 La evaluación de fuentes de datos y propuesta para un motor alternativo está en [investigacion-fuentes-datos.md](investigacion-fuentes-datos.md).
 
-El análisis del APK oficial de Flashscore (paquete `eu.livesport.FlashScore_com`), su descompilación y los endpoints directos verificados (feeds `/x/feed/` y GraphQL) para sustituir el scraping están en [apk-flashscore-motor-directo.md](apk-flashscore-motor-directo.md). Conclusión principal: calendario, estado, H2H e incidentes pueden obtenerse por feed directo (`global.lsapp.eu`) sin Selenium, pero las cuotas de 1xBet —que deciden la aceptación— no están en ese feed y requieren investigar el GraphQL de cuotas.
+El análisis del APK oficial de Flashscore (paquete `eu.livesport.FlashScore_com`), su descompilación y los endpoints directos verificados (feeds `/x/feed/` y GraphQL) para sustituir el scraping están en [apk-flashscore-motor-directo.md](apk-flashscore-motor-directo.md). Conclusión principal: calendario, estado, H2H, incidentes y cuotas prepartido (1x2 y Over/Under 3.5) pueden obtenerse por feed/GraphQL directo sin Selenium; el GraphQL de cuotas `odds/pq_graphql?` (`_hash=ope2`) está resuelto y verificado. La única pieza sin fuente directa es 1xBet, que Flashscore no publica en su capa de datos.
 
 En este repositorio no se encontró una integración con Google Docs ni un archivo `schema.md` previo. `send_docsbet.py` es un nombre histórico: en el flujo observado se comunica con Google Sheets mediante `gspread` y envía mensajes por Telegram. El esquema de datos que el código escribe en Sheets está documentado en [schema.md](schema.md).
 
