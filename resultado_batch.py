@@ -1,71 +1,57 @@
-from web import Web
+import time
+
+from gspread.exceptions import APIError
 from utils import gsheet
-from parse import status_partido
 from parse import get_marcador_ft
-from parse import remueve_anuncios
-from parse import click_OK_cookies_btn
 
 
 def main():
     wks = gsheet('Bot')
-    hay_resultados = False
     bot_regs = wks.get_all_values()
-    for value in bot_regs:
-        id = value[0]
-        ft = value[42]
-        if id != '' and ft == '':
-            hay_resultados = True
-            break
-    if not hay_resultados:
-        print('No hay resultados pendientes')
-        return
-    acepto_cookies = False
-    web = Web(multiples=True)
+    updates = []
+
     for row, value in enumerate(bot_regs):
-        r = row + 1
-        id = value[0]
+        row_number = row + 1
+        event_id = value[0]
+        if not event_id or value[42]:
+            continue
+
         home = value[3]
         away = value[4]
         hora = value[2]
         pais = value[7]
         liga = value[8]
-        ft = value[42]
-        link = f'https://www.flashscore.com.mx/partido/{id}/#/resumen-del-partido' # noqa
-        if id != '' and ft == '':
-            web.open(link)
-            web.wait(1)
 
-            if not acepto_cookies:
-                acepto_cookies = click_OK_cookies_btn(web)
+        try:
+            marcador = get_marcador_ft(event_id=event_id)
+        except Exception as error:
+            print(row_number, event_id, pais, liga, hora, home, away,
+                  f'Error consultando feed: {error}; hoja sin cambios')
+            continue
 
-            remueve_anuncios(web)
+        if marcador is None:
+            print(row_number, event_id, pais, liga, hora, home, away,
+                  'Feed incompleto o inconsistente; hoja sin cambios')
+            continue
 
-            status = status_partido(web)
-            finalizado = False
-            if status == 'finalizado':
-                finalizado = True
-            elif status == 'aplazado':
-                print(r, id, pais, liga, hora, home, away, 'Aplazado', '-', '-') # noqa
-                wks.update_acell(f'AK{r}', '-')
-                wks.update_acell(f'AL{r}', '-')
-                wks.update_acell(f'AM{r}', '-')
-                wks.update_acell(f'AN{r}', '-')
-                wks.update_acell(f'AQ{r}', '-')
-            else:
-                print(r, id, pais, liga, hora, home, away, 'En Juego', '-', '-') # noqa
-            if finalizado:
-                marcador = get_marcador_ft(web)
-                total_goles = marcador['ft']
-                sheet = marcador['sheet']
-                gol1, gol2, gol3, gol4, rojahome, rojas_away = sheet
-                wks.update_acell(f'AK{r}', gol1)
-                wks.update_acell(f'AL{r}', gol2)
-                wks.update_acell(f'AM{r}', gol3)
-                wks.update_acell(f'AN{r}', gol4)
-                wks.update_acell(f'AO{r}', rojahome)
-                wks.update_acell(f'AP{r}', rojas_away)
-                wks.update_acell(f'AQ{r}', total_goles)
-                print(r, id, pais, liga, hora, home, away, 'Finalizado', gol1, gol2, gol3, gol4, total_goles) # noqa
+        goal_1, goal_2, goal_3, goal_4, red_home, red_away = marcador['sheet']
+        values = [[goal_1, goal_2, goal_3, goal_4, red_home, red_away, marcador['ft']]]
+        updates.append({'range': f'AK{row_number}:AQ{row_number}', 'values': values})
+        print(row_number, event_id, pais, liga, hora, home, away,
+              'Finalizado', marcador['score'], marcador['sheet'])
+
+    if updates:
+        for attempt in range(3):
+            try:
+                wks.batch_update(updates, value_input_option='RAW')
+                print(f'Google Sheets actualizado: {len(updates)} filas')
+                break
+            except APIError as error:
+                if error.response.status_code != 429 or attempt == 2:
+                    raise
+                delay = 60 * (attempt + 1)
+                print(f'Límite de Google Sheets; reintento en {delay}s')
+                time.sleep(delay)
 
 
 if __name__ == '__main__':

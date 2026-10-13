@@ -36,6 +36,9 @@ args = parser.parse_args()
 url_matches_today = 'https://m.flashscore.com.mx/'
 url_matches_tomorrow = 'https://m.flashscore.com.mx/?d=1'
 path_result, path_cron, path_csv, path_json, path_html = prepare_paths('scrape_flashcore.log') # noqa
+days_es = ('Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo')
+months_es = ('enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio',
+             'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre')
 
 
 def main(hoy=False, overwrite=False):
@@ -53,7 +56,7 @@ def main(hoy=False, overwrite=False):
         url = url_matches_tomorrow
 
     fecha = date.strftime('%Y%m%d')
-    fecha_hum = date.strftime('%d %m %Y')
+    fecha_hum = f'{days_es[date.weekday()]} {date.day}, {months_es[date.month - 1].capitalize()} {date.year}'
     path_page_matches = path(path_html, f'{fecha}_matches.html') # noqa
 
     web = Web(multiples=True)
@@ -85,7 +88,8 @@ def main(hoy=False, overwrite=False):
 
     cron_matches(path_matches)
 
-    msj = f'Partidos {fecha_hum}\n{n_matches}-{len(matches)}'
+    periodo = 'Hoy' if hoy else 'Próximos'
+    msj = f'Partidos {periodo} {fecha_hum}\n{n_matches}-{len(matches)}'
     bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
     for chat_id in TELEGRAM_CHAT_ID:
         send_text(

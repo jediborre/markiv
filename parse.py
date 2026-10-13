@@ -3,6 +3,7 @@ import os
 import random
 import pprint
 import logging
+import requests
 from web import Web
 from fuzzywuzzy import fuzz
 from bs4 import BeautifulSoup
@@ -20,6 +21,35 @@ from utils import get_match_error_short
 from filtros import get_ligas_google_sheet
 
 domain = 'https://www.flashscore.com.mx'
+
+
+def get_match_feed(feed_name):
+    url = f'https://global.flashscore.ninja/201/x/feed/{feed_name}'
+    response = requests.get(
+        url,
+        headers={
+            'User-Agent': 'Mozilla/5.0',
+            'Referer': f'{domain}/',
+            'Origin': domain,
+            'x-fsign': 'SW9D1eZo',
+        },
+        timeout=20,
+    )
+    response.raise_for_status()
+    return response.content.decode('utf-8', errors='replace')
+
+
+def parse_flashscore_feed(feed):
+    parsed = []
+    for record in feed.strip('~').split('~'):
+        fields = {}
+        for field in record.split('¬'):
+            key, separator, value = field.partition('÷')
+            if separator:
+                fields.setdefault(key, value)
+        if fields:
+            parsed.append(fields)
+    return parsed
 
 
 def remueve_anuncios_movil(web: Web):
@@ -51,137 +81,102 @@ def remueve_anuncios(web):
         web.wait(1)
 
 
-def get_marcador_ft(web, debug=False):
-    goles_fallos = [
-        'penalti fallado',
-        'gol anulado',
-        'fuera de juego',
-        'fueras de juego'
-    ]
-    goles_ok = [
-        'wcl-icon-soccer',
-        'wcl-icon-incidents-penalty-goal'
-    ]
+def get_marcador_ft(web=None, debug=False, event_id=None):
     try:
-        soup = BeautifulSoup(web.source(), 'html.parser')
-        marcador = soup.find('div', class_='detailScore__wrapper').text.strip()
-        marcador_ft = sum(map(int, marcador.split('-'))) # noqa
+        event_id = event_id or get_event_id(web)
+        if event_id is None:
+            return None
 
-        goles, rojas_home, rojas_away = [], [], []
-        eventos_home = soup.find_all('div', class_='smv__participantRow smv__homeParticipant') # noqa
-        if len(eventos_home) > 0:
-            for evento in eventos_home:
-                minuto = evento.find('div', class_='smv__timeBox').text.strip().replace("'", '') # noqa
-                if minuto != '':
-                    if ':' not in minuto:
-                        minuto = int(minuto) if '+' not in minuto else int(minuto[:2]) # noqa
-                    else:
-                        minuto = minuto.split(':')
-                        minuto = int(minuto[0]) if '+' not in minuto[0] else int(minuto[0][:2]) # noqa
-                    icono = evento.find('div', class_='smv__incidentIcon') # noqa
-                    if icono:
-                        svg = icono.find('svg')
-                        if svg:
-                            incident_icon = svg.get('class')
-                            if incident_icon:
-                            # incident_icon_goal = svg.get('data-testid') # noqa
-                                if 'card-ico' in incident_icon:
-                                    if 'yellowCard-ico' not in incident_icon: # noqa
-                                        # incident_icon = 'redCard-ico'
-                                        rojas_home.append([minuto, 'Home']) # noqa
-                                else:
-                                    gol_text = icono.text.lower()
-                                    if debug:
-                                        print('GOAL Home', gol_text, minuto)
-                                    if all([x not in gol_text for x in goles_fallos]): # noqa
-                                        goles.append([minuto, 'Home'])
-                            else:
-                                incident_icon_goal = svg.get('data-testid')
-                                if incident_icon_goal in goles_ok:
-                                    goles.append([minuto, 'Home'])
+        common_feed = parse_flashscore_feed(get_match_feed(f'dc_1_{event_id}'))
+        match_data = next((row for row in common_feed if row.get('DA') == '3'), None)
+        if match_data is None:
+            return None
 
+        home_score = int(match_data['DE'])
+        away_score = int(match_data['DF'])
+        marcador_ft = home_score + away_score
 
-        eventos_away = soup.find_all('div', class_='smv__participantRow smv__awayParticipant') # noqa
-        if len(eventos_away) > 0:
-            for evento in eventos_away:
-                minuto = evento.find('div', class_='smv__timeBox').text.strip().replace("'", '') # noqa
-                if minuto != '':
-                    if ':' not in minuto:
-                        minuto = int(minuto) if '+' not in minuto else int(minuto[:2]) # noqa
-                    else:
-                        minuto = minuto.split(':')
-                        minuto = int(minuto[0]) if '+' not in minuto[0] else int(minuto[0][:2]) # noqa
-                    icono = evento.find('div', class_='smv__incidentIcon') # noqa
-                    if icono:
-                        svg = icono.find('svg')
-                        if svg:
-                            incident_icon = svg.get('class')
-                            if incident_icon:
-                            # incident_icon_goal = svg.get('data-testid') # noqa
-                                if 'card-ico' in incident_icon:
-                                    if 'yellowCard-ico' not in incident_icon: # noqa
-                                        rojas_away.append([minuto, 'Away']) # noqa
-                                else:
-                                    gol_text = icono.text.lower()
-                                    if debug:
-                                        print('GOAL Away', gol_text, minuto)
-                                    if all([x not in gol_text for x in goles_fallos]): # noqa
-                                        goles.append([minuto, 'Away']) # noqa
-                            else:
-                                incident_icon_goal = svg.get('data-testid')
-                                if incident_icon_goal in goles_ok:
-                                    goles.append([minuto, 'Away'])
+        incidents_feed = parse_flashscore_feed(get_match_feed(f'df_sui_1_{event_id}'))
+        goles, penales, rojas_home, rojas_away = [], [], [], []
+        for incident in incidents_feed:
+            incident_type = incident.get('IE')
+            incident_label = incident.get('IK', '').lower()
+            team = 'Home' if incident.get('IA') == '1' else 'Away'
+            minute_match = re.match(r"\s*(\d+(?:\+\d+)?)", incident.get('IB', ''))
+            if minute_match is None:
+                continue
+            minute = minute_match.group(1)
 
-        total_goles = str(len(goles))
-        goles_ordenados = sorted(goles, key=lambda x: x[0])
-        rojas_home_ordenadas = sorted(rojas_home, key=lambda x: x[0]) # noqa
-        rojas_away_ordenadas = sorted(rojas_away, key=lambda x: x[0]) # noqa
+            if incident_type in ('3', '4'):
+                goles.append([minute, team])
+            elif incident_type == '5' and not any(text in incident_label for text in (
+                'missed', 'fallado', 'anulado', 'cancelado'
+            )):
+                penales.append([minute, team])
+            elif 'red card' in incident_label or 'tarjeta roja' in incident_label:
+                (rojas_home if team == 'Home' else rojas_away).append([minute, team])
 
-        rojas_sheet = []
+        minute_value = lambda value: tuple(int(part) for part in value.split('+'))
+        if len(goles) > marcador_ft:
+            logging.warning('Los incidentes de gol exceden el marcador final %s-%s (%s eventos)',
+                            home_score, away_score, len(goles))
+            return None
+        penales.sort(key=lambda x: minute_value(x[0]))
+        for minute, team in penales[:marcador_ft - len(goles)]:
+            goles.append([minute, team])
+        if len(goles) != marcador_ft:
+            logging.warning('No coincide el feed de goles con el marcador final: %s-%s, goles=%s, penales=%s',
+                            home_score, away_score, len(goles), len(penales))
+            return None
+
+        total_goles = str(marcador_ft)
+        goles_ordenados = sorted(goles, key=lambda x: minute_value(x[0]))
+        rojas_home_ordenadas = sorted(rojas_home, key=lambda x: minute_value(x[0]))
+        rojas_away_ordenadas = sorted(rojas_away, key=lambda x: minute_value(x[0]))
+
         goles_sheet = ['-', '-', '-', '-']
-        if len(goles_ordenados) > 0:
-            for n, (min, equipo) in enumerate(goles_ordenados): # noqa
-                if n > 3:
-                    break
-                goles_sheet[n] = str(min) + 'L' if equipo == 'Home' else str(min) + '' # noqa
+        for index, (minute, team) in enumerate(goles_ordenados[:4]):
+            goles_sheet[index] = f'{minute}L' if team == 'Home' else str(minute)
 
-        if len(rojas_home_ordenadas) > 0:
-            for n, (min, equipo) in enumerate(rojas_home_ordenadas): # noqa
-                if n > 0:
-                    break
-                rojas_sheet.append(min)
-        else:
-            rojas_sheet.append('')
-
-        if len(rojas_away_ordenadas) > 0:
-            for n, (min, equipo) in enumerate(rojas_away_ordenadas): # noqa
-                if n > 0:
-                    break
-                rojas_sheet.append(min)
-        else:
-            rojas_sheet.append('')
-
+        rojas_sheet = [rojas_home_ordenadas[0][0] if rojas_home_ordenadas else '',
+                       rojas_away_ordenadas[0][0] if rojas_away_ordenadas else '']
         sheet = goles_sheet + rojas_sheet
-        # gol1, gol2, gol3, gol4, rojahome, rojas_away = sheet
-
-        if marcador_ft != int(total_goles):
-            sheet = ['', '', '', '', '', '']
-            logging.info(f'Error en el marcador {marcador_ft} {total_goles}') # noqa
-            total_goles = '-'
 
         result = {
             'ft': total_goles,
+            'score': [home_score, away_score],
             'sheet': sheet,
             'goles': goles_ordenados,
             'rojas_home': rojas_home_ordenadas,
-            'rojas_away': rojas_away_ordenadas
+            'rojas_away': rojas_away_ordenadas,
         }
         if debug:
             pprint.pprint(result)
         return result
+    except (AttributeError, KeyError, requests.RequestException, TypeError, ValueError) as error:
+        logging.info('No se pudieron obtener los goles desde el feed de Flashscore: %s', error)
+        return None
 
-    except AttributeError:
-        print("No se pudieron encontrar los goles. Revisa la estructura del HTML.") # noqa
+
+def get_event_id(web):
+    soup = BeautifulSoup(web.source(), 'html.parser')
+    environment = soup.find('script', string=re.compile(r'window\.environment\s*='))
+    source = environment.string if environment else ''
+    event_id_match = re.search(r'"event_id_c"\s*:\s*"([^"]+)"', source or '')
+    if event_id_match:
+        return event_id_match.group(1)
+
+    current_url = getattr(getattr(web, 'driver', None), 'current_url', '')
+    match_id = re.search(r'[?&]mid=([A-Za-z0-9]+)', current_url)
+    return match_id.group(1) if match_id else None
+
+
+def get_resultado_feed(web=None, event_id=None):
+    event_id = event_id or get_event_id(web)
+    if event_id is None:
+        return None
+    common_feed = parse_flashscore_feed(get_match_feed(f'dc_1_{event_id}'))
+    return next((row for row in common_feed if row.get('DA') == '3'), None)
 
 
 def process_full_matches(matches_, dt, web, path_html, overwrite=False): # noqa
@@ -872,19 +867,33 @@ def parse_team_section(matches, dt, team=None, team_name=None, liga=None, debug=
 
 def status_partido(web):
     try:
+        match_data = get_resultado_feed(web)
+        if match_data is not None:
+            if match_data.get('AW') == '1':
+                return 'finalizado'
+
         soup = BeautifulSoup(web.source(), 'html.parser')
-        resultado = soup.find('div', class_='duelParticipant__score').text.strip() # noqa
-        resultado = resultado.lower()
-        if 'anulado' in resultado:
+        status_el = soup.find('div', class_='detailScore__status')
+        if status_el is None:
+            status_el = soup.find('div', class_='duelParticipant__score')
+        resultado = status_el.get_text(' ', strip=True).lower() if status_el else ''
+        if not resultado:
+            title = soup.find('meta', attrs={'property': 'og:title'})
+            resultado = title.get('content', '').lower() if title else ''
+        if any(text in resultado for text in ('anulado', 'cancelled', 'canceled')):
             return 'anulado'
-        if 'finalizado' in resultado:
-            return 'finalizado'
-        elif 'aplazado' in resultado:
+        if any(text in resultado for text in ('aplazado', 'postponed', 'delayed')):
             return 'aplazado'
-        elif 'srf' in resultado or 'sólo resultado final' in resultado:
+        if any(text in resultado for text in ('sólo resultado final', 'solo resultado final', 'srf')):
             return 'srf'
-        else:
-            return ''
+        if any(text in resultado for text in (
+            'finalizado', 'finished', 'full time', 'after extra time',
+            'after penalties', 'walkover', 'retired', 'aet'
+        )):
+            return 'finalizado'
+        if status_el is None and re.search(r'\b\d+\s*[-:]\s*\d+\b', resultado):
+            return 'finalizado'
+        return ''
     except AttributeError:
         print("No se pudo encontrar el resultado. Revisa la estructura del HTML.") # noqa
         return ''
