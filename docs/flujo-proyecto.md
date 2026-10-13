@@ -6,6 +6,8 @@ Este repositorio automatiza la detección y análisis de partidos de fútbol de 
 
 La documentación describe lo que hace el código presente en el repositorio. Las credenciales y el contenido real de Google Sheets son externos; los criterios de liga y los modelos también pueden variar según su configuración.
 
+La evaluación de fuentes de datos y propuesta para un motor alternativo está en [investigacion-fuentes-datos.md](investigacion-fuentes-datos.md).
+
 En este repositorio no se encontró una integración con Google Docs ni un archivo `schema.md` previo. `send_docsbet.py` es un nombre histórico: en el flujo observado se comunica con Google Sheets mediante `gspread` y envía mensajes por Telegram. El esquema de datos que el código escribe en Sheets está documentado en [schema.md](schema.md).
 
 ## Ejecución diaria desde el Programador de tareas
