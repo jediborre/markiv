@@ -448,22 +448,10 @@ def gol(bot, id_partido, hora, minuto, pais, liga, home, away, home_score, away_
         except (ValueError, AttributeError):
             pass  # Si no se puede parsear el minuto, continuar sin botón
 
-        # Verificar con PULPO si el gol está en la ventana viable
-        apostable_msg = ''
-        en_ventana_pulpo = False
-        if max_minuto_pulpo is not None and minuto_num is not None and minuto_num != 'FT': # noqa
-            en_ventana_pulpo = minuto_num <= max_minuto_pulpo
-
-        if (total_goles_previo == 0 or en_ventana_pulpo) and pulpo_data:
-            if pulpo_data.get('bet_decision') == 'BET':
-                apostable_msg = f"\n✅ 🐙 APOSTAR {pulpo_data['bet_window']}"
-    else:
-        apostable_msg = ''  # No mostrar mensaje PULPO si es FT
-
     pulpo_tag = ' 🐙 PULPO' if es_pulpo else ''
     msj = [
         f'⚽ GOL {minuto} | {quien} | {pulpo_tag}',
-        f'{home} {home_score} - {away_score} {away}{apostable_msg}',
+        f'{home} {home_score} - {away_score} {away}',
     ]
     for chat_id in TELEGRAM_CHAT_ID:
         send_text(
@@ -509,26 +497,6 @@ def gol_anulado(bot, id_partido, hora, minuto, pais, liga, home, away, home_scor
     pulpo_tag = ' 🐙 PULPO' if es_pulpo else ''
     msj = [
         f'❌⚽ GOL ANULADO{pulpo_tag} {minuto} {quien} {home_score} - {away_score}',
-    ]
-    for chat_id in TELEGRAM_CHAT_ID:
-        send_text(
-            bot,
-            chat_id,
-            '\n'.join(msj),
-            markup
-        )
-
-
-def no_viable_pulpo(bot, id_partido, hora, minuto, pais, liga, home, away, max_minuto): # noqa
-    print(
-        f"{id_partido} {hora} | {minuto} | {pais} {liga} | "
-        f"{home} vs {away} ⏰ ❌NO APOSTAR 🐙 PULPO (max: {max_minuto}')"
-    )
-    markup = None
-    msj = [
-        '⏰ NO APOSTAR 🐙 PULPO',
-        f'{home} - {away}',
-        f'Minuto actual: {minuto} > Último minuto: {max_minuto}\'',
     ]
     for chat_id in TELEGRAM_CHAT_ID:
         send_text(
@@ -804,9 +772,10 @@ def seguimiento(path_file: str, filename: str, web, bot, bot_regs, matches, resu
                                             minuto_num = int(minuto_clean.split(":")[0])
                                             if minuto_num > max_min_pulpo and score < 1:
                                                 resultados[id_partido]['sigue'] = False
-                                                no_viable_pulpo(
-                                                    bot, id_partido, hora, minuto, pais, liga,
-                                                    home, away, max_min_pulpo
+                                                print(
+                                                    f'{id_partido} {hora} | {pais} {liga} | '
+                                                    f'{home} vs {away}: PULPO fuera de ventana '
+                                                    f'(minuto {minuto} > {max_min_pulpo})'
                                                 )
                                                 continue
                                         except (ValueError, AttributeError):
