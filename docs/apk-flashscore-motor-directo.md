@@ -177,29 +177,50 @@ Diccionario de campos derivado:
 ascenso). El valor después de la letra es el momio decimal, análogo al campo `decimal` del
 schema actual.
 
-### 4.3 Limitación crítica para este proyecto: no expone 1xBet
+### 4.3 Casas de apuestas: 1xBet SÍ está disponible (ID 417)
 
-Muestreo de **60 partidos** del calendario (46 con cuotas pobladas):
+La app de Flashscore expone un **catálogo de bookmakers por geografía**. El nombre de cada
+casa no viene en el feed `df_od` ni en la respuesta de `ope2`, pero el menú de mercados
+(`pobtm`, sección 4.4) lo revela por país, y el mismo **ID** funciona en `ope2`.
 
-| Casa | Ocurrencias |
+Barrido de `pobtm` con distintos `geoIpCode` (proyecto `X-GeoIP`):
+
+| Geografía | Bookmakers (id → nombre) |
 |---|---|
-| William Hill | 1908 |
-| Unibet | 761 |
-| 1xBet | **0** |
-| bet365 | **0** |
+| **MX** (proyecto) | **417 → 1xBet** |
+| AR / IN / CA / TR / JP / KG | 417 → 1xBet |
+| NG | 417 → 1xBet, 509 → Bet9ja, 849 → Betking |
+| ES | 417 → 1xBet, 16 → bet365, 406 → Sportium, 26 → Betway, 1121 → Retabet |
+| GB | 16 → bet365, 1281 → BetMGM.uk, 21 → Betfred, 26 → Betway, 28 → Ladbrokes, 74 → Skybet |
+| DE | 2 → bwin, 1 → Interwetten, 16 → bet365, 759 → Neobet, 194 → Oddset, 658 → Betano |
+| RO | 5 → Unibet, 592 → Superbet, 516 → Betano, 817 → MrBit, 965 → Getsbet |
+| US | 851 → BetMGM.us (en EE.UU. 1xBet no opera) |
 
-El feed `df_od` de la app solo publica las casas con las que LiveSport tiene acuerdo de
-mostrar cuotas en la app (William Hill/Unibet en esta muestra). **No incluye 1xBet.**
+**1xBet = bookmaker ID `417`.** El feed REST `df_od` (sección 4.2) solo publica un subconjunto
+promocionado por geografía (en la app para México quedan pocas casas visibles en `df_od`), por
+eso un muestreo ingenuo de `df_od` no lo muestra. Pero el GraphQL `ope2` con `bookmakerId=417`
+responde directamente.
 
-El criterio de aceptación actual del proyecto (`process_flashscore` → `parse.get_momios`)
-exige 1x2 completo de **1xBet** y Under 3.5 americano en `[-700, -450]`. Por tanto:
+**Verificación de 1xBet (ID 417) en 24 partidos próximos** (`_hash=ope2`, `betScope=FULL_TIME`,
+`X-GeoIP: MX`): los 24 devolvieron **1x2 completo y Over/Under con líneas 2.5/3.5/4.5**. Ejemplos:
 
-- **Sí** se puede sustituir por este motor: calendario, estado/marcador, incidentes, H2H,
-  historiales y estadísticas (todo lo que hoy consume Selenium).
-- `df_od` **no** sirve para las cuotas del filtro (sin 1xBet y con un subconjunto de casas).
-- **Sí** existe una vía de cuotas completa y verificada: el GraphQL dedicado
-  `global.ds.lsapp.eu/odds/pq_graphql?`, resuelto en la sección 4.4. Entrega 1x2 y Over/Under
-  con la línea 3.5 para 24 casas, pero **tampoco incluye 1xBet** (ver 4.4).
+```text
+Athletic Club vs Londrina   1x2: 1.9/3.23/4.29   U3.5: over=3.47 under=1.28
+Boca Juniors vs Vasco       1x2: 1.97/3.22/4.95  U3.5: over=5.55 under=1.08
+USA W vs Spain W            1x2: 2.86/3.44/2.15  U3.5: over=2.63 under=1.38
+Tapatio vs Tepatitlan       1x2: 1.46/5.01/5.51  U3.5: over=2.01 under=1.8
+```
+
+**Conclusión corregida:** la limitación anterior ("Flashscore no publica 1xBet") era **errónea**,
+causada por confundir el feed REST `df_od` (subconjunto promocionado) con la capa completa. Con
+el GraphQL `ope2` y `bookmakerId=417` **sí se obtienen las cuotas de 1xBet que exige el filtro
+del proyecto**, sin navegador. No todos los partidos la cotizan (depende de la liga/mercado), lo
+cual es normal y el filtro simplemente descarta los que no tienen 1x2 completo.
+
+> Nota de calibración: los precios Under 3.5 de 1xBet observados van de ~1.08 a ~1.9. Convertidos
+> a americano, la ventana `[-700, -450]` equivale a decimal ≈ `[1.14, 1.22]`, así que una parte
+> de los Under 3.5 quedará fuera de rango. Eso es comportamiento del criterio, no de la fuente;
+> conviene re-validar en modo sombra el rango frente a los precios reales de 1xBet por este canal.
 
 ### 4.4 GraphQL de cuotas: resuelto (funciona sin navegador)
 
@@ -281,18 +302,14 @@ Cada `opportunities[]` trae `handicap.value` (la línea) y los precios `over`/`u
 convierte a americano con `utils.decimal_american` y aplica el rango `[-700, -450]` sobre el
 Under 3.5. **Este feed cubre el 1x2 completo y el Under 3.5 sin abrir navegador.**
 
-**Casas de apuestas disponibles.** El sondeo de `ope2` (HOME_DRAW_AWAY/FULL_TIME) responde para
-**24 IDs** en 1..119:
-`1, 2, 3, 5, 14, 15, 19, 21, 23, 27, 28, 33, 38, 43, 44, 45, 46, 49, 53, 58, 60, 71, 74, 76`.
-Por cruce con el feed REST `df_od`: **5=Unibet**, **15=William Hill**, **16=bet365** (existe en
-el sistema aunque no cotice en todos los partidos). El nombre de cada casa no está en el APK
-(viene de config remota); el menú `pobtm` solo lista las casas promocionadas por geografía
-(EE.UU.: Kalshi `1221`, Polymarket.usa `1267`). **1xBet no aparece** en el registro de cuotas
-ni en el feed REST; Flashscore no publica 1xBet dentro de su capa de datos de la app.
+**Casas de apuestas disponibles.** El nombre de cada casa se resuelve con el menú `pobtm`
+(varía por `geoIpCode`); el mismo ID funciona en `ope2`. Ver detalle del catálogo y de **1xBet
+(ID 417)** en la sección 4.3. En resumen: `ope2` responde para **24 IDs** en 1..119 y el
+catálogo por geografía incluye 1xBet (`417`), bet365 (`16`), Unibet (`5`), William Hill (`15`),
+bwin (`2`), Betway (`26`), Ladbrokes (`28`), Skybet (`74`), entre otras.
 
 > El acceso a este endpoint es interno, no una API pública: respeta términos de uso, límites y
-> trata cualquier 401/403/418 como denegación. Verificar también que las casas cotizadas
-> incluyan la que exige el criterio de aceptación antes de migrar.
+> trata cualquier 401/403/418 como denegación.
 
 
 ## 5. Feed de H2H: una sola petición reemplaza el scrapeo por pestañas
@@ -318,7 +335,7 @@ del local, del visitante y enfrentamientos directos.
 | Historiales 5+5 y H2H | Pestañas H2H + "mostrar más" | `df_hh_1_<id>` (1 request) | Verificado |
 | Incidentes gol/penal/roja | `df_sui_1_` (feed viejo) | `df_sui_1_<id>` en `lsapp.eu` | Verificado |
 | Cuotas 1x2 / U3.5 / ambos / handicap | Pestañas de mercados | GraphQL `odds/pq_graphql?` `_hash=ope2` (`findPrematchOddsForBookmaker`) | **Verificado** |
-| Cuotas de **1xBet** específicamente | Pestañas de mercados (sitio) | No publicadas por Flashscore en su capa de datos (ni `df_od` ni GraphQL) | Sin fuente directa |
+| Cuotas de **1xBet** específicamente | Pestañas de mercados (sitio) | GraphQL `ope2` con `bookmakerId=417` (`X-GeoIP: MX`) | **Verificado** |
 | Búsqueda / autocomplete | — | `search-service.livesport.services/pq_graphql?` | No probado |
 
 ### Impacto estimado
@@ -328,10 +345,9 @@ del local, del visitante y enfrentamientos directos.
   ejecución; `seguimiento_flashscore` re-descarga el calendario completo (~275 KB) cada
   minuto para seguir unos pocos IDs.
 - Las cuotas prepartido (1x2 y Over/Under 3.5) **ya no requieren navegador**: el GraphQL
-  `ope2` las entrega estructuradas por casa. Lo que Flashscore **no** publica en esta capa es
-  1xBet, la casa que hoy exige el filtro; si el criterio se mantiene en 1xBet, esa casa sigue
-  necesitando la vía del sitio, o bien cambiar el filtro a una de las 24 casas disponibles
-  (p. ej. Unibet/William Hill) y re-calibrar el rango de aceptación.
+  `ope2` las entrega estructuradas por casa, incluida **1xBet (`bookmakerId=417`)** con
+  `X-GeoIP: MX`. No todos los partidos la cotizan (depende de liga/mercado), pero los que sí
+  ofrecen 1x2 y línea 3.5 por este canal.
 
 ## 7. Riesgos y límites
 
@@ -349,21 +365,44 @@ del local, del visitante y enfrentamientos directos.
   filtros actuales que comparan textos ("amistoso", "cup", "red card", ...) deben revisarse
   si se cambia de host, o fijarse idioma si el endpoint lo permite.
 
-## 8. Siguiente paso sugerido
+## 8. Conclusión y siguiente paso
 
-1. Bajo modo sombra (sin escritura en Sheets ni Telegram), migrar calendario, estado y H2H al
-   host `global.lsapp.eu` manteniendo el schema legado como adaptador, y comparar campo a
-   campo contra la salida actual (mismos IDs, horas, estados, 5+5 y >3 H2H).
-2. Implementar un adaptador de cuotas prematch sobre el GraphQL `ope2`
-   (`findPrematchOddsForBookmaker`): para cada candidato pedir `HOME_DRAW_AWAY` y `OVER_UNDER`
-   (`betScope=FULL_TIME`) por cada casa cotizada, mapear `decimal` y aplicar el filtro
-   Under 3.5 en `[-700, -450]`. Esto retira Selenium de las pestañas de mercados.
-3. **Decidir el criterio de la casa**: Flashscore no publica 1xBet en su capa de datos (ni en
-   `df_od` ni en el GraphQL). Hay dos caminos:
-   - Cambiar el filtro a una casa disponible (Unibet `5`, William Hill `15`, bet365 `16` u otra
-     de las 24) re-calibrando el rango de aceptación; o
-   - Mantener 1xBet y conservar Selenium únicamente para esa casa, tratándola como excepción.
-   Antes de decidir, medir en modo sombra la paridad de precios y la frecuencia con que cada
-   casa cotiza el Under 3.5 dentro del rango.
-4. Mantener como fuente de comparación y de respaldo el flujo actual hasta acreditar paridad
-   en inclusión/exclusión, IDs, estados y decidedor de picks.
+**Sí se puede quitar el web scraping por completo**, incluido el navegador para las cuotas de
+1xBet. Todas las fases del flujo tienen fuente directa verificada:
+
+| Fase | Fuente directa | Estado |
+|---|---|---|
+| Calendario/descubrimiento | `f_1_<off>_<tz>_cs_1_0` | Verificado |
+| Estado/marcador | `dc_1_<id>` | Verificado |
+| Historiales 5+5 y H2H | `df_hh_1_<id>` | Verificado |
+| Incidentes (goles/minuto, rojas) | `df_sui_1_<id>` | Verificado |
+| Cuotas 1x2 y Over/Under 3.5 (incl. **1xBet `417**`) | GraphQL `ope2` | Verificado |
+
+Con ello se elimina toda la infraestructura de navegador: `web.py`, arranque de Chrome (~5 s por
+ejecución), petición de proxies públicos y el re-scrapeo del calendario completo cada minuto en
+el seguimiento.
+
+### Plan de migración en modo sombra
+
+1. **Adaptador de feeds** (`feeds_flashscore.py`) que exponga las funciones del dominio
+   (`get_fixtures`, `get_status`, `get_h2h`, `get_incidents`, `get_odds`) sobre los endpoints
+   verificados, dejando el schema legado JSON como adaptador de salida.
+2. **Calendario + H2H + estado**: migrar `scrape_flashcore.py` y `parse.get_team_matches` al
+   feed directo; comparar campo a campo (mismos IDs, horas, estados, 5+5 y >3 H2H).
+3. **Cuotas**: adaptar `get_momios` a `ope2` con `bookmakerId=417` (`X-GeoIP: MX`), pidiendo
+   `HOME_DRAW_AWAY` y `OVER_UNDER` (`betScope=FULL_TIME`) y aplicando el filtro Under 3.5.
+   Re-validar la ventana `[-700, -450]` frente a los precios reales de 1xBet por este canal
+   (ver nota de calibración en 4.3).
+4. **Seguimiento live**: sustituir la re-descarga del calendario por `dc_1_<id>` (estado/marcador)
+   + `df_sui_1_<id>` (goles con minuto, rojas), consultando solo los IDs seguidos.
+5. **Resultado**: `resultado_batch.py` ya usa feeds; alinear `resultado_flashscore.py`.
+6. **Modo sombra**: correr el flujo nuevo en paralelo sin escribir en Sheets ni mandar a
+   Telegram, y medir paridad en inclusión/exclusión, IDs, estados, orden de goles/rojas y el
+   decidedor de picks antes de conmutar.
+7. Mantener el flujo actual como respaldo hasta acreditar paridad; después retirar Selenium.
+
+### Riesgos
+
+- Endpoints internos, no API pública: estabilidad no garantizada; la config real la sirve
+  Firebase Remote Config en runtime. Tratar 401/403/418 como denegación.
+- Revisar términos de uso de LiveSport/Flashscore antes de cualquier uso productivo.
