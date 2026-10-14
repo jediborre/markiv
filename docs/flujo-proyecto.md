@@ -6,9 +6,8 @@ Este repositorio automatiza la detección y análisis de partidos de fútbol de 
 
 La documentación describe lo que hace el código presente en el repositorio. Las credenciales y el contenido real de Google Sheets son externos; los criterios de liga y los modelos también pueden variar según su configuración.
 
-La evaluación de fuentes de datos y propuesta para un motor alternativo está en [investigacion-fuentes-datos.md](investigacion-fuentes-datos.md).
+La investigacion de fuentes de datos y el informe de descompilacion del APK de Flashscore se movieron al repositorio `ultron_v2` (PoC sin web scraping), en `ultron_v2/docs/`.
 
-El análisis del APK oficial de Flashscore (paquete `eu.livesport.FlashScore_com`), su descompilación y los endpoints directos verificados (feeds `/x/feed/` y GraphQL) para sustituir el scraping están en [apk-flashscore-motor-directo.md](apk-flashscore-motor-directo.md). Conclusión principal: **todas** las fases —calendario, estado, H2H, incidentes y cuotas prepartido (1x2 y Over/Under 3.5)— tienen fuente directa verificada sin Selenium. El GraphQL de cuotas `odds/pq_graphql?` (`_hash=ope2`) está resuelto e incluye 1xBet (`bookmakerId=417`, `X-GeoIP: MX`). Se puede migrar el flujo completo a feeds/GraphQL, dejando el scraping solo como respaldo hasta acreditar paridad en modo sombra.
 
 En este repositorio no se encontró una integración con Google Docs ni un archivo `schema.md` previo. `send_docsbet.py` es un nombre histórico: en el flujo observado se comunica con Google Sheets mediante `gspread` y envía mensajes por Telegram. El esquema de datos que el código escribe en Sheets está documentado en [schema.md](schema.md).
 
