@@ -22,3 +22,6 @@ chromedriver.exe
 /modelos_prepartido
 /modelo_19/test_decisions.csv
 /pulpo35
+
+# Espacio de trabajo: caches de ejecucion y pruebas (no versionar)
+/tmp/
